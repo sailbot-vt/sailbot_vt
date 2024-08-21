@@ -16,11 +16,13 @@ pid_data_file = None
 telemetry_file = None
 telemetry_start_time = time.time()
 
+MAP_BOUNDS = [[-200, -200], [200, 200]]
 # MAP_BOUNDS = [[-25, -50], [100, 75]]
-MAP_BOUNDS = [[-300, -300], [300, 300]]
-# 75, -75 is usually good
+# MAP_BOUNDS = [[-300, -300], [300, 300]]
 # MAP_BOUNDS = [[-30, 0], [75, 30]]
 #BUOYS =  [[42.845474, -70.977055], [42.846278, -70.976928], [42.8446333, -70.9771833]]
+
+
 BUOYS = []
 # [
 #     # [42.8449667, -70.9772667],
@@ -64,16 +66,17 @@ def show_terminal_cursor():
         sys.stdout.flush()
 
 
+
 def get_decision_zone_size(tack_distance, no_sail_zone_size, distance_to_waypoint):
     inner = (tack_distance/distance_to_waypoint) * np.sin(np.deg2rad(no_sail_zone_size/2))
     inner = np.clip(inner, -1, 1)
-    return np.clip(np.rad2deg(np.arcsin(inner)), 0, no_sail_zone_size/2)
+    return np.clip(np.rad2deg(np.arcsin(inner)), 0, no_sail_zone_size)
 
 def get_distance_to_waypoint(cur_position, next_waypoint):
     if next_waypoint:
-        return geopy.distance.geodesic(next_waypoint, cur_position)
+        return geopy.distance.geodesic(next_waypoint, cur_position).m
     else:
-        return geopy.distance.Distance(0.)
+        return geopy.distance.Distance(0.).m
     
 
 
@@ -96,7 +99,6 @@ def request_boat_status() -> dict:
         current_route as a list of latitude, longitude tuples
     """
     boat_status = requests.get(TELEMETRY_SERVER_URL + "boat_status/get").json()
-    # print(f"boat_status: {boat_status}")
     return boat_status
 
 
@@ -154,6 +156,7 @@ def update_telemetry_text(boat_status: dict):
     
     real_life_date_time = datetime.datetime.now()
     real_life_date_time_str = real_life_date_time.strftime('%m-%d-%Y %H:%M:%S.{:02.0f}').format(real_life_date_time.microsecond/10000.0)
+    
     # Construct String to Display to Command Line
     string_to_show = ""
     string_to_show += f"Time Today: {real_life_date_time_str}                                                                                                  \n"
@@ -169,7 +172,7 @@ def update_telemetry_text(boat_status: dict):
     string_to_show += f"Target Sail Angle: {boat_status['sail_angle']:.2f}{DEGREE_SIGN}                                                                          \n"
     string_to_show += f"Target Rudder Angle: {boat_status['rudder_angle']:.2f}{DEGREE_SIGN}                                                                      \n"
     string_to_show += f"Current Waypoint Index: {current_waypoint_index}                                                                                       \n"
-    string_to_show += f"Distance to next waypoint: {distance_to_next_waypoint.m:.2f} meters                                                                        \n"
+    string_to_show += f"Distance to next waypoint: {distance_to_next_waypoint:.2f} meters                                                                        \n"
     string_to_show += "                                                                                                                                        \n"
     
     string_to_show += f"Parameters:                                                                                                                            \n"
@@ -208,11 +211,11 @@ def update_telemetry_gui(renderer: CV2DRenderer, telemetry: dict):
     absolute_apparent_wind_angle = telemetry["apparent_wind_angle"] + telemetry["heading"]
     
         
-    # tack_distance = telemetry["parameters"]["tack_distance"]
-    # no_sail_zone_size = telemetry["no_sail_zone_size"]
-    # cur_waypoint = telemetry["current_route"][telemetry["current_waypoint_index"]]
-    # distance_to_next_waypoint = get_distance_to_waypoint(telemetry["position"], cur_waypoint)
-    # decision_zone_size = get_decision_zone_size(tack_distance, no_sail_zone_size, distance_to_next_waypoint)
+    tack_distance = telemetry["parameters"]["tack_distance"]
+    no_sail_zone_size = telemetry["parameters"]["no_sail_zone_size"]
+    cur_waypoint = telemetry["current_route"][telemetry["current_waypoint_index"]]
+    distance_to_next_waypoint = get_distance_to_waypoint(telemetry["position"], cur_waypoint)
+    decision_zone_size = get_decision_zone_size(tack_distance, no_sail_zone_size, distance_to_next_waypoint)
     
     # TWS = telemetry["true_wind_speed"]
     # TWA = telemetry["true_wind_angle"]
@@ -233,13 +236,13 @@ def update_telemetry_gui(renderer: CV2DRenderer, telemetry: dict):
     gui_state["dt_theta_rudder"] = np.array([0, 0, 0])
     gui_state["theta_sail"] = np.array([sail_dir_fix * np.deg2rad(telemetry["sail_angle"]), 0, 0])
     gui_state["dt_theta_sail"] = np.array([0, 0, 0])
-    gui_state["apparent_wind"] = np.array([telemetry["true_wind_speed"] * np.cos(np.deg2rad(absolute_apparent_wind_angle)), telemetry["apparent_wind_speed"] * np.sin(np.deg2rad(absolute_apparent_wind_angle))])
-    gui_state["wind"] = np.array([telemetry["true_wind_speed"] * np.cos(np.deg2rad(absolute_true_wind_angle)), telemetry["true_wind_speed"] * np.sin(np.deg2rad(absolute_true_wind_angle))])
+    gui_state["apparent_wind"] = np.array([telemetry["apparent_wind_speed"] * np.cos(np.deg2rad(absolute_apparent_wind_angle)), telemetry["apparent_wind_speed"] * np.sin(np.deg2rad(absolute_apparent_wind_angle))])
+    gui_state["true_wind"] = np.array([telemetry["true_wind_speed"] * np.cos(np.deg2rad(absolute_true_wind_angle)), telemetry["true_wind_speed"] * np.sin(np.deg2rad(absolute_true_wind_angle))])
     gui_state["water"] = np.array([0, 0])
     gui_state["buoys"] = np.array(BUOYS)
-    gui_state["cur_waypoint"] = telemetry["current_waypoint_index"]
-    gui_state["no_go_zone_size"] = 120
-    gui_state["decision_zone_size"] = 40
+    gui_state["cur_waypoint_index"] = telemetry["current_waypoint_index"]
+    gui_state["no_go_zone_size"] = 100
+    gui_state["decision_zone_size"] = decision_zone_size
     
     waypoints = []
     for waypoint in telemetry["current_route"]:
@@ -253,10 +256,7 @@ def update_telemetry_gui(renderer: CV2DRenderer, telemetry: dict):
     
     buoys = []
     for buoy in BUOYS:
-        # print(buoy[0], buoy[1])
-        # print(telemetry["position"][0], telemetry["position"][1])
         local_y, local_x, _ = navpy.lla2ned(buoy[0], buoy[1], 0, telemetry["position"][0], telemetry["position"][1], 0)
-        # print(local_x, local_y)
         local_x = np.clip(local_x, MAP_BOUNDS[0][0], MAP_BOUNDS[1][0])
         local_y = np.clip(local_y, MAP_BOUNDS[0][1], MAP_BOUNDS[1][1])
         
@@ -290,7 +290,7 @@ def main():
     
     clear_screen()
     hide_terminal_cursor()
-    telemetry = request_boat_status()
+    boat_status = request_boat_status()
     
     map_bounds = np.array(MAP_BOUNDS)
     renderer = CV2DRenderer()
@@ -309,9 +309,8 @@ def main():
         update_telemetry_text(boat_status)
         update_telemetry_gui(renderer, boat_status)
         update_heading_pid_graph(boat_status)
-        
-        
-        time.sleep(0.05)
+         
+        # time.sleep(0.05)
     
     
 if __name__ == "__main__": 

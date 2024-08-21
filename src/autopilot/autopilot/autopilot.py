@@ -1,7 +1,7 @@
-import geopy.distance
-
 from .discrete_pid import Discrete_PID
 from .utils import *
+from rclpy.impl.rcutils_logger import RcutilsLogger
+
 
 class SailbotAutopilot:
     """
@@ -14,7 +14,7 @@ class SailbotAutopilot:
     This class is used by the autopilot_node to control the boat through a ros topic
     """
     
-    def __init__(self, parameters: dict):
+    def __init__(self, parameters: dict, logger: RcutilsLogger):
         """
         parameters is a dictionary that contains information from the config/parameters.yaml file.
         For more information on specific parameters you are allow to use, please see that file
@@ -26,6 +26,7 @@ class SailbotAutopilot:
         )
         
         self.parameters = parameters
+        self.logger = logger
         self.waypoints: list[Position] = None
         self.cur_waypoint_index = 0
         
@@ -35,7 +36,7 @@ class SailbotAutopilot:
    
    
     def reset(self): 
-        self.__init__(parameters=self.parameters)
+        self.__init__(parameters=self.parameters, logger=self.logger)
     
             
 
@@ -107,10 +108,10 @@ class SailbotAutopilot:
         
         inner = (tack_distance/distance_to_waypoint) * np.sin(np.deg2rad(no_sail_zone_size/2))
         inner = np.clip(inner, -1, 1)
-        return np.clip(np.rad2deg(np.arcsin(inner)), 0, no_sail_zone_size/2)
+        return np.clip(np.rad2deg(np.arcsin(inner)), 0, no_sail_zone_size)
         
         
-    def apply_decision_zone_tacking_logic(self, heading, desired_heading, true_wind_angle, distance_to_waypoint):
+    def apply_decision_zone_tacking_logic(self, heading, desired_heading, true_wind_angle, apparent_wind_angle, distance_to_waypoint):
         """
         If you don't know how this works (you don't) feel free to ask Chris about this and he can explain it to you.
         I am sorry to anyone who has to try to understand how this algorithm works. I was in your shoes once...
@@ -121,18 +122,26 @@ class SailbotAutopilot:
         """
         
         global_true_wind_angle = (heading + true_wind_angle) % 360
-        global_true_up_wind_angle = (global_true_wind_angle + 180) % 360
+        global_true_up_wind_angle = (global_true_wind_angle + 180) % 360   # goes in the opposite direction of the global true wind angle
+        
+        global_apparent_wind_angle = (heading + apparent_wind_angle) % 360
+        global_apparent_up_wind_angle = (global_apparent_wind_angle + 180) % 360   # goes in the opposite direction of the global apparent wind angle
+
 
         no_sail_zone_bounds = (
-            (global_true_up_wind_angle - self.parameters['no_sail_zone_size']/2) % 360, # lower
-            (global_true_up_wind_angle + self.parameters['no_sail_zone_size']/2) % 360  # upper
+            (global_apparent_up_wind_angle - self.parameters['no_sail_zone_size']/2) % 360, # lower
+            (global_apparent_up_wind_angle + self.parameters['no_sail_zone_size']/2) % 360  # upper
         )
 
         decision_zone_size = self.get_decision_zone_size(distance_to_waypoint)
         decision_zone_bounds = (
-            (global_true_up_wind_angle - decision_zone_size) % 360, # lower
-            (global_true_up_wind_angle + decision_zone_size) % 360  # upper
+            (global_true_up_wind_angle - decision_zone_size/2) % 360, # lower
+            (global_true_up_wind_angle + decision_zone_size/2) % 360  # upper
         )
+        
+        print(f"no go zone bounds: {no_sail_zone_bounds}")
+        print(f"decision zone bounds: {decision_zone_bounds}")
+        print(f"desired heading: {desired_heading}")
     
     
         # If desired heading it is not in any of the zones
@@ -224,7 +233,10 @@ class SailbotAutopilot:
         
         if self.current_state == States.NORMAL:
             desired_heading = get_bearing(current_pos=cur_position, destination_pos=desired_pos)
-            desired_heading, should_tack1 = self.apply_decision_zone_tacking_logic(heading, desired_heading, true_wind_angle, distance_to_desired_position)
+
+            desired_heading, should_tack1 = self.apply_decision_zone_tacking_logic(heading, desired_heading, true_wind_angle, apparent_wind_angle, distance_to_desired_position)
+            
+            print()
             
             global_true_up_wind_angle = (180 + global_true_wind_angle) % 360
             should_tack2 = is_angle_between_boundaries(global_true_up_wind_angle, heading, desired_heading)

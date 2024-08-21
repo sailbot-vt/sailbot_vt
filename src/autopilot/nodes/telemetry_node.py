@@ -6,7 +6,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from std_msgs.msg import Float32, Bool, String, Int32
-from geometry_msgs.msg import Vector3
+from geometry_msgs.msg import Vector3, Twist
 from sensor_msgs.msg import NavSatFix
 from sailbot_msgs.msg import WaypointList 
 
@@ -27,7 +27,7 @@ class TelemetryNode(Node):
         super().__init__("telemetry")
 
         # NOTE: All units are in standard SI units and angle is measured in degrees
-        self.create_timer(0.2, self.update_everything)
+        self.create_timer(0.01, self.update_everything)
 
         sensor_qos_profile = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
@@ -47,7 +47,7 @@ class TelemetryNode(Node):
         self.autopilot_mode_listener = self.create_subscription(msg_type=String, topic="/autopilot_mode", callback=self.autopilot_mode_callback, qos_profile=sensor_qos_profile)
         
         self.position_listener = self.create_subscription(msg_type=NavSatFix, topic="/position", callback=self.position_callback, qos_profile=sensor_qos_profile)
-        self.velocity_listener = self.create_subscription(msg_type=Vector3, topic="/velocity", callback=self.velocity_callback, qos_profile=sensor_qos_profile)
+        self.velocity_listener = self.create_subscription(msg_type=Twist, topic="/velocity", callback=self.velocity_callback, qos_profile=sensor_qos_profile)
         self.heading_listener = self.create_subscription(msg_type=Float32, topic="/heading", callback=self.heading_callback, qos_profile=sensor_qos_profile)
         self.apparent_wind_vector_listener = self.create_subscription(msg_type=Vector3, topic="/apparent_wind_vector", callback=self.apparent_wind_vector_callback, qos_profile=sensor_qos_profile)
         
@@ -109,9 +109,9 @@ class TelemetryNode(Node):
     def position_callback(self, position: NavSatFix):
         self.position = position
 
-    def velocity_callback(self, velocity_vector: Vector3):
-        self.velocity_vector = np.array([velocity_vector.x, velocity_vector.y])
-        self.speed = np.sqrt(velocity_vector.x**2 + velocity_vector.y**2)
+    def velocity_callback(self, velocity_vector: Twist):
+        self.velocity_vector = np.array([velocity_vector.linear.x, velocity_vector.linear.y])
+        self.speed = np.sqrt(velocity_vector.linear.x**2 + velocity_vector.linear.y**2)
 
     def heading_callback(self, heading: Float32):
         self.heading = heading.data
@@ -151,8 +151,12 @@ class TelemetryNode(Node):
             different entries are denoted as: speed; heading; apparent_wind_speed
         """
         
+        print(f"boat velocity: {self.velocity_vector}")
+        print(f"AW vector: {self.apparent_wind_vector}")
         true_wind_vector = self.apparent_wind_vector + self.velocity_vector
+        print(f"TW vector: {true_wind_vector}")
         self.true_wind_speed, self.true_wind_angle = cartesian_vector_to_polar(true_wind_vector[0], true_wind_vector[1])
+        # print(f"wind angle: {(self.true_wind_angle + self.heading) % 360}")
         
         telemetry_dict = {
             "position": (self.position.latitude, self.position.longitude), 
@@ -182,7 +186,7 @@ class TelemetryNode(Node):
             print(e)
             time.sleep(1)
             print("retrying connection")
-            return self.get_raw_response()
+            return self.get_raw_response(route)
     
     def update_waypoints_from_telemetry(self):
         waypoints_list = self.get_raw_response("/waypoints/get")

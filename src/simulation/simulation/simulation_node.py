@@ -30,7 +30,9 @@ sim_time = 0
 #     return np.array([np.cos(WIND_DIRECTION), np.sin(WIND_DIRECTION)]) * WIND_SPEED * random.gauss(sigma=0.7)
 def generate_wind(_): 
     # wind_direction = 0.4 * np.sin(0 * np.deg2rad(sim_time)) + WIND_DIRECTION
-    return np.array([np.cos(WIND_DIRECTION) + random.random()*0.2, np.sin(WIND_DIRECTION) + random.random()*0.2]) * WIND_SPEED
+    # return np.array([np.cos(WIND_DIRECTION) + random.random()*0.2, np.sin(WIND_DIRECTION) + random.random()*0.2]) * WIND_SPEED
+    return np.array([np.cos(WIND_DIRECTION) + random.random()*0., np.sin(WIND_DIRECTION) + random.random()*0.]) * WIND_SPEED
+
 
 def up_wind_generator(_):
     if sim_time >= 150:
@@ -150,6 +152,7 @@ class SimNode(Node):
             boat_linear_velocity_vector = Vector3(x=obs["dt_p_boat"][0].item(), y=obs["dt_p_boat"][1].item(), z=obs["dt_p_boat"][2].item())
             
         boat_velocity = Twist(linear=boat_linear_velocity_vector)
+        print(f"boat velocity: {(boat_linear_velocity_vector.x, boat_linear_velocity_vector.y)}")
         
         
         roll, pitch, yaw = obs["theta_boat"]
@@ -167,9 +170,13 @@ class SimNode(Node):
         # Apparent Wind = True Wind + Velocity
         # Global refers to being measured ccw from true east and not being measured from atop the boat
         true_wind_speed, global_wind_angle = self.cartesian_vector_to_polar(obs["wind"][0].item(), obs["wind"][1].item())
+
         true_wind_angle = global_wind_angle - heading_angle.data
         self.true_wind_vector = Vector3(x= (true_wind_speed * np.cos(np.deg2rad(true_wind_angle))), y= (true_wind_speed * np.sin(np.deg2rad(true_wind_angle))))
         self.apparent_wind_vector = Vector3(x= (self.true_wind_vector.x - boat_linear_velocity_vector.x), y= (self.true_wind_vector.y - boat_linear_velocity_vector.y)) 
+        
+        print(f'TW vector: {self.true_wind_vector}')
+        print(f"AW vector: {self.apparent_wind_vector}")
         
         self.position_publisher.publish(gps_position)
         self.velocity_publisher.publish(boat_velocity)

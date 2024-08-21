@@ -17,7 +17,7 @@ from geometry_msgs.msg import Vector3, Twist
 from sensor_msgs.msg import NavSatFix
 
 import json, yaml
-import os
+import os, time
 
 # from ament_index_python.packages import get_package_share_directory
 
@@ -34,15 +34,13 @@ class AutopilotNode(Node):
     """
     
     def __init__(self):
-    
         super().__init__("autopilot")
-
 
         cur_folder_path = os.path.dirname(os.path.realpath(__file__))
         with open(cur_folder_path + "/default_parameters.yaml", 'r') as stream:
             self.parameters: dict = yaml.safe_load(stream)
             
-        self.sailbot_autopilot = SailbotAutopilot(self.parameters)
+        self.sailbot_autopilot = SailbotAutopilot(parameters=self.parameters, logger=self.get_logger())
 
 
         # Initialize ros2 subscriptions, publishers, and timers
@@ -96,8 +94,7 @@ class AutopilotNode(Node):
         
         self.toggle_b = 0
         self.toggle_c = 0
-        self.toggle_f = 0
-        
+        self.toggle_f = 0        
         
         
         
@@ -210,8 +207,6 @@ class AutopilotNode(Node):
     def apparent_wind_vector_callback(self, apparent_wind_vector: Vector3):
         self.apparent_wind_vector = np.array([apparent_wind_vector.x, apparent_wind_vector.y])
         _, self.apparent_wind_angle = cartesian_vector_to_polar(apparent_wind_vector.x, apparent_wind_vector.y)
-
-
 
 
 

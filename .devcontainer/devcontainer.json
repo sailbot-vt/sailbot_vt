@@ -32,12 +32,9 @@
     },
     "runArgs": [
         "--net=host",
-        "-e",
-        "DISPLAY=${env:DISPLAY}",
-        "-v",
-        "/var/run/docker.sock:/var/run/docker.sock",
-        "-v",
-        "${localWorkspaceFolder}/.devcontainer/docker_dev_environment_setup.sh:/home/ws/docker_dev_environment_setup.sh"
+        "-e", "DISPLAY=${env:DISPLAY}",
+        "-v", "/var/run/docker.sock:/var/run/docker.sock",
+        "-v", "${localWorkspaceFolder}/.devcontainer/docker_dev_environment_setup.sh:/home/ws/docker_dev_environment_setup.sh"
     ],
     "mounts": [
         "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
@@ -90,6 +87,11 @@
 //     ]
 // }
 
+
+
+
+
+// This is the version where we can use docker more freely inside the container
 // {
 //     "name": "ROS 2 Development Container",
 //     "privileged": true,
