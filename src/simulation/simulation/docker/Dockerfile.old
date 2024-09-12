@@ -1,0 +1,42 @@
+FROM davidmichelman/usv_sim_lsa:3
+
+SHELL ["/bin/bash", "-c"]
+# RUN sudo apt update
+# # RUN sudo apt clean
+# RUN sudo apt upgrade -y
+# RUN cd ~/catkin_ws/ \
+RUN source /opt/ros/kinetic/setup.bash \
+    && source ~/catkin_ws/install_isolated/setup.bash  \
+    && roslaunch usv_sim sailboat_scenario3.launch parse:=true
+
+RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py \
+    && python get-pip.py \
+    && rm get-pip.py \
+    && python -m pip install pyzmq msgpack
+
+RUN sudo mkdir /root/.ssh
+
+COPY id_rsa.pub /root/.ssh/authorized_keys
+
+RUN sudo chmod 700 /root/.ssh && sudo chmod 600 /root/.ssh/authorized_keys
+
+RUN sudo apt-get install openssh-server -y
+
+# ARG max_step_size=0.001
+# ARG physics_type=ode
+
+# RUN cd ~/catkin_ws/install_isolated/share/usv_sim \
+    # && sed -i "s/MAX_STEP_SIZE/${max_step_size}/g" world/empty.world \
+    # && sed -i "s/PHYSICS_TYPE/${physics_type}/g" world/empty.world \
+    # && cp config/sailboat.${max_step_size}.yaml config/sailboat.yaml
+
+WORKDIR /root/catkin_ws/
+
+RUN echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc \
+    && echo "service ssh start" >> ~/.bashrc \
+    && echo "source ~/catkin_ws/install_isolated/setup.bash" >> ~/.bashrc
+
+CMD source /opt/ros/kinetic/setup.bash \
+    && source ~/catkin_ws/install_isolated/setup.bash \
+    && sudo service ssh start \
+    && roslaunch usv_sim sailboat_scenario3.launch parse:=false

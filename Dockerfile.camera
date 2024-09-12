@@ -1,0 +1,39 @@
+# Taken from these places: 
+#   https://github.com/IntelRealSense/realsense-ros?tab=readme-ov-file#installation
+
+# Run this command to build the docker image: 
+#   sudo docker build -f Dockerfile.camera .
+
+# should only be build on the jetson
+
+
+ARG ROS_DISTRO=humble
+
+FROM ros:${ROS_DISTRO} as base
+
+ENV ROS_DISTRO=${ROS_DISTRO}
+
+RUN sudo apt update && sudo apt install python3-pip -y
+
+# https://stackoverflow.com/questions/63472872/building-from-dockerfile-and-getting-the-following-signatures-couldnt-be-verif
+# RUN sudo apt update && sudo apt install curl
+# RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+RUN sudo apt install software-properties-common -y && sudo apt update
+
+RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
+
+RUN sudo add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main" -u
+
+RUN sudo apt update -y && sudo apt upgrade -y
+
+RUN sudo apt install ros-humble-librealsense2* -y
+
+RUN sudo apt install ros-humble-realsense2-* -y
+
+RUN sudo apt update -y && sudo apt upgrade -y
+
+# RUN source /opt/ros/${ROS_DISTRO}/setup.bash \ 
+#     && source install/setup.bash \
+#     && ros2 run realsense2_camera realsense2_camera_node
+# RUN sudo apt-get install librealsense2-utils -y && sudo apt-get install librealsense2-dev -y

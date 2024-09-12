@@ -1,0 +1,14 @@
+build
+install
+log
+src/object_detection/object_detection/datasets
+output
+ground_station/telemetry_log.txt
+src/object_detection/object_detection/weights/**.pt
+src/object_detection
+src/object_detection/object_detection/
+src/object_detection/
+src/object_detection/object_detection/weights/**.pt
+**.pt
+**.png
+**.jpg
