@@ -7,12 +7,14 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from std_msgs.msg import Float32, Bool, String, Int32
 from geometry_msgs.msg import Vector3, Twist
-from sensor_msgs.msg import NavSatFix
+from sensor_msgs.msg import NavSatFix, Image
 from sailbot_msgs.msg import WaypointList 
-
+from cv_bridge import CvBridge
+import base64
 
 import numpy as np
 import array, time, json, requests
+import cv2
 
 TELEMETRY_SERVER_URL = 'http://3.141.26.89:8080/'
 
@@ -35,6 +37,8 @@ class TelemetryNode(Node):
             depth=1
         )
         
+        self.cv_bridge  = CvBridge()
+        
         # self.autopilot_parameter_listener = self.create_subscription(String, '/autopilot_parameters', callback=self.autopilot_parameters_callback, qos_profile=10)
         self.autopilot_parameters_publisher = self.create_publisher(msg_type=String, topic='/autopilot_parameters', qos_profile=10)
         
@@ -50,6 +54,7 @@ class TelemetryNode(Node):
         self.velocity_listener = self.create_subscription(msg_type=Twist, topic="/velocity", callback=self.velocity_callback, qos_profile=sensor_qos_profile)
         self.heading_listener = self.create_subscription(msg_type=Float32, topic="/heading", callback=self.heading_callback, qos_profile=sensor_qos_profile)
         self.apparent_wind_vector_listener = self.create_subscription(msg_type=Vector3, topic="/apparent_wind_vector", callback=self.apparent_wind_vector_callback, qos_profile=sensor_qos_profile)
+        self.camera_rgb_image_listener = self.create_subscription(msg_type=Image, topic="/camera/camera/color/image_raw", callback=self.camera_rgb_image_callback, qos_profile=sensor_qos_profile)
         
         self.sail_angle_listener = self.create_subscription(msg_type=Float32, topic="/actions/sail_angle", callback=self.sail_angle_callback, qos_profile=sensor_qos_profile)
         self.rudder_angle_listener = self.create_subscription(msg_type=Float32, topic="/actions/rudder_angle", callback=self.rudder_angle_callback, qos_profile=sensor_qos_profile)
@@ -72,6 +77,8 @@ class TelemetryNode(Node):
         self.apparent_wind_vector = np.array([0., 0.])
         self.apparent_wind_speed = 0.
         self.apparent_wind_angle = 0.
+        
+        self.base64_encoded_current_rgb_image = None
 
         self.sail_angle = 0.
         self.rudder_angle = 0.
@@ -81,19 +88,7 @@ class TelemetryNode(Node):
     
     def desired_heading_callback(self, desired_heading: Float32):
         self.desired_heading = desired_heading.data
-    
-    # def autopilot_parameters_callback(self, autopilot_parameters: String):
-    #     new_parameters_json: dict = json.loads(autopilot_parameters.data)
-    #     for new_parameter_name, new_parameter_value in new_parameters_json.items():
-    #         if new_parameter_name not in self.parameters.keys():
-    #             print("WARNING: Attempted to set an autopilot parameter that the autopilot doesn't know")
-    #             print("If you would like to make a new autopilot parameter, please edit parameters.yaml")
-    #             continue
-            
-    #         self.parameters[new_parameter_name] = new_parameter_value
-    #     print(self.autopilot_parameters)
-        
-        
+
     def waypoints_list_callback(self, waypointsList: WaypointList):
         self.waypoints_list = waypointsList.waypoints
     
@@ -121,7 +116,24 @@ class TelemetryNode(Node):
 
         self.apparent_wind_speed, self.apparent_wind_angle = cartesian_vector_to_polar(apparent_wind_vector.x, apparent_wind_vector.y)
         
+    def camera_rgb_image_callback(self, camera_rgb_image: Image):
+        """refer to this stack overflow post: https://stackoverflow.com/questions/40928205/python-opencv-image-to-byte-string-for-json-transfer"""
+        rgb_image_cv = self.cv_bridge.imgmsg_to_cv2(camera_rgb_image, "rgb8")
+        rgb_image_cv = rgb_image_cv[80:1200,40:680] # crop the image to 640,640
+        retval, buffer = cv2.imencode(".jpg", rgb_image_cv)
+        
+        # swap red and blue channels for correction
+        red = rgb_image_cv[:,:,2].copy()
+        blue = rgb_image_cv[:,:,0].copy()
+        rgb_image_cv[:,:,0] = red
+        rgb_image_cv[:,:,2] = blue
+        
+        cv2.imwrite('test.jpg', rgb_image_cv)
 
+        self.base64_encoded_current_rgb_image = base64.b64encode(buffer).decode()
+
+
+    
     def sail_angle_callback(self, sail_angle: Float32):
         self.sail_angle = sail_angle.data
 
@@ -170,7 +182,8 @@ class TelemetryNode(Node):
             "sail_angle": self.sail_angle, "rudder_angle": self.rudder_angle,
             "current_waypoint_index": self.cur_waypoint_index,
             "current_route": [(waypoint.latitude, waypoint.longitude) for waypoint in self.waypoints_list],
-            "parameters": self.autopilot_parameters
+            "parameters": self.autopilot_parameters,
+            "current_camera_image": self.base64_encoded_current_rgb_image
         }
 
         requests.post(url=TELEMETRY_SERVER_URL + "/boat_status/set", json={"value": telemetry_dict})

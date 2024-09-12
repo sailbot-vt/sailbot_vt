@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'rc = rc.rc_node:main'
+            'rc = rc.rc_publisher:main'
         ],
     },
 )

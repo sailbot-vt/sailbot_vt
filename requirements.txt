@@ -8,7 +8,9 @@ pyproj
 # Serial/ Hardware communication
 pyserial
 sparkfun-ublox-gps
+pyubx2
 crsf-parser
+spidev
 
 # Simulation/ RL
 sailboat-gym

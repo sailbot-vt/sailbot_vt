@@ -32,6 +32,8 @@
     },
     "runArgs": [
         "--net=host",
+        "--gpus=all",
+        "-v", "/dev:/dev",
         "-e", "DISPLAY=${env:DISPLAY}",
         "-v", "/var/run/docker.sock:/var/run/docker.sock",
         "-v", "${localWorkspaceFolder}/.devcontainer/docker_dev_environment_setup.sh:/home/ws/docker_dev_environment_setup.sh"
