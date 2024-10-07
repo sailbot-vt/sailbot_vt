@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e  # Exit on error
+set -e 
 
 # Install dependencies
 sudo apt install -y cmake g++ gcc-arm-none-eabi doxygen libnewlib-arm-none-eabi git python3 build-essential pkg-config libusb-1.0-0-dev
@@ -9,10 +9,10 @@ sudo apt-get install usbutils
 cd $HOME/
 git clone --recurse-submodules https://github.com/raspberrypi/pico-sdk.git $HOME/pico-sdk
 echo "export PICO_SDK_PATH=$HOME/pico-sdk" >> ~/.bashrc
-export PICO_SDK_PATH=$HOME/pico-sdk  # Make it available for the current script
-source ~/.bashrc  # Refresh bashrc
+export PICO_SDK_PATH=$HOME/pico-sdk
+source ~/.bashrc
 
-# Install Micro-ROS Pico SDK
+# Install microros Pico SDK
 git clone -b humble https://github.com/micro-ROS/micro_ros_raspberrypi_pico_sdk.git $HOME/micro_ros_raspberrypi_pico_sdk
 sudo chmod u+rwx $HOME/micro_ros_raspberrypi_pico_sdk
 cd $HOME/micro_ros_raspberrypi_pico_sdk
