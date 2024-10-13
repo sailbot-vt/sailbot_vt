@@ -11,22 +11,22 @@
 #define _i2cAddress 0x60
 
 // CMPS14 register definitions
-#define CONTROL_Register 0
-#define BEARING_Register 2
-#define PITCH_Register 4
-#define ROLL_Register 5
+#define CONTROL_Register 0x00
+#define BEARING_Register 0x02
+#define PITCH_Register 0x04
+#define ROLL_Register 0x05
 
-#define MAGNETX_Register 6
-#define MAGNETY_Register 8
-#define MAGNETZ_Register 10
+#define MAGNETX_Register 0x06
+#define MAGNETY_Register 0x08
+#define MAGNETZ_Register 0x0A
 
-#define ACCELEROX_Register 12
-#define ACCELEROY_Register 14
-#define ACCELEROZ_Register 16
+#define ACCELEROX_Register 0x0C
+#define ACCELEROY_Register 0x0E
+#define ACCELEROZ_Register 0x10
 
-#define GYROX_Register 18
-#define GYROY_Register 20
-#define GYROZ_Register 22
+#define GYROX_Register 0x12
+#define GYROY_Register 0x14
+#define GYROZ_Register 0x16
 
 #define ONE_BYTE   1
 #define TWO_BYTES  2
@@ -41,32 +41,28 @@ signed char roll;
 float accelScale = 9.80592991914f / 1000.f; // 1 m/s^2
 float gyroScale = 1.0f / 16.f;              // 1 Dps
 
-// I2C write function
+
+
+void i2c_init_custom() {
+    i2c_init(I2C_PORT, 100 * 1000);  // Initialize I2C at 100kHz
+    gpio_set_function(SDA_PIN, GPIO_FUNC_I2C);
+    gpio_set_function(SCL_PIN, GPIO_FUNC_I2C);
+    gpio_pull_up(SDA_PIN); // This is what we wanted on the PCB
+    gpio_pull_up(SCL_PIN);
+}
+
 int i2c_write_byte(uint8_t reg, uint8_t value) {
     uint8_t data[] = {reg, value};
     int result = i2c_write_blocking(I2C_PORT, _i2cAddress, data, 2, false);
     return result;
 }
 
-// I2C read function for multiple bytes
 int i2c_read_bytes(uint8_t reg, uint8_t *buffer, uint8_t length) {
-    // Send the register address
     i2c_write_blocking(I2C_PORT, _i2cAddress, &reg, 1, true);
-    // Read the response
     int result = i2c_read_blocking(I2C_PORT, _i2cAddress, buffer, length, false);
     return result;
 }
 
-// Initialize I2C
-void i2c_init_custom() {
-    i2c_init(I2C_PORT, 100 * 1000);  // Initialize I2C at 100kHz
-    gpio_set_function(SDA_PIN, GPIO_FUNC_I2C);
-    gpio_set_function(SCL_PIN, GPIO_FUNC_I2C);
-    gpio_pull_up(SDA_PIN);
-    gpio_pull_up(SCL_PIN);
-}
-
-// Get Bearing (2 bytes)
 int16_t getBearing() {
     uint8_t buffer[2];
     if (i2c_read_bytes(BEARING_Register, buffer, 2) != 2) {
@@ -76,7 +72,6 @@ int16_t getBearing() {
     return result;
 }
 
-// Get Pitch (1 byte)
 int8_t getPitch() {
     uint8_t buffer;
     if (i2c_read_bytes(PITCH_Register, &buffer, 1) != 1) {
@@ -85,7 +80,6 @@ int8_t getPitch() {
     return (int8_t)buffer;
 }
 
-// Get Roll (1 byte)
 int8_t getRoll() {
     uint8_t buffer;
     if (i2c_read_bytes(ROLL_Register, &buffer, 1) != 1) {
@@ -94,7 +88,6 @@ int8_t getRoll() {
     return (int8_t)buffer;
 }
 
-// Read Accelerometer (6 bytes)
 void ReadAccelerator(float *accelX, float *accelY, float *accelZ) {
     uint8_t buffer[6];
     if (i2c_read_bytes(ACCELEROX_Register, buffer, 6) != 6) {
@@ -108,7 +101,6 @@ void ReadAccelerator(float *accelX, float *accelY, float *accelZ) {
     *accelZ = ((int16_t)(buffer[4] << 8 | buffer[5])) * accelScale;
 }
 
-// Read Gyroscope (6 bytes)
 void ReadGyro(float *gyroX, float *gyroY, float *gyroZ) {
     uint8_t buffer[6];
     if (i2c_read_bytes(GYROX_Register, buffer, 6) != 6) {
