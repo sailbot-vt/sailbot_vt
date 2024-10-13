@@ -4,11 +4,6 @@
 
 // I2C Setup for Pi Pico
 #define I2C_PORT i2c0
-#define SDA_PIN 4  // Pin 4 for SDA
-#define SCL_PIN 5  // Pin 5 for SCL
-
-// Address of the CMPS14 compass on i2c
-#define _i2cAddress 0x60
 
 // CMPS14 register definitions
 #define CONTROL_Register 0x00
@@ -20,13 +15,19 @@
 #define MAGNETY_Register 0x08
 #define MAGNETZ_Register 0x0A
 
-#define ACCELEROX_Register 0x0C
-#define ACCELEROY_Register 0x0E
-#define ACCELEROZ_Register 0x10
+#define ACCELEROX_Register 0x20
+#define ACCELEROY_Register 0x22
+#define ACCELEROZ_Register 0x24
 
-#define GYROX_Register 0x12
-#define GYROY_Register 0x14
-#define GYROZ_Register 0x16
+#define GYROX_Register 0x25
+#define GYROY_Register 0x27
+#define GYROZ_Register 0x29
+
+#define ROLLP_Register 0x1C
+#define PITCHP_Register 0x1A
+
+#define Calibration_Register 0x1E
+
 
 #define ONE_BYTE   1
 #define TWO_BYTES  2
@@ -38,12 +39,21 @@ int bearing;
 signed char pitch;
 signed char roll;
 
-float accelScale = 9.80592991914f / 1000.f; // 1 m/s^2
-float gyroScale = 1.0f / 16.f;              // 1 Dps
+uint8_t _i2cAddress;
+uint8_t SDA_PIN;
+uint8_t SCL_PIN;
+
+float accelScale = 9.80592991914 / 1000.0; // 1 m/s^2
+float gyroScale = 1.0 / 16.0;              // 1 Dps
+float magnetScale = 1.0;                   // No clue
 
 
 
-void i2c_init_custom() {
+void i2c_init_custom(uint8_t address, uint8_t sda, uint8_t scl) {
+    _i2cAddress = address;
+    SDA_PIN = sda;
+    SCL_PIN = scl;
+
     i2c_init(I2C_PORT, 100 * 1000);  // Initialize I2C at 100kHz
     gpio_set_function(SDA_PIN, GPIO_FUNC_I2C);
     gpio_set_function(SCL_PIN, GPIO_FUNC_I2C);
@@ -53,28 +63,28 @@ void i2c_init_custom() {
 
 int i2c_write_byte(uint8_t reg, uint8_t value) {
     uint8_t data[] = {reg, value};
-    int result = i2c_write_blocking(I2C_PORT, _i2cAddress, data, 2, false);
+    int result = i2c_write_blocking(I2C_PORT, _i2cAddress, data, TWO_BYTES, false);
     return result;
 }
 
 int i2c_read_bytes(uint8_t reg, uint8_t *buffer, uint8_t length) {
-    i2c_write_blocking(I2C_PORT, _i2cAddress, &reg, 1, true);
+    i2c_write_blocking(I2C_PORT, _i2cAddress, &reg, ONE_BYTE, true);
     int result = i2c_read_blocking(I2C_PORT, _i2cAddress, buffer, length, false);
     return result;
 }
 
 int16_t getBearing() {
-    uint8_t buffer[2];
-    if (i2c_read_bytes(BEARING_Register, buffer, 2) != 2) {
-        return 0;
+    uint8_t buffer[TWO_BYTES];
+    if (i2c_read_bytes(BEARING_Register, buffer, TWO_BYTES) != TWO_BYTES) {
+        return -1;
     }
-    int16_t result = ((buffer[0] << 8) | buffer[1]) / 10;
+    int16_t result = ((buffer[0] << 8) | buffer[1]);
     return result;
 }
 
 int8_t getPitch() {
     uint8_t buffer;
-    if (i2c_read_bytes(PITCH_Register, &buffer, 1) != 1) {
+    if (i2c_read_bytes(PITCH_Register, &buffer, ONE_BYTE) != ONE_BYTE) {
         return 0;
     }
     return (int8_t)buffer;
@@ -82,15 +92,15 @@ int8_t getPitch() {
 
 int8_t getRoll() {
     uint8_t buffer;
-    if (i2c_read_bytes(ROLL_Register, &buffer, 1) != 1) {
+    if (i2c_read_bytes(ROLL_Register, &buffer, ONE_BYTE) != ONE_BYTE) {
         return 0;
     }
     return (int8_t)buffer;
 }
 
-void ReadAccelerator(float *accelX, float *accelY, float *accelZ) {
-    uint8_t buffer[6];
-    if (i2c_read_bytes(ACCELEROX_Register, buffer, 6) != 6) {
+void readAccelerator(float *accelX, float *accelY, float *accelZ) {
+    uint8_t buffer[SIX_BYTES];
+    if (i2c_read_bytes(ACCELEROX_Register, buffer, SIX_BYTES) != SIX_BYTES) {
         *accelX = 0;
         *accelY = 0;
         *accelZ = 0;
@@ -101,9 +111,9 @@ void ReadAccelerator(float *accelX, float *accelY, float *accelZ) {
     *accelZ = ((int16_t)(buffer[4] << 8 | buffer[5])) * accelScale;
 }
 
-void ReadGyro(float *gyroX, float *gyroY, float *gyroZ) {
-    uint8_t buffer[6];
-    if (i2c_read_bytes(GYROX_Register, buffer, 6) != 6) {
+void readGyro(float *gyroX, float *gyroY, float *gyroZ) {
+    uint8_t buffer[SIX_BYTES];
+    if (i2c_read_bytes(GYROX_Register, buffer, SIX_BYTES) != SIX_BYTES) {
         *gyroX = 0;
         *gyroY = 0;
         *gyroZ = 0;
@@ -112,4 +122,17 @@ void ReadGyro(float *gyroX, float *gyroY, float *gyroZ) {
     *gyroX = ((int16_t)(buffer[0] << 8 | buffer[1])) * gyroScale;
     *gyroY = ((int16_t)(buffer[2] << 8 | buffer[3])) * gyroScale;
     *gyroZ = ((int16_t)(buffer[4] << 8 | buffer[5])) * gyroScale;
+}
+
+void readMagnet(float *magnetX, float *magnetY, float *magnetZ) {
+    uint8_t buffer[SIX_BYTES];
+    if (i2c_read_bytes(MAGNETX_Register, buffer, SIX_BYTES) != SIX_BYTES) {
+        *magnetX = 0;
+        *magnetY = 0;
+        *magnetZ = 0;
+        return;
+    }
+    *magnetX = ((int16_t)(buffer[0] << 8 | buffer[1])) * magnetScale;
+    *magnetY = ((int16_t)(buffer[2] << 8 | buffer[3])) * magnetScale;
+    *magnetZ = ((int16_t)(buffer[4] << 8 | buffer[5])) * magnetScale;
 }

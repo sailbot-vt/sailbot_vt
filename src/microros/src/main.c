@@ -7,7 +7,7 @@
 // Include the microros nodes
 #include "sensor_transmission.h"
 #include "rudder_control.h"
-#include "sail_control.h"
+#include "winch_control.h"
 
 // void core1_entry() {
 //     motor_control()
@@ -18,9 +18,11 @@ int main()
 {
     stdio_init_all();
 
+    sensor_transmission();
+
     while (true){
-        sensor_transmission();
         // multicore_launch_core1(core1_entry);
+        
     }
 
     return 0;

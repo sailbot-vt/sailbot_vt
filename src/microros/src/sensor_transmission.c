@@ -5,14 +5,23 @@
 
 rcl_publisher_t magnetometer_angle_publisher;
 
-std_msgs__msg__Int32 magnetometer_angle;
+std_msgs__msg__Float32 magnetometer_angle;
 
 void timer_callback(rcl_timer_t *timer, int64_t last_call_time)
 {
     rcl_ret_t magnetometerRet = rcl_publish(&magnetometer_angle_publisher, &magnetometer_angle, NULL);
     
     // Replace those lines with functions actually getting actual serial data
-    magnetometer_angle.data = (int)getBearing();
+    i2c_init_custom(0x60, 4, 5);
+
+    int16_t bearing = getBearing();
+
+    if (bearing == -1 || bearing == 0) {
+        return;
+    }
+    
+    float bearing_f = bearing / 10.0f;
+    magnetometer_angle.data = bearing_f;
 }
 
 rcl_ret_t sensor_transmission()
@@ -54,14 +63,14 @@ rcl_ret_t sensor_transmission()
     rclc_publisher_init_default(
         &magnetometer_angle_publisher,
         &node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
         "/heading"
     );
 
     rclc_timer_init_default(
         &timer,
         &support,
-        RCL_MS_TO_NS(1000),
+        RCL_MS_TO_NS(100),
         timer_callback
     );
 
@@ -70,7 +79,7 @@ rcl_ret_t sensor_transmission()
 
     gpio_put(LED_PIN, 1);
 
-    magnetometer_angle.data = 0;
+    magnetometer_angle.data = 0.0;
 
     while (true) {
         rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
