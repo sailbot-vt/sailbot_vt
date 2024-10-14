@@ -12,6 +12,20 @@
     "files.exclude": {
         ".gitattributes": true,
         ".gitignore": true
-    }
+    },
+    "files.associations": {
+        "float32.h": "c",
+        "pico_uart_transports.h": "c",
+        "stdlib.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "ranges": "c",
+        "sensor_transmission.c": "cpp",
+        "common_libs.h": "c",
+        "motor_control.h": "c",
+        "rmw_microros.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "enabled"
 
 }
