@@ -20,4 +20,4 @@
 #define SCL_PIN 5
 
 // Port declarations
-#define I2C_PORT i2c0
+#define I2C_PORT i2c
