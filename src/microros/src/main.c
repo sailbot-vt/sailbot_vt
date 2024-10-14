@@ -65,23 +65,20 @@ int main()
 
     allocator_core0 = rcl_get_default_allocator();
 
-    // Wait for agent successful ping
     const int timeout_ms = 1000; 
     const uint8_t attempts = 120;
-
+    rmw_uros_ping_agent(timeout_ms, attempts);
+    
     rclc_support_init(&support_core0, 0, NULL, &allocator_core0);
     rclc_executor_init(&executor_core0, &support_core0.context, 1, &allocator_core0);
 
-    // ADD YOUR NODES FOR CORE0 HERE!
+    sensor_transmission(&allocator_core0, &support_core0, &executor_core0);
+    gpio_put(LED_PIN, 1);
 
-    sensor_transmission(&support_core0, &executor_core0);
-    //winch_control(&support_core0, &executor_core0);
-
-
-    // multicore_launch_core1(core1_entry);
-
-    while (true){
+    while (true) {
+        // multicore_launch_core1(core1_entry);
         rclc_executor_spin_some(&executor_core0, RCL_MS_TO_NS(100));
     }
+
     return 0;
 }
