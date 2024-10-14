@@ -40,8 +40,6 @@ signed char pitch;
 signed char roll;
 
 uint8_t _i2cAddress;
-uint8_t SDA_PIN;
-uint8_t SCL_PIN;
 
 float accelScale = 9.80592991914 / 1000.0; // 1 m/s^2
 float gyroScale = 1.0 / 16.0;              // 1 Dps
@@ -49,11 +47,8 @@ float magnetScale = 1.0;                   // No clue
 
 
 
-void i2c_init_custom(uint8_t address, uint8_t sda, uint8_t scl) {
+void i2c_init_custom(uint8_t address) {
     _i2cAddress = address;
-    SDA_PIN = sda;
-    SCL_PIN = scl;
-
     i2c_init(I2C_PORT, 100 * 1000);  // Initialize I2C at 100kHz
     gpio_set_function(SDA_PIN, GPIO_FUNC_I2C);
     gpio_set_function(SCL_PIN, GPIO_FUNC_I2C);
