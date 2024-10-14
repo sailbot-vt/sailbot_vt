@@ -37,6 +37,7 @@ void sensor_transmission_timer_callback(rcl_timer_t *timer, int64_t last_call_ti
 {
     rcl_publish(&magnetometer_angle_publisher, &magnetometer_angle, NULL);
     // rcl_publish(&magnetometer_angle_publisher, &magnetometer_angle, NULL);
+
     i2c_init_custom(0x60);
 
     int16_t bearing = getBearing();

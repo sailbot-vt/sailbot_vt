@@ -1,5 +1,6 @@
 #include "common_microros_libs.h"
 #include "hardware/i2c.h"
+#include <math.h>
 
 // I2C Setup for Pi Pico
 #define I2C_PORT i2c0
