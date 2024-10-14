@@ -44,8 +44,9 @@ source install/local_setup.sh ros2 run
     echo "export PICO_MICROROS_SDK_PATH=$SCRIPT_DIR/dependencies/micro_ros_raspberrypi_pico_sdk"
     echo "export PICOTOOL_PATH=$SCRIPT_DIR/dependencies/picotool"
     echo "source $SCRIPT_DIR/dependencies/micro_ros_agent/install/local_setup.bash"
-    echo "alias picotool='$SCRIPT_DIR/dependencies/picotool/build/picotool'"
-    echo "alias picotool_load='sudo $SCRIPT_DIR/dependencies/picotool/build/picotool load'"
+    echo "alias picotool='$PICOTOOL_PATH/build/picotool'"
+    echo "alias picotool_load='sudo $PICOTOOL_PATH/build/picotool load'"
+    echo "alias picotool_reboot='sudo $PICOTOOL_PATH/build/picotool reboot'"
 } >> ~/.bashrc
 
 # Source bash

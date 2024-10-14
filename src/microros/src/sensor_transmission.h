@@ -3,10 +3,7 @@
 
 #include "common_microros_libs.h"
 
-
-#define LED_PIN 25
-
 void timer_callback(rcl_timer_t *timer, int64_t last_call_time);
-rcl_ret_t sensor_transmission();
+void sensor_transmission(rclc_support_t *support, rclc_executor_t *executor);
 
 #endif
