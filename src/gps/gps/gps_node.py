@@ -15,6 +15,7 @@ from geometry_msgs.msg import Vector3, Twist
 
 import numpy as np
 from collections import deque
+import csv
 
 # https://content.u-blox.com/sites/default/files/products/documents/u-blox8-M8_ReceiverDescrProtSpec_UBX-13003221.pdf
 # pg 443
@@ -64,6 +65,9 @@ class GPSPublisher(Node):
         self.position_publisher = self.create_publisher(NavSatFix, '/position', sensor_qos_profile)
         self.velocity_publisher = self.create_publisher(Twist, '/velocity', sensor_qos_profile)
 
+        self.csv_writer = csv.DictWriter(open("gps_data.csv", "w+"), fieldnames=["time", "SOG", "velocity_east", "velocity_north"])
+        self.csv_writer.writeheader()
+        
         self.create_timer(1/REFRESH_RATE, self.publish)
 
         serial_port = getPort(GPS_VID, GPS_PID)
@@ -93,6 +97,7 @@ class GPSPublisher(Node):
         velE_mph = velE * 2.2369/ 1000 # mm/s to mph
         velN_mph = velN * 2.2369/ 1000 # mm/s to mph
 
+        self.csv_writer.writerow({"time": time.time(), "SOG": np.sqrt(velE_mph**2 + velN_mph**2), "velocity_east": velE_mph, "velocity_north": velN_mph})
         print(f"velocity vector (mph): <{float(velE_mph)}, {float(velN_mph)}>")
         print(f"SOG (mph): {np.sqrt(velE_mph**2 + velN_mph**2)}")
         print(f"DIR: {np.rad2deg(np.arctan2(velN_mph, velE_mph))}")
