@@ -16,7 +16,7 @@ motorPolePairs = 7
 class MinimalPublisher(Node):
 
     def __init__(self):
-        super().__init__('minimal_publisher')
+        super().__init__('pyvesc_publisher')
         self.ser = getPort( 0x0483, 0x5740)
         self.motor = VESC(serial_port= self.ser)
         self.motorVal = 0

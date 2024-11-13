@@ -11,8 +11,6 @@ sparkfun-ublox-gps
 pyubx2
 crsf-parser
 spidev
-pyVESC
-pytoncrc
 serial
 
 # Simulation/ RL
