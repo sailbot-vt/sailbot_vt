@@ -2,6 +2,7 @@ import rclpy
 import pyvesc
 from pyvesc import VESC
 from pyvesc.VESC.messages import GetValues, SetRPM, SetCurrent, SetRotorPositionMode, GetRotorPosition
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 import serial
 import time
 import csv
@@ -10,6 +11,8 @@ from serial.tools import list_ports
 from rclpy.node import Node
 
 from std_msgs.msg import String, Float32
+
+from sailbot_msgs.msg import VESCData, VESCControlData
 
 motorPolePairs = 7
 
@@ -21,7 +24,17 @@ class MinimalPublisher(Node):
         self.motor = VESC(serial_port= self.ser)
         self.motorVal = 0
         self.motorType = 0 # 1-duty cycle 2-rpm 3-current 
+
+        sensor_qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=1
+        )
+        self.vesc_data_publisher = self.create_publisher(VESCData, "/vesc_data", sensor_qos_profile)
+
         
+        
+        """
         self.rpmPub = self.create_publisher(Float32, 'vesc/rpm_data', 10)
         self.vInPub = self.create_publisher(Float32, "vesc/v_in", 10)
         self.vOutPub = self.create_publisher(Float32, "vesc/v_out", 10)
@@ -33,11 +46,15 @@ class MinimalPublisher(Node):
         self.amp_hoursChargedPub = self.create_publisher(Float32, "vesc/amp_hours_charged", 10)
         self.temp_motorPub = self.create_publisher(Float32, "vesc/temp_motor", 10)
         self.c_inPub = self.create_publisher(Float32, "vesc/c_in", 10)
-
+        """
+        
+        self.controlTypeSub = self.create_subscription(msg_type= VESCControlData, topic='/motor_control_struct', callback=self.receive_control_data_callback, qos_profile=sensor_qos_profile)
+        """
         self.controlTypeSub = self.create_subscription(String, "vesc/control_type", self.ct_callback, 10)
         self.current_valueSub = self.create_subscription(Float32, "vesc/current_value", self.cv_callback, 10)
         self.rpm_valueSub = self.create_subscription(Float32, "vesc/rpm_value", self.rpmv_callback, 10)
-        self.dutycycle_valueSub = self.create_subscription(Float32, "vesc/current_value", self.dcv_callback, 10)
+        self.dutycycle_valueSub = self.create_subscription(Float32, "vesc/duty_cycle_value", self.dcv_callback, 10)
+        """
 
         self.csv_writer = csv.DictWriter(open("VescInfo.csv", 'w+'), fieldnames= ["time", "rpm", "duty_cycle", "v_in", "c_in", "c_motor", "temp_motor", "time_ms", "amp_hours", "amp_hours_charged","motor_wattage", "v_out"])
         self.csv_writer.writeheader()
@@ -45,7 +62,20 @@ class MinimalPublisher(Node):
         timer_period = 0.05  # seconds
         
         self.timer = self.create_timer(timer_period, self.timer_callback)
+    
+    def receive_control_data_callback(self, msg: VESCControlData):
+        self.get_logger().info(f'{self.motorVal}')
+        if(msg.control_type_for_vesc == "rpm"):
+            self.motorVal = msg.desired_vesc_rpm * motorPolePairs
+            self.motor.set_rpm(int(self.motorVal))
+        elif(msg.control_type_for_vesc == "duty_cycle"):
+            self.motorVal = msg.desired_vesc_duty_cycle
+            self.motor.set_duty_cycle(int(self.motorVal))
+        else:
+            self.motorVal = msg.desired_vesc_current
+            self.motor.set_current(int(self.motorVal))
 
+    """
     def ct_callback(self, msg):
         if msg == "DUTY_CYCLE":
             self.motorType = 1
@@ -65,15 +95,14 @@ class MinimalPublisher(Node):
     def dcv_callback(self, msg):
         if self.motorType == 1:
             self.motorVal = msg
+    """
 
     def timer_callback(self):
-        #get data and store in var
+        
+        #get data and store in dictionary
         measurements = self.motor.get_measurements()
         if(measurements):
             rpm = measurements.rpm/motorPolePairs
-            duty_cycle = measurements.duty_cycle_now
-            v_in = measurements.v_in
-            c_in = measurements.avg_input_current
             c_motor = measurements.avg_motor_current
             motorData = {
                 "time": time.time(),
@@ -90,9 +119,20 @@ class MinimalPublisher(Node):
                 "v_out": rpm/180
             }
 
-            self.get_logger().info(f'{motorData}')
+            #write vesc data to csv file
+            #self.get_logger().info(f'{motorData}')
             self.csv_writer.writerow(motorData)
-            #publish various data
+            
+            #publish vesc data to topic
+            self.vesc_data_publisher.publish(VESCData(rpm= motorData["rpm"], duty_cycle= motorData["duty_cycle"], 
+                                                      voltage_to_vesc= motorData["v_in"], current_to_vesc= motorData["c_in"],
+                                                      voltage_to_motor = motorData["v_out"], avg_current_to_motor = motorData["c_motor"],
+                                                      wattage_to_motor = motorData["motor_wattage"], 
+                                                      motor_temperature = motorData["temp_motor"],
+                                                      time_since_vesc_startup_in_ms= motorData["time_ms"],
+                                                      amp_hours = motorData["amp_hours"], amp_hours_charged = motorData["amp_hours_charged"]  
+                                                      ))
+            """
             self.rpmPub.publish(Float32(data = rpm))
             self.vInPub.publish(Float32(data = v_in))
             self.motorCurrentPub.publish(Float32(data = c_motor))
@@ -104,6 +144,7 @@ class MinimalPublisher(Node):
             self.c_inPub.publish(Float32(data = c_in))
             self.amp_hoursChargedPub.publish(Float32(data = measurements.amp_hours_charged))
             self.amp_hoursPub.publish(Float32(data = measurements.amp_hours))
+            """
     
 
     def __del__(self):
@@ -135,27 +176,5 @@ def getPort(vid, pid) -> str:
 if __name__ == '__main__':
     main()
 
-"""
-TO DO (one node)
 
-Subscriber that is able to take data abotu which control we want and value of that control--DUTY CYCLE RPM CURRENT 
-
-Type of control is a topic
-
-current_value - topic
-duty_value - topic
-rpm_value - topic
-
-Output/publish
-rpm data
-voltage in (battery voltage)
-voltage out (motor voltage) rpm = 180 * V
-current to motor 
-total wattage to motor I*V
-duty cycle
-time_ms
-amp_hours
-amp_hours_charged
-temp_motor
-
-"""
+#Pragya - Yes, you can play tetris on the phallic ice cream

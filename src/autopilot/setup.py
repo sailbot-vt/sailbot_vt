@@ -25,7 +25,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'autopilot = autopilot_node:main',
+            'sailboat_autopilot = sailboat_autopilot_node:main',
+            'motorboat_autopilot = motorboat_autopilot_node:main',
             'telemetry = telemetry_node:main'
         ],
     },

@@ -3,7 +3,7 @@ import pandas as pd
 import time
 import json
 
-TELEMETRY_SERVER_URL = 'http://3.141.26.89:8080/'
+TELEMETRY_SERVER_URL = 'http://18.191.164.84:8080/'
 
 def main():
     """
