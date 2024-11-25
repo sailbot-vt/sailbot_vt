@@ -5,7 +5,7 @@ rcl_publisher_t magnetometer_angle_publisher;
 std_msgs__msg__Float32 magnetometer_angle;
 
 rcl_publisher_t rosout_publisher;
-std_msgs__msg__String rosout_msg;
+// std_msgs__msg__String rosout_msg;
 
 rcl_timer_t sensor_transmission_timer;
 rcl_node_t sensor_transmission_node;

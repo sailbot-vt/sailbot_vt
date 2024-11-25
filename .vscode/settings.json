@@ -24,8 +24,25 @@
         "sensor_transmission.c": "cpp",
         "common_libs.h": "c",
         "motor_control.h": "c",
-        "rmw_microros.h": "c"
+        "rmw_microros.h": "c",
+        "i2c.h": "c",
+        "winch_control.h": "c",
+        "common_microros_libs.h": "c",
+        "magnetometer_read.c": "cpp",
+        "sensor_transmission.h": "c",
+        "log.h": "c",
+        "log__struct.h": "c",
+        "*.ipp": "c",
+        "*.tcc": "c",
+        "deque": "c",
+        "forward_list": "c",
+        "list": "c",
+        "unordered_map": "c",
+        "unordered_set": "c",
+        "vector": "c",
+        "any": "c",
+        "system_error": "c"
     },
-    "C_Cpp.errorSquiggles": "enabled"
+    "C_Cpp.errorSquiggles": "disabled"
 
 }
