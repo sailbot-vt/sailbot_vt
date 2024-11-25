@@ -15,3 +15,4 @@ src/object_detection/object_detection/weights/**.pt
 .devcontainer
 src/microros/dependencies/**
 .devcontainer/devcontainer.json
+docker_dev_environment_setup.sh
