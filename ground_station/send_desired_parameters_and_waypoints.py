@@ -9,6 +9,8 @@ def main():
     """
     Just a little script that sends some stuff to the telemetry server
     """
+    # requests.get(TELEMETRY_SERVER_URL, verify=False)
+    # print("hi")
     parameters_json = json.load(open("desired_parameters.json"))
     waypoints_list = json.load(open("desired_waypoints.json"))["waypoints"]
     
