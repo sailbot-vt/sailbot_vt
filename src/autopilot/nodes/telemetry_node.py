@@ -16,7 +16,7 @@ import numpy as np
 import array, time, json, requests
 import cv2
 
-TELEMETRY_SERVER_URL = 'http://3.141.26.89:8080/'
+TELEMETRY_SERVER_URL = 'http://18.191.164.84:8080/'
 
 # TODO: MOST IMPORTANT MAKE THE IP AN ARGUMENT INTO THE ROS NODE AND DOCKER CONTAINER
 

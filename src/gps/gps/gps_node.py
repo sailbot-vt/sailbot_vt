@@ -98,6 +98,8 @@ class GPSPublisher(Node):
         velN_mph = velN * 2.2369/ 1000 # mm/s to mph
 
         self.csv_writer.writerow({"time": time.time(), "SOG": np.sqrt(velE_mph**2 + velN_mph**2), "velocity_east": velE_mph, "velocity_north": velN_mph})
+        
+        
         print(f"velocity vector (mph): <{float(velE_mph)}, {float(velN_mph)}>")
         print(f"SOG (mph): {np.sqrt(velE_mph**2 + velN_mph**2)}")
         print(f"DIR: {np.rad2deg(np.arctan2(velN_mph, velE_mph))}")
