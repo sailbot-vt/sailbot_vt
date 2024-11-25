@@ -12,6 +12,37 @@
     "files.exclude": {
         ".gitattributes": true,
         ".gitignore": true
-    }
+    },
+    "files.associations": {
+        "float32.h": "c",
+        "pico_uart_transports.h": "c",
+        "stdlib.h": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "ranges": "c",
+        "sensor_transmission.c": "cpp",
+        "common_libs.h": "c",
+        "motor_control.h": "c",
+        "rmw_microros.h": "c",
+        "i2c.h": "c",
+        "winch_control.h": "c",
+        "common_microros_libs.h": "c",
+        "magnetometer_read.c": "cpp",
+        "sensor_transmission.h": "c",
+        "log.h": "c",
+        "log__struct.h": "c",
+        "*.ipp": "c",
+        "*.tcc": "c",
+        "deque": "c",
+        "forward_list": "c",
+        "list": "c",
+        "unordered_map": "c",
+        "unordered_set": "c",
+        "vector": "c",
+        "any": "c",
+        "system_error": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 
 }
