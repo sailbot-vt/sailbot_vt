@@ -30,6 +30,8 @@ def getPort(vid, pid, serial_number) -> str:
     device_list = list_ports.comports()
     for device in device_list:
         print(device.serial_number)
+        print(device.vid)
+        print(device.pid)
         if device.vid == vid and device.pid == pid and device.serial_number == serial_number:
             return device.device
     raise OSError('Device not found')
@@ -105,10 +107,11 @@ class RCPublisher(Node):
         """
         return (((input - cur_min) * 200) / (cur_max - cur_min)) - 100
 
-    def parse_toggle(self, toggle_state, state1, state2, state3):
-        if toggle_state == state1: return 0
-        elif toggle_state == state2: return 1
-        elif toggle_state == state3: return 2
+    def parse_toggle(self, toggle_state):
+        #toggle data for states from rc testing: 191, 997, 1792
+        if toggle_state <= 500: return 0
+        elif toggle_state <= 1500: return 1
+        elif toggle_state <= 2000: return 2
         else: 
             print(f"WARNING: Toggle state was not properly accounted for: {toggle_state}")
             return -1
@@ -143,11 +146,11 @@ class RCPublisher(Node):
         joystick_right_x = self.normalize_joystick_input(raw_channel_array[12], 174, 1811)
     
         button_a = False
-        toggle_b = self.parse_toggle(raw_channel_array[10], 191, 997, 1792)
-        toggle_c = self.parse_toggle(raw_channel_array[9], 191, 997, 1792)
+        toggle_b = self.parse_toggle(raw_channel_array[10])
+        toggle_c = self.parse_toggle(raw_channel_array[9])
         button_d = False
-        toggle_e = self.parse_toggle(raw_channel_array[11], 191, 997, 1792)
-        toggle_f = self.parse_toggle(raw_channel_array[8], 191, 997, 1792)
+        toggle_e = self.parse_toggle(raw_channel_array[11])
+        toggle_f = self.parse_toggle(raw_channel_array[8])
         
         if toggle_b == -1 or toggle_c == -1 or toggle_e == -1 or toggle_f == -1: return None
         

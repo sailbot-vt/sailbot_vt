@@ -10,7 +10,7 @@ from .position import Position
 
 
 
-class AutopilotMode(Enum):
+class SailboatAutopilotMode(Enum):
     Disabled = 0
     Full_RC = 1
     Hold_Best_Sail = 2
@@ -18,19 +18,29 @@ class AutopilotMode(Enum):
     Hold_Heading_And_Best_Sail = 4
     Waypoint_Mission = 5
     
-class States(Enum):
+class SailboatStates(Enum):
     NORMAL = 0
     CW_TACKING = 1
     CCW_TACKING = 2
     STALL = 3
     # JIBE = 4
 
-class Maneuvers(Enum):
+class SailboatManeuvers(Enum):
     AUTOPILOT_DISABLED = 0
     STANDARD = 1
     TACK = 2
     JIBE = 3
-  
+
+class MotorboatAutopilotMode(Enum):
+    Disabled = 0
+    Full_RC = 1
+    Hold_Heading = 2
+    Waypoint_Mission = 3
+
+class MotorboatControls(Enum):
+    RPM = 0
+    DUTY_CYCLE = 1
+    CURRENT = 2
   
 
 
@@ -174,13 +184,13 @@ def get_maneuver_from_desired_heading(heading, desired_heading, true_wind_angle)
     polar_upwind_angle = (polar_downwind_angle + 180) % 360
 
     if is_angle_between_boundaries(polar_downwind_angle, heading, desired_heading): 
-        return Maneuvers.JIBE
+        return SailboatManeuvers.JIBE
     
     elif is_angle_between_boundaries(polar_upwind_angle, heading, desired_heading): 
-        return Maneuvers.TACK
+        return SailboatManeuvers.TACK
         
     else: 
-        return Maneuvers.STANDARD
+        return SailboatManeuvers.STANDARD
 
 
 

@@ -12,6 +12,8 @@ find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 set(msg_files
+  "msg/VESCData.msg"
+  "msg/VESCControlData.msg"
   "msg/RCData.msg"
   "msg/WaypointList.msg"
   "msg/ObjectDetectionResults.msg"
