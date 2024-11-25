@@ -10,7 +10,7 @@ from utils import *
 
 RUN_WITH_SAILOR_STANDARDS = True
 DEGREE_SIGN = u'\N{DEGREE SIGN}'
-TELEMETRY_SERVER_URL = 'http://3.141.26.89:8080/'
+TELEMETRY_SERVER_URL = 'http://18.191.164.84:8080/'
 
 pid_data_file = None
 telemetry_file = None
