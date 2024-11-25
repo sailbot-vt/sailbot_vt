@@ -30,7 +30,7 @@ class SailbotAutopilot:
         self.waypoints: list[Position] = None
         self.cur_waypoint_index = 0
         
-        self.current_state = States.NORMAL
+        self.current_state = SailboatStates.NORMAL
         
         self.desired_tacking_angle = 0
    
@@ -147,7 +147,7 @@ class SailbotAutopilot:
         # If desired heading it is not in any of the zones
         if not is_angle_between_boundaries(desired_heading, no_sail_zone_bounds[0], no_sail_zone_bounds[1]): 
             print("I AM IN ZONE NONE, SAILING NORMAL")  
-            if get_maneuver_from_desired_heading(heading, desired_heading, true_wind_angle) == Maneuvers.TACK:
+            if get_maneuver_from_desired_heading(heading, desired_heading, true_wind_angle) == SailboatManeuvers.TACK:
                 return desired_heading, True
             else:
                 return desired_heading, False
@@ -231,7 +231,7 @@ class SailbotAutopilot:
         
         
         
-        if self.current_state == States.NORMAL:
+        if self.current_state == SailboatStates.NORMAL:
             desired_heading = get_bearing(current_pos=cur_position, destination_pos=desired_pos)
 
             desired_heading, should_tack1 = self.apply_decision_zone_tacking_logic(heading, desired_heading, true_wind_angle, apparent_wind_angle, distance_to_desired_position)
@@ -247,9 +247,9 @@ class SailbotAutopilot:
                 self.desired_tacking_angle = desired_heading
                 
                 if optimal_rudder_angle > 0: 
-                    self.current_state = States.CW_TACKING  
+                    self.current_state = SailboatStates.CW_TACKING  
                 else: 
-                    self.current_state = States.CCW_TACKING
+                    self.current_state = SailboatStates.CCW_TACKING
 
             
             rudder_angle = self.get_optimal_rudder_angle(heading, desired_heading)
@@ -258,12 +258,12 @@ class SailbotAutopilot:
             
             
 
-        elif self.current_state == States.CW_TACKING or self.current_state == States.CCW_TACKING:
+        elif self.current_state == SailboatStates.CW_TACKING or self.current_state == SailboatStates.CCW_TACKING:
             sail_angle = self.get_optimal_sail_angle(apparent_wind_angle)
 
-            if self.current_state == States.CW_TACKING:
+            if self.current_state == SailboatStates.CW_TACKING:
                 tack_direction = 1
-            elif self.current_state == States.CCW_TACKING:
+            elif self.current_state == SailboatStates.CCW_TACKING:
                 tack_direction = -1
 
 
@@ -274,7 +274,7 @@ class SailbotAutopilot:
 
 
             if abs((heading - self.desired_tacking_angle)) % 360 < self.parameters['tack_tolerance']: # if we have finished the tack
-                self.current_state = States.NORMAL
+                self.current_state = SailboatStates.NORMAL
             
         
         else: 

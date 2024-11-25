@@ -38,6 +38,7 @@ RUN sudo apt install ros-humble-realsense2-* -y
 
 
 
+
 USER $USERNAME
 # [Optional] Set the default user. Omit if you want to keep the default as root.
 CMD ["/bin/bash"]
