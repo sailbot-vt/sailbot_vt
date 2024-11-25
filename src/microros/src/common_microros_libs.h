@@ -6,7 +6,7 @@
 #include <rclc/executor.h>
 #include <std_msgs/msg/int32.h>
 #include <std_msgs/msg/float32.h>
-#include <std_msgs/msg/string.h>
+#include <rcl_interfaces/msg/log.h>
 #include <rmw_microros/rmw_microros.h>
 
 // Pico SDK libraries

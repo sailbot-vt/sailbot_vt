@@ -5,7 +5,7 @@
 #include "pico/multicore.h"
 
 // Include the microros nodes
-#include "sensor_transmission.h"
+// #include "sensor_transmission.h"
 #include "rudder_control.h"
 #include "winch_control.h"
 
@@ -35,7 +35,7 @@ void main_core1() {
     rclc_executor_init(&executor_core1, &support_core1.context, 1, &allocator_core1);
 
     // ADD YOUR NODES FOR CORE1 HERE!
-
+    // winch_control(&support_core1, &executor_core1);
     // rudder_control(&support_core1, &executor_core1);
     // manual_mode(&support_core1, &executor_core1);
     // semiautomatic_mode(&support_core1, &executor_core1);
@@ -72,8 +72,12 @@ int main()
     rclc_support_init(&support_core0, 0, NULL, &allocator_core0);
     rclc_executor_init(&executor_core0, &support_core0.context, 1, &allocator_core0);
 
-    sensor_transmission(&allocator_core0, &support_core0, &executor_core0);
-    gpio_put(LED_PIN, 1);
+    // sensor_transmission(&allocator_core0, &support_core0, &executor_core0);
+    winch_control(&allocator_core0, &support_core0, &executor_core0);
+
+
+    
+
 
     while (true) {
         // multicore_launch_core1(core1_entry);
