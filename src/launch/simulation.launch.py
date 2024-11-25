@@ -6,8 +6,8 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='autopilot',
-            executable='autopilot',
-            name='autopilot',
+            executable='sailboat_autopilot',
+            name='sailboat_autopilot',
 
             respawn=True, 
             respawn_delay=2.0,
