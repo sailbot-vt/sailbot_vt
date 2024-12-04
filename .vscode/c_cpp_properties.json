@@ -26,7 +26,9 @@
                 "${workspaceFolder}/src/microros/dependencies/pico-sdk/src/rp2040/hardware_structs/include",
                 "${workspaceFolder}/src/microros/dependencies/pico-sdk/src/rp2350/hardware_structs/include",
                 "${workspaceFolder}/src/microros/dependencies/pico-sdk/src/rp2350/hardware_regs/include",
-                "${workspaceFolder}/build/sensors_transmission/generated/pico_base"
+                "${workspaceFolder}/build/sensors_transmission/generated/pico_base",
+                "${workspaceFolder}/src/microros/dependencies/pico-sdk/src/rp2_common/hardware_spi/include",
+                "${workspaceFolder}/src/microros/dependencies/pico-sdk/src/common/pico_binary_info/include"
             ],
             "name": "ROS",
             "intelliSenseMode": "gcc-x64",

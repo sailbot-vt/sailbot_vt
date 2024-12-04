@@ -16,7 +16,7 @@ link_directories($ENV{PICO_MICROROS_SDK_PATH}/libmicroros)
 
 add_executable(pico_microros
     src/main.c
-    src/sensor_transmission.c
+    src/rudder_control.c
     $ENV{PICO_MICROROS_SDK_PATH}/pico_uart_transport.c
 )
 target_link_libraries(pico_microros
@@ -32,6 +32,7 @@ target_include_directories(pico_microros PUBLIC
     $ENV{PICO_MICROROS_SDK_PATH}
     $ENV{PICO_MICROROS_SDK_PATH}/libmicroros
     $ENV{PICO_MICROROS_SDK_PATH}/libmicroros/include
+    $ENV{PICO_SDK_PATH}/src/rp2_common/
     $ENV{PICO_SDK_PATH}/src/rp2_common/pico_multicore/include
 )
 

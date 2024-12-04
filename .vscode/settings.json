@@ -24,7 +24,27 @@
         "sensor_transmission.c": "cpp",
         "common_libs.h": "c",
         "motor_control.h": "c",
-        "rmw_microros.h": "c"
+        "rmw_microros.h": "c",
+        "qos_profiles.h": "c",
+        "sensor_transmission.h": "c",
+        "common_microros_libs.h": "c",
+        "i2c.h": "c",
+        "multicore.h": "c",
+        "*.tcc": "c",
+        "optional": "c",
+        "ratio": "c",
+        "system_error": "c",
+        "functional": "c",
+        "regex": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c",
+        "variant": "c",
+        "istream": "c",
+        "ostream": "c",
+        "executor.h": "c",
+        "spi.h": "c",
+        "iobank0.h": "c"
     },
     "C_Cpp.errorSquiggles": "enabled"
 
