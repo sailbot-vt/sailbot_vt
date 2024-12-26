@@ -36,11 +36,11 @@ static drv8711 rudderDriver;
 static amt22 rudderEncoder;
 static cmps14 compass;
 
-static float desiredRudderAngleSynch = 0;
+static float desired_rudder_angle_synch = 0;
 
 #define RCCHECK(fn) {                   \
     rcl_ret_t temp_rc = fn;             \
-    if ((temp_rc == RCL_RET_ERROR))     \
+    if ((temp_rc != RCL_RET_OK))     \
     {                                   \
         gpio_put(LED_PIN, 1);           \
     }                                   \
@@ -48,30 +48,38 @@ static float desiredRudderAngleSynch = 0;
 
 
 void rudder_control_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_executor_t *executor) {
-    rclc_node_init_default(&rudder_control_node, "rudder_control", "", support);
+    RCCHECK(rclc_node_init_default(&rudder_control_node, "rudder_control", "", support));
 
-    rclc_subscription_init_default(
+    RCCHECK(rclc_subscription_init_default(
         &desired_rudder_angle_subscriber,
         &rudder_control_node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
         "/actions/rudder_angle"
-    );
+    ));
 
-    rclc_publisher_init_default(
+    RCCHECK(rclc_publisher_init_default(
+        &current_rudder_angle_publisher,
+        &rudder_control_node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
+        "/current_rudder_angle"
+    ));
+
+    RCCHECK(rclc_publisher_init_default(
         &magnetometer_angle_publisher,
         &rudder_control_node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
         "/heading"
-    );
+    ));
 
-    rclc_timer_init_default(
+
+    RCCHECK(rclc_timer_init_default(
         &sensor_transmission_timer,
         support,
         RCL_MS_TO_NS(5),
         rudder_control_callback
-    );
+    ));
 
-    rclc_executor_add_timer(executor, &sensor_transmission_timer);
+    RCCHECK(rclc_executor_add_timer(executor, &sensor_transmission_timer));
 
     spi_init(SPI_PORT, 500 * 1000);
     gpio_set_function(SCLK_PIN, GPIO_FUNC_SPI);
@@ -95,6 +103,7 @@ void rudder_control_init(rcl_allocator_t *allocator, rclc_support_t *support, rc
 
     cmps14_init(&compass, I2C_PORT, 0x60);
 
+    desired_rudder_angle_msg.data = 0.0;
     current_rudder_angle_msg.data = 0.0;
     magnetometer_angle_msg.data = 0.0;
 
@@ -105,18 +114,21 @@ void rudder_control_init(rcl_allocator_t *allocator, rclc_support_t *support, rc
 
 void desired_rudder_angle_received_callback(const void *msg_in) {
     const std_msgs__msg__Float32 *desired_rudder_angle_msg = (const std_msgs__msg__Float32 *)msg_in;
-    desiredRudderAngleSynch = desired_rudder_angle_msg->data;
+    desired_rudder_angle_synch = desired_rudder_angle_msg->data;
+    
+    // desired_rudder_angle_synch = 0.001345 * pow(x, 3) + 0.003741 * pow(x, 2) + 2.142 * x + 19.71;
 }
  
 
 void rudder_control_callback() {
-    float current_rudder_angle = get_motor_angle(&rudderEncoder) - MOTOR_ANGLE_OFFSET;
+    float current_rudder_motor_angle = get_motor_angle(&rudderEncoder) - MOTOR_ANGLE_OFFSET;
+    float current_rudder_angle = -2.094e-5 * pow(current_rudder_motor_angle, 3) + 0.001259 * pow(current_rudder_motor_angle, 2) + 0.4159 * pow(current_rudder_motor_angle, 1) - 8.373;
 
     if (current_rudder_angle >= 180) {
         current_rudder_angle -= 360;
     }
 
-    float rudder_error = current_rudder_angle - desiredRudderAngleSynch;
+    float rudder_error = current_rudder_angle - desired_rudder_angle_synch;
 
     if (abs(rudder_error) > ACCEPTABLE_RUDDER_ERROR) {
         if (((int)rudder_error % 360) > 0 && ((int)rudder_error % 360) < 180) 
@@ -133,8 +145,9 @@ void rudder_control_callback() {
     }
 
     magnetometer_angle_msg.data = cmps14_getBearing(&compass);
+    current_rudder_angle_msg.data = current_rudder_angle;
 
+    rcl_publish(&current_rudder_angle, &magnetometer_angle_msg, NULL);
     rcl_publish(&magnetometer_angle_publisher, &magnetometer_angle_msg, NULL);
-    // rcl_publish(&magnetometer_angle_publisher, &magnetometer_angle_msg, NULL);
 
 }
