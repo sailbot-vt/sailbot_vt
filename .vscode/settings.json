@@ -41,7 +41,9 @@
         "unordered_set": "c",
         "vector": "c",
         "any": "c",
-        "system_error": "c"
+        "system_error": "c",
+        "math.h": "c",
+        "rudder_control.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 
