@@ -1,5 +1,5 @@
 #include "sensor_transmission.h"
-#include "magnetometer_read.c"
+#include "magnetometer_HAL.c"
 
 rcl_publisher_t magnetometer_angle_publisher;
 std_msgs__msg__Float32 magnetometer_angle;
