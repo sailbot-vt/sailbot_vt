@@ -81,20 +81,20 @@ void rudder_control_init(rcl_allocator_t *allocator, rclc_support_t *support, rc
 
     RCCHECK(rclc_executor_add_timer(executor, &sensor_transmission_timer));
 
-    spi_init(SPI_PORT, 500 * 1000);
-    gpio_set_function(SCLK_PIN, GPIO_FUNC_SPI);
-    gpio_set_function(MOSI_PIN, GPIO_FUNC_SPI);
-    gpio_set_function(MISO_PIN, GPIO_FUNC_SPI);
+    // spi_init(SPI_PORT, 500 * 1000);
+    // gpio_set_function(SCLK_PIN, GPIO_FUNC_SPI);
+    // gpio_set_function(MOSI_PIN, GPIO_FUNC_SPI);
+    // gpio_set_function(MISO_PIN, GPIO_FUNC_SPI);
 
-    AMT22_init(&rudderEncoder, 22, SPI_PORT);
+    // AMT22_init(&rudderEncoder, 22, SPI_PORT);
 
-    drv8711_init(&rudderDriver, CS_RM_PIN, SLP_RM_PIN, SPI_PORT);
-    drv8711_clearStatus(&rudderDriver);
-    drv8711_setDecayMode(&rudderDriver, AutoMixed);
-    drv8711_setCurrent(&rudderDriver, 2000);
-    drv8711_setStepMode(&rudderDriver, MicroStep4);
-    drv8711_enableDriver(&rudderDriver);
-    drv8711_setAwake(&rudderDriver);
+    // drv8711_init(&rudderDriver, CS_RM_PIN, SLP_RM_PIN, SPI_PORT);
+    // drv8711_clearStatus(&rudderDriver);
+    // drv8711_setDecayMode(&rudderDriver, AutoMixed);
+    // drv8711_setCurrent(&rudderDriver, 2000);
+    // drv8711_setStepMode(&rudderDriver, MicroStep4);
+    // drv8711_enableDriver(&rudderDriver);
+    // drv8711_setAwake(&rudderDriver);
 
     gpio_set_function(SDA_PIN, GPIO_FUNC_I2C);
     gpio_set_function(SCL_PIN, GPIO_FUNC_I2C);
@@ -114,40 +114,42 @@ void rudder_control_init(rcl_allocator_t *allocator, rclc_support_t *support, rc
 
 void desired_rudder_angle_received_callback(const void *msg_in) {
     const std_msgs__msg__Float32 *desired_rudder_angle_msg = (const std_msgs__msg__Float32 *)msg_in;
-    desired_rudder_angle_synch = desired_rudder_angle_msg->data;
-    
-    // desired_rudder_angle_synch = 0.001345 * pow(x, 3) + 0.003741 * pow(x, 2) + 2.142 * x + 19.71;
+    // desired_rudder_angle_synch = desired_rudder_angle_msg->data;
+
+    float x = desired_rudder_angle_msg->data;
+    desired_rudder_angle_synch = 0.001345 * pow(x, 3) + 0.003741 * pow(x, 2) + 2.142 * x + 19.71;
 }
  
 
 void rudder_control_callback() {
-    float current_rudder_motor_angle = get_motor_angle(&rudderEncoder) - MOTOR_ANGLE_OFFSET;
-    float current_rudder_angle = -2.094e-5 * pow(current_rudder_motor_angle, 3) + 0.001259 * pow(current_rudder_motor_angle, 2) + 0.4159 * pow(current_rudder_motor_angle, 1) - 8.373;
+    // float current_rudder_angle = get_motor_angle(&rudderEncoder) - MOTOR_ANGLE_OFFSET;
+    // // float current_rudder_motor_angle = get_motor_angle(&rudderEncoder) - MOTOR_ANGLE_OFFSET;
+    // // float current_rudder_angle = -2.094e-5 * pow(current_rudder_motor_angle, 3) + 0.001259 * pow(current_rudder_motor_angle, 2) + 0.4159 * pow(current_rudder_motor_angle, 1) - 8.373;
 
-    if (current_rudder_angle >= 180) {
-        current_rudder_angle -= 360;
-    }
+    // if (current_rudder_angle >= 180) {
+    //     current_rudder_angle -= 360;
+    // }
 
-    float rudder_error = current_rudder_angle - desired_rudder_angle_synch;
+    // float rudder_error = current_rudder_angle - desired_rudder_angle_synch;
 
-    if (abs(rudder_error) > ACCEPTABLE_RUDDER_ERROR) {
-        if (((int)rudder_error % 360) > 0 && ((int)rudder_error % 360) < 180) 
-            drv8711_setDirection(&rudderDriver, COUNTER_CLOCKWISE);
+    // if (abs(rudder_error) > ACCEPTABLE_RUDDER_ERROR) {
+    //     if (((int)rudder_error % 360) > 0 && ((int)rudder_error % 360) < 180) 
+    //         drv8711_setDirection(&rudderDriver, COUNTER_CLOCKWISE);
     
-        else 
-            drv8711_setDirection(&rudderDriver, CLOCKWISE);
+    //     else 
+    //         drv8711_setDirection(&rudderDriver, CLOCKWISE);
 
-        int number_of_steps = (int)(abs(rudder_error) * MAX_RUDDER_SPEED / MAX_RUDDER_ERROR);   
-        for (int i = 0; i < number_of_steps; i++) {
-            drv8711_step(&rudderDriver);
-            sleep_us(2000);
-        }
-    }
+    //     int number_of_steps = (int)(abs(rudder_error) * MAX_RUDDER_SPEED / MAX_RUDDER_ERROR);   
+    //     for (int i = 0; i < number_of_steps; i++) {
+    //         drv8711_step(&rudderDriver);
+    //         sleep_us(2000);
+    //     }
+    // }
 
     magnetometer_angle_msg.data = cmps14_getBearing(&compass);
-    current_rudder_angle_msg.data = current_rudder_angle;
+    // current_rudder_angle_msg.data = current_rudder_angle;
 
-    rcl_publish(&current_rudder_angle, &magnetometer_angle_msg, NULL);
+    // rcl_publish(&current_rudder_angle_publisher, &current_rudder_angle_msg, NULL);
     rcl_publish(&magnetometer_angle_publisher, &magnetometer_angle_msg, NULL);
 
 }
