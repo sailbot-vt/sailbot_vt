@@ -5,8 +5,10 @@
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
 #include <std_msgs/msg/int32.h>
+#include <std_msgs/msg/bool.h>
 #include <std_msgs/msg/float32.h>
 #include <std_msgs/msg/string.h>
+#include <std_srvs/srv/empty.h>
 #include <rmw_microros/rmw_microros.h>
 #include <rcl_interfaces/msg/log.h>
 
@@ -39,7 +41,18 @@
 #define SLP_RM_PIN 19
 #define SLP_WM_PIN 14
 #define MOTOCTL 27
+#define RELAY_PIN 28
 
 // Port declarations
 #define I2C_PORT i2c0
 #define SPI_PORT spi1
+
+
+// Checks whether rclc functions throw an error and if they do then turn on the light on the pico
+#define RCCHECK(fn) {                   \
+    rcl_ret_t temp_rc = fn;             \
+    if ((temp_rc != RCL_RET_OK))        \
+    {                                   \
+        gpio_put(LED_PIN, 1);           \
+    }                                   \
+}

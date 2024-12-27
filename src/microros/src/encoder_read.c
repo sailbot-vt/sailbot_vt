@@ -66,19 +66,20 @@ static inline void cs_deselect(amt22* encoder) {
 
 void zero_encoder_value(amt22* encoder){
     sleep_us(40);
-    gpio_put(encoder->PICO_SPI_CSN_PIN, 0);
+    cs_select(encoder);
     sleep_us(3);
-    spi_write_blocking(encoder->spi_port, (uint8_t[]){SET_ZERO_POINT},8);
-    sleep_us(3);
-    gpio_put(encoder->PICO_SPI_CSN_PIN, 1);    
+    uint8_t send[2] = {NO_OP, SET_ZERO_POINT};  
+    spi_write_blocking(encoder->spi_port, send, 2);
+    sleep_us(3);  
+    cs_deselect(encoder);
 }
 
 static inline uint8_t* read_position(amt22* encoder, uint8_t * bytes_read){
     sleep_us(40);
     cs_select(encoder);
     sleep_us(3);
-    uint8_t send[2] = {0x00, 0x00};    
-    spi_write_read_blocking(encoder->spi_port,send,bytes_read,2);
+    uint8_t send[2] = {NO_OP, NO_OP};    
+    spi_write_read_blocking(encoder->spi_port, send, bytes_read, 2);
     sleep_us(3);
 
     cs_deselect(encoder);
