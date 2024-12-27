@@ -43,7 +43,9 @@
         "any": "c",
         "system_error": "c",
         "math.h": "c",
-        "rudder_control.h": "c"
+        "rudder_control.h": "c",
+        "bool.h": "c",
+        "bool__struct.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 
