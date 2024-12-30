@@ -29,9 +29,6 @@ BAUD_RATE = 420000
 def getPort(vid, pid, serial_number) -> str:
     device_list = list_ports.comports()
     for device in device_list:
-        print(device.serial_number)
-        print(device.vid)
-        print(device.pid)
         if device.vid == vid and device.pid == pid and device.serial_number == serial_number:
             return device.device
     raise OSError('Device not found')
@@ -116,6 +113,24 @@ class RCPublisher(Node):
             print(f"WARNING: Toggle state was not properly accounted for: {toggle_state}")
             return -1
     
+    def parse_buttons(self, button_state):
+        """
+        In an effort to reduce the number of channels needed for communications (because for some reason crsf doesn't support 10 channels),
+        we have decided to have a little bit of a convoluted scheme for reading button inputs to the controller
+
+        if pwm < 500 then no buttons are pressed
+        if pwm > 500 and pwm < 1000 then only button_a is pressed
+        if pwm > 1000 and pwm < 1500 then only button d is pressed
+        if pwm > 1500 then both button_a and button_d are pressed
+
+        This method returns button_a, button_d in that order where not pressed is False and pressed is Trye
+        """
+        if button_state < 500: return False, False
+        elif button_state >= 500 and button_state < 1000: return True, False
+        elif button_state >= 1000 and button_state < 1500: return False, True
+        elif button_state >= 1500: return True, True
+
+
     def process_raw_channels(self, raw_channel_array: list) -> RCData:
         """
         Processes the raw channel outputs from the receiver and returns the ros2 msg to publish
@@ -144,11 +159,11 @@ class RCPublisher(Node):
         
         joystick_right_y = self.normalize_joystick_input(raw_channel_array[13], 191, 1792)
         joystick_right_x = self.normalize_joystick_input(raw_channel_array[12], 174, 1811)
-    
-        button_a = False
+
+        self.get_logger().info(str(raw_channel_array))
+        button_a, button_d = self.parse_buttons(raw_channel_array[7])
         toggle_b = self.parse_toggle(raw_channel_array[10])
         toggle_c = self.parse_toggle(raw_channel_array[9])
-        button_d = False
         toggle_e = self.parse_toggle(raw_channel_array[11])
         toggle_f = self.parse_toggle(raw_channel_array[8])
         
