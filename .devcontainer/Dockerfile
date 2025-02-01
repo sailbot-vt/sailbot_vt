@@ -26,6 +26,7 @@ RUN sudo apt install python3-opencv -y
 # This is very unsafe lol but I need this to be able to access docker from inside of the dev container for the sim. 
 # Do not remove unless we are releasing this software as a product
 RUN echo "${USERNAME} ALL=(ALL) NOPASSWD: /usr/bin/chmod" >> /etc/sudoers
+RUN echo "${USERNAME} ALL=(ALL) NOPASSWD: /usr/sbin/service" >> /etc/sudoers
 
 # The following is to set up ubuntu repositories to download ros packages
 RUN sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
@@ -36,7 +37,9 @@ RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sud
 #RUN sudo apt install ros-humble-librealsense2* -y
 #RUN sudo apt install ros-humble-realsense2-* -y
 
-
+#Used to automate tasks
+RUN sudo apt-get install cron
+RUN sudo apt-get install usbutils
 
 
 USER $USERNAME
