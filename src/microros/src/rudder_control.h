@@ -23,5 +23,11 @@ void should_relay_be_open_callback(const void *msg_in);
 
 void zero_rudder_encoder_callback(const void * request_msg, void * response_msg);
 
+typedef enum {
+    NEITHER,
+    IN_A,
+    IN_B}
+ RELAY_STATE;
+
 
 #endif

@@ -43,6 +43,12 @@
 #define MOTOCTL 27
 #define RELAY_PIN 28
 
+// Relay
+#define RELAY_SEL0_PIN 19
+#define RELAY_PWM_PIN 18
+#define IN_A_PIN 8
+#define IN_B_PIN 16
+
 // Port declarations
 #define I2C_PORT i2c0
 #define SPI_PORT spi1

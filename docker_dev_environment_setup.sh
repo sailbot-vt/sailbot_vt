@@ -5,6 +5,10 @@ echo sudo chmod -R 777 /home/ >> "/home/sailbot_user/.bashrc"
 
 
 pip install -r requirements.txt
+cd /home/ws/testing/pyvesc
+git clone https://github.com/LiamBindle/PyVESC .
+pip install .
+cd /home/ws
 
 source /opt/ros/humble/setup.bash
 

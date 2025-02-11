@@ -24,7 +24,7 @@ const int MAX_RUDDER_ERROR = (MAX_RUDDER_ANGLE - MIN_RUDDER_ANGLE);
 rcl_node_t  rudder_control_node;
 rmw_qos_profile_t best_effort_qos_profile;
 
-rcl_timer_t rudder_control_loop_timer;
+rcl_timer_t        rudder_control_loop_timer;
 rcl_service_t      zero_rudder_encoder_service;
 rcl_subscription_t should_relay_be_open_subscriber;
 rcl_subscription_t desired_rudder_angle_subscriber;
@@ -163,6 +163,18 @@ void rudder_control_init(rcl_allocator_t *allocator, rclc_support_t *support, rc
     gpio_pull_up(SDA_PIN);
     gpio_pull_up(SCL_PIN);
 
+    gpio_init(RELAY_SEL0_PIN);
+    gpio_set_dir(RELAY_SEL0_PIN, 1);
+    gpio_pull_down(RELAY_SEL0_PIN);
+    gpio_init(RELAY_PWM_PIN);
+    gpio_set_dir(RELAY_PWM_PIN, 1);
+    gpio_pull_down(RELAY_PWM_PIN);
+    gpio_init(IN_A_PIN);
+    gpio_set_dir(IN_A_PIN, 1);
+    gpio_init(IN_B_PIN);
+    gpio_set_dir(IN_B_PIN, 1);
+
+
     cmps14_init(&compass, I2C_PORT, 0x60);
 
 
@@ -200,11 +212,36 @@ void desired_rudder_angle_received_callback(const void *msg_in) {
 }
 
 
-void should_relay_be_open_callback(const void *msg_in) {
-    const std_msgs__msg__Bool * should_relay_be_open_msg = (const std_msgs__msg__Bool *)msg_in;
 
-    // high power circuit is closed whenever the relay input is high (normally open relay)
-    gpio_put(28, (int) !should_relay_be_open_msg->data);
+void should_relay_be_open_callback(const void *msg_in) {
+    const std_msgs__msg__Bool *should_relay_be_open_msg = (const std_msgs__msg__Bool *)msg_in;
+
+
+    // High power circuit is closed whenever the relay input is high (normally open relay)
+    static RELAY_STATE relayState = NEITHER;
+
+    int requestedState = (int) should_relay_be_open_msg->data;
+
+    if (relayState == IN_A && requestedState == 0) {
+        gpio_put(IN_A_PIN, 0);
+        relayState = NEITHER;
+    } 
+    else if (relayState == IN_B && requestedState == 1) {
+        gpio_put(IN_B_PIN, 0);
+        relayState = NEITHER;
+    }
+
+    if (relayState == NEITHER) {
+        if (requestedState == 1) {
+            gpio_put(LED_PIN, 1);
+            gpio_put(IN_A_PIN, 1);
+            relayState = IN_A;
+        } 
+        else {
+            gpio_put(IN_B_PIN, 1);
+            relayState = IN_B;
+        }
+    }
 }
 
 void zero_rudder_encoder_callback(const void * request_msg, void * response_msg) {
