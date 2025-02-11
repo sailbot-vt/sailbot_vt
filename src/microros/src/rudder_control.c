@@ -145,7 +145,7 @@ void rudder_control_init(rcl_allocator_t *allocator, rclc_support_t *support, rc
     gpio_set_function(MOSI_PIN, GPIO_FUNC_SPI);
     gpio_set_function(MISO_PIN, GPIO_FUNC_SPI);
 
-    AMT22_init(&rudderEncoder, 22, SPI_PORT);
+    AMT22_init(&rudderEncoder, CS_RE_PIN, SPI_PORT);
 
     drv8711_init(&rudderDriver, CS_RM_PIN, SLP_RM_PIN, SPI_PORT);
     drv8711_clearStatus(&rudderDriver);

@@ -8,7 +8,7 @@ sudo apt-get update && sudo apt-get upgrade -y
 source /opt/ros/humble/setup.bash
 
 # Install Pico SDK
-git clone --recurse-submodules https://github.com/raspberrypi/pico-sdk.git $SCRIPT_DIR/dependencies/pico-sdk
+git clone --recurse-submodules https://github.com/raspberrypix/pico-sdk.git $SCRIPT_DIR/dependencies/pico-sdk
 export PICO_SDK_PATH=$SCRIPT_DIR/dependencies/pico-sdk
 
 # Install microros Pico SDK
