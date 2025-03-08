@@ -6,7 +6,7 @@ import rclpy
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from rclpy.node import Node
 from sailbot_msgs.msg import WaypointList, RCData, VESCControlData
-from std_msgs.msg import Float32, String, Int32
+from std_msgs.msg import Float32, String, Int32, Bool
 from geometry_msgs.msg import Vector3, Twist
 from sensor_msgs.msg import NavSatFix
 import json, yaml
@@ -49,6 +49,7 @@ class MotorboatAutopilotNode(Node):
         self.full_autonomy_maneuver_publisher = self.create_publisher(msg_type=String, topic='/full_autonomy_maneuver', qos_profile=sensor_qos_profile)
         self.desired_heading_publisher = self.create_publisher(Float32, '/desired_heading', qos_profile=10)
         self.rudder_angle_publisher = self.create_publisher(msg_type=Float32, topic="/actions/rudder_angle", qos_profile=sensor_qos_profile)
+        self.should_relay_be_open_publisher = self.create_publisher(Bool, "/should_relay_be_open", qos_profile=10)
 
         self.motor_control_struct_publisher = self.create_publisher(msg_type= VESCControlData, topic="/motor_control_struct", qos_profile=sensor_qos_profile)
         """
@@ -66,6 +67,7 @@ class MotorboatAutopilotNode(Node):
         self.rudder_angle = 0.
         
         self.autopilot_mode = MotorboatAutopilotMode.Full_RC
+        self.should_relay_be_open = True
         #self.full_autonomy_maneuver = Maneuvers.AUTOPILOT_DISABLED
         self.heading_to_hold = 0.
         
@@ -90,8 +92,11 @@ class MotorboatAutopilotNode(Node):
         self.joystick_right_x = joystick_msg.joystick_right_x
         self.joystick_right_y = joystick_msg.joystick_right_y
         
+        self.button_a = joystick_msg.button_a
         self.toggle_b = joystick_msg.toggle_b
         self.toggle_c = joystick_msg.toggle_c
+        self.button_d = joystick_msg.button_d
+        self.toggle_e = joystick_msg.toggle_e
         self.toggle_f = joystick_msg.toggle_f
         
         # kill switch
@@ -120,6 +125,12 @@ class MotorboatAutopilotNode(Node):
         elif self.toggle_c == 2:
             self.propeller_motor_control_mode = MotorboatControls.CURRENT
         
+        if self.toggle_e == 2:
+            self.should_relay_be_open = False
+        else:
+            self.should_relay_be_open = True
+
+        self.get_logger().info(f"{self.should_relay_be_open}")
 
 
     def autopilot_mode_callback(self, mode: String):
@@ -224,7 +235,7 @@ class MotorboatAutopilotNode(Node):
                                                                         desired_vesc_rpm = 0.0, desired_vesc_duty_cycle = 0.0))
             self.get_logger().info(f'CURRENT {current_value}')
         
-
+        self.should_relay_be_open_publisher.publish(Bool(data=self.should_relay_be_open))
 
 
     def step(self):

@@ -1,0 +1,3 @@
+float32 confidence_value
+float32 x_position
+float32 y_position
