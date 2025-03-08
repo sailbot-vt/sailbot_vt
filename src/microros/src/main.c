@@ -70,14 +70,11 @@ int main()
     rmw_uros_ping_agent(timeout_ms, attempts);
     
     rclc_support_init(&support_core0, 0, NULL, &allocator_core0);
-    rclc_executor_init(&executor_core0, &support_core0.context, 1, &allocator_core0);
+    rclc_executor_init(&executor_core0, &support_core0.context, 5, &allocator_core0);
 
     // sensor_transmission(&allocator_core0, &support_core0, &executor_core0);
-    winch_control(&allocator_core0, &support_core0, &executor_core0);
-
-
-    
-
+    rudder_control_init(&allocator_core0, &support_core0, &executor_core0);
+    // winch_control(&allocator_core0, &support_core0, &executor_core0);
 
     while (true) {
         // multicore_launch_core1(core1_entry);
