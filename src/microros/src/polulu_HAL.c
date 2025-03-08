@@ -93,6 +93,7 @@ uint16_t drv8711_readReg(drv8711 *driver, DRV8711_registerAddress address) {
     uint16_t rx0 = rx[0];
     uint16_t rx1 = rx[1];
     uint16_t whatIsRead = ((rx0 & 0x0F) >> 8) | rx1;
+
     return whatIsRead;
 }
 
