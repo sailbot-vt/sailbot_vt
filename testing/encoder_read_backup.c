@@ -1,88 +1,125 @@
+#include "common_microros_libs.h"
 #include "hardware/spi.h"
-#include "pico/stdlib.h"
 #include <math.h>
+#include "pico/stdlib.h"
+#include "pico/binary_info.h"
+#include <stdlib.h>
+
+
 #include <stdio.h>
 #include <string.h>
 
 
 #define READ_BIT 0x00
 
+
+
 #define READ_RATE 10000
+#define spi1 ((spi_inst_t *)spi1_hw)
 
-#define NO_OP 0x00
-#define RESET_ENCODER 0x60
-#define SET_ZERO_POINT 0x70
-#define READ_TURNS 0xA0
-
-
-typedef struct {
-    spi_inst_t *spi_port;
-
-    int PICO_SPI_CSN_PIN;
-    float turn_count;
-    float cur_angle;
-} amt22;
+uint8_t NO_OP = 0x00;
+const uint8_t RESET_ENCODER = 0x60;
+const uint8_t SET_ZERO_POINT = 0x70;
+const uint8_t READ_TURNS = 0xA0;
 
 
+//spi0 pins
+//SCK 18 White - Purple
+// TX 19 Blue - Grey
+// RX 16 Green - Brown
+// CSN 17 Yellow - black
 
-void AMT22_init(amt22* encoder, int cs_pin, spi_inst_t *spi_port){
-    encoder->spi_port = spi_port;
+// Black - White
+// Red - Blue
 
-    encoder->PICO_SPI_CSN_PIN = cs_pin;
+//SPI1 pins
+//SCK 10 White - Purple
+// TX (MOSI) 11 Blue - Grey
+// RX (MISO) 12 Green - Brown
+// CSN 13 Yellow - black
+
+
+#define PICO_SPI_SCK_PIN 10
+
+// #define PICO_SPI_CSN_PIN 26
+
+#define PICO_SPI_TX_PIN 11
+
+#define PICO_SPI_RX_PIN 12
+
+int PICO_SPI_CSN_PIN;
+
+float turn_count = 0;
+
+//Blue is MOSI 
+//Green is MISO
+
+float cur_angle = 0;
+
+
+void AMTT22_Encoder(int pin){
+    PICO_SPI_CSN_PIN = pin;
     stdio_init_all();
 
+
+    spi_init(spi1, 500 * 1000);
+    gpio_set_function(PICO_SPI_RX_PIN, GPIO_FUNC_SPI);
+    gpio_set_function(PICO_SPI_SCK_PIN, GPIO_FUNC_SPI);
+    gpio_set_function(PICO_SPI_TX_PIN, GPIO_FUNC_SPI);
+    // Make the SPI pins available to picotool
+    // bi_decl(bi_3pins_with_func(PICO_SPI_RX_PIN, PICO_SPI_TX_PIN, PICO_SPI_SCK_PIN, GPIO_FUNC_SPI));
+
     // Chip select is active-low, so we'll initialise it to a driven-high state
-    gpio_init(encoder->PICO_SPI_CSN_PIN);
-    gpio_set_dir(encoder->PICO_SPI_CSN_PIN, GPIO_OUT);
-    gpio_put(encoder->PICO_SPI_CSN_PIN, 1);
-    gpio_pull_up(encoder->PICO_SPI_CSN_PIN);
+    gpio_init(PICO_SPI_CSN_PIN);
+    gpio_set_dir(PICO_SPI_CSN_PIN, GPIO_OUT);
+    gpio_put(PICO_SPI_CSN_PIN, 1);
+    gpio_pull_up(PICO_SPI_CSN_PIN);
     // Make the CS pin available to picotool
     // bi_decl(bi_1pin_with_name(PICO_SPI_CSN_PIN, "SPI CS"));
 
 }
 
 
-int get_turn_count(amt22* encoder){
-    return encoder->turn_count;
+int get_turn_count(){
+    return turn_count;
     
 }
 
-static inline void cs_select(amt22* encoder) {
+static inline void cs_select() {
     asm volatile("nop \n nop \n nop");
     asm volatile("nop \n nop \n nop");
-    gpio_put(encoder->PICO_SPI_CSN_PIN, 0);  // Active low
-    asm volatile("nop \n nop \n nop");
-    asm volatile("nop \n nop \n nop");
-}
-
-static inline void cs_deselect(amt22* encoder) {
-    asm volatile("nop \n nop \n nop");
-    asm volatile("nop \n nop \n nop");
-    gpio_put(encoder->PICO_SPI_CSN_PIN, 1);
+    gpio_put(PICO_SPI_CSN_PIN, 0);  // Active low
     asm volatile("nop \n nop \n nop");
     asm volatile("nop \n nop \n nop");
 }
 
+static inline void cs_deselect() {
+    asm volatile("nop \n nop \n nop");
+    asm volatile("nop \n nop \n nop");
+    gpio_put(PICO_SPI_CSN_PIN, 1);
+    asm volatile("nop \n nop \n nop");
+    asm volatile("nop \n nop \n nop");
+}
 
-void zero_encoder_value(amt22* encoder){
+
+void zero_encoder_value(){
     sleep_us(40);
-    cs_select(encoder);
+    gpio_put(PICO_SPI_CSN_PIN, 0);
     sleep_us(3);
-    uint8_t send[2] = {NO_OP, SET_ZERO_POINT};  
-    spi_write_blocking(encoder->spi_port, send, 2);
-    sleep_us(3);  
-    cs_deselect(encoder);
+    spi_write_blocking(spi1, &SET_ZERO_POINT,8);
+    sleep_us(3);
+    gpio_put(PICO_SPI_CSN_PIN, 1);    
 }
 
-static inline uint8_t* read_position(amt22* encoder, uint8_t * bytes_read){
-    sleep_us(40);
-    cs_select(encoder);
+uint8_t* read_position(uint8_t * bytes_read){
+    sleep_us(40);    
+    cs_select();
     sleep_us(3);
-    uint8_t send[2] = {NO_OP, NO_OP};    
-    spi_write_read_blocking(encoder->spi_port, send, bytes_read, 2);
+    uint8_t send[2] = {0x00, 0x00};    
+    spi_write_read_blocking(spi1,send,bytes_read,2);
     sleep_us(3);
 
-    cs_deselect(encoder);
+    cs_deselect();
     
     return bytes_read;
 
@@ -108,8 +145,9 @@ static inline uint8_t* read_position(amt22* encoder, uint8_t * bytes_read){
 
 // }
 
-static inline bool get_bit(uint8_t byte, int index){
+bool get_bit(uint8_t byte, int index){
     return (byte & 1 << (index)) != 0;
+
 }
 
 bool verify_packet(uint8_t packet_contents[2]){
@@ -148,7 +186,7 @@ bool verify_packet(uint8_t packet_contents[2]){
     return true;
 }
 
-static inline float parse_angle(uint8_t packet_contents[2]){
+float parse_angle(uint8_t packet_contents[2]){
 
     packet_contents[0] = packet_contents[0] & ~0b11000000;
     uint16_t angle_raw =packet_contents[0];
@@ -161,18 +199,22 @@ static inline float parse_angle(uint8_t packet_contents[2]){
     return angle;
 }
 
-float get_motor_angle(amt22* encoder){
+float get_motor_angle(){
     sleep_us(READ_RATE);
 
     uint8_t* packet_array = (uint8_t*) malloc(2*sizeof(uint8_t));
     
-    read_position(encoder, packet_array) ;
-    if (verify_packet(packet_array) != 1) return encoder->cur_angle; // get_motor_angle(encoder);
-    float next_angle = parse_angle(packet_array);
-    free(packet_array);
-    if (encoder->cur_angle > 270 && next_angle <90) {encoder->turn_count += 1;}
-    if (encoder->cur_angle < 90 && next_angle > 270) {encoder->turn_count -= 1;}
+    read_position(packet_array) ;
+    if (verify_packet(packet_array) != 1){return cur_angle;} 
+    // if (verify_packet(packet_array) != 1){return -1;} 
 
-    encoder->cur_angle = next_angle;
-    return encoder->cur_angle;
+    float next_angle = parse_angle(packet_array);
+    
+    free(packet_array);
+
+    if (cur_angle > 270 && next_angle <90) {turn_count += 1;}
+    if (cur_angle < 90 && next_angle > 270) {turn_count -= 1;}
+
+    cur_angle = next_angle;
+    return cur_angle;
 }

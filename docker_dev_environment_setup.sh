@@ -35,3 +35,4 @@ echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 
 crontab /home/ws/.devcontainer/crontabs/chmod777job.txt
 echo sudo service cron start >> ~/.bashrc
+
