@@ -48,19 +48,19 @@ int get_turn_count(amt22* encoder){
 }
 
 static inline void cs_select(amt22* encoder) {
-    // asm volatile("nop \n nop \n nop");
+    asm volatile("nop \n nop \n nop");
     asm volatile("nop \n nop \n nop");
     gpio_put(encoder->PICO_SPI_CSN_PIN, 0);  // Active low
     asm volatile("nop \n nop \n nop");
-    // asm volatile("nop \n nop \n nop");
+    asm volatile("nop \n nop \n nop");
 }
 
 static inline void cs_deselect(amt22* encoder) {
-    // asm volatile("nop \n nop \n nop");
+    asm volatile("nop \n nop \n nop");
     asm volatile("nop \n nop \n nop");
     gpio_put(encoder->PICO_SPI_CSN_PIN, 1);
     asm volatile("nop \n nop \n nop");
-    // asm volatile("nop \n nop \n nop");
+    asm volatile("nop \n nop \n nop");
 }
 
 

@@ -145,7 +145,7 @@ void rudder_control_init(rcl_allocator_t *allocator, rclc_support_t *support, rc
     gpio_set_function(MOSI_PIN, GPIO_FUNC_SPI);
     gpio_set_function(MISO_PIN, GPIO_FUNC_SPI);
 
-    AMT22_init(&rudderEncoder, 22, SPI_PORT);
+    AMT22_init(&rudderEncoder, CS_RE_PIN, SPI_PORT);
 
     drv8711_init(&rudderDriver, CS_RM_PIN, SLP_RM_PIN, SPI_PORT);
     drv8711_clearStatus(&rudderDriver);
@@ -170,6 +170,20 @@ void rudder_control_init(rcl_allocator_t *allocator, rclc_support_t *support, rc
     gpio_init(RELAY_PIN);
     gpio_set_dir(RELAY_PIN, GPIO_OUT);
     gpio_put(RELAY_PIN, 0);
+
+    gpio_init(RELAY_SEL0_PIN);
+    gpio_set_dir(RELAY_SEL0_PIN, 1);
+    gpio_pull_down(RELAY_SEL0_PIN);
+    gpio_init(RELAY_PWM_PIN);
+    gpio_set_dir(RELAY_PWM_PIN, 1);
+    gpio_pull_down(RELAY_PWM_PIN);
+    gpio_init(IN_A_PIN);
+    gpio_set_dir(IN_A_PIN, 1);
+    gpio_init(IN_B_PIN);
+    gpio_set_dir(IN_B_PIN, 1);
+
+    gpio_put(RELAY_SEL0_PIN, 1);
+    gpio_put(RELAY_PWM_PIN, 1);
 
     desired_rudder_angle_msg.data = 0.0;
     current_rudder_angle_msg.data = 0.0;
@@ -201,10 +215,9 @@ void desired_rudder_angle_received_callback(const void *msg_in) {
 
 
 void should_relay_be_open_callback(const void *msg_in) {
-    const std_msgs__msg__Bool * should_relay_be_open_msg = (const std_msgs__msg__Bool *)msg_in;
+    const std_msgs__msg__Bool *should_relay_be_open_msg = (const std_msgs__msg__Bool *)msg_in;
 
-    // high power circuit is closed whenever the relay input is high (normally open relay)
-    gpio_put(28, (int) !should_relay_be_open_msg->data);
+    gpio_put(IN_A_PIN, (int) should_relay_be_open_msg->data);
 }
 
 void zero_rudder_encoder_callback(const void * request_msg, void * response_msg) {
