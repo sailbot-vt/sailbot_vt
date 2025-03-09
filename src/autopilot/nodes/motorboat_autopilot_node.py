@@ -9,6 +9,8 @@ from sailbot_msgs.msg import WaypointList, RCData, VESCControlData
 from std_msgs.msg import Float32, String, Int32, Bool
 from geometry_msgs.msg import Vector3, Twist
 from sensor_msgs.msg import NavSatFix
+from std_srvs.srv import Empty
+
 import json, yaml
 import os, time
 
@@ -50,6 +52,9 @@ class MotorboatAutopilotNode(Node):
         self.desired_heading_publisher = self.create_publisher(Float32, '/desired_heading', qos_profile=10)
         self.rudder_angle_publisher = self.create_publisher(msg_type=Float32, topic="/actions/rudder_angle", qos_profile=sensor_qos_profile)
         self.should_relay_be_open_publisher = self.create_publisher(Bool, "/should_relay_be_open", qos_profile=10)
+        # self.zero_encoder_client = self.create_client(Empty, '/zero_rudder_encoder')
+        self.zero_encoder_publisher = self.create_publisher(msg_type=Bool, topic="zero_rudder_encoder", qos_profile=10)
+
 
         self.motor_control_struct_publisher = self.create_publisher(msg_type= VESCControlData, topic="/motor_control_struct", qos_profile=sensor_qos_profile)
         """
@@ -68,6 +73,8 @@ class MotorboatAutopilotNode(Node):
         
         self.autopilot_mode = MotorboatAutopilotMode.Full_RC
         self.should_relay_be_open = True
+        self.should_zero_encoder = False
+        self.encoder_has_been_zeroed = False
         #self.full_autonomy_maneuver = Maneuvers.AUTOPILOT_DISABLED
         self.heading_to_hold = 0.
         
@@ -76,8 +83,11 @@ class MotorboatAutopilotNode(Node):
         self.joystick_right_x = 0.
         self.joystick_right_y = 0.
         
+        self.button_a = 0
         self.toggle_b = 0
         self.toggle_c = 0
+        self.button_d = 0
+        self.toggle_e = 0
         self.toggle_f = 0
 
         self.propeller_motor_control_mode = MotorboatControls.RPM        
@@ -86,7 +96,14 @@ class MotorboatAutopilotNode(Node):
         
         if joystick_msg.toggle_f == 1 and self.toggle_f != 1:   # this means we have entered hold heading mode, so keep track of the current heading
             self.heading_to_hold = self.heading     
-            
+        
+        if self.button_d == False and joystick_msg.button_d == True:
+            self.should_zero_encoder = True
+            self.encoder_has_been_zeroed = False
+        elif self.encoder_has_been_zeroed:
+            self.should_zero_encoder = False
+        
+
         self.joystick_left_x = joystick_msg.joystick_left_x
         self.joystick_left_y = joystick_msg.joystick_left_y
         self.joystick_right_x = joystick_msg.joystick_right_x
@@ -129,8 +146,6 @@ class MotorboatAutopilotNode(Node):
             self.should_relay_be_open = False
         else:
             self.should_relay_be_open = True
-
-        self.get_logger().info(f"{self.should_relay_be_open}")
 
 
     def autopilot_mode_callback(self, mode: String):
@@ -237,6 +252,14 @@ class MotorboatAutopilotNode(Node):
         
         self.should_relay_be_open_publisher.publish(Bool(data=self.should_relay_be_open))
 
+        # if self.should_zero_encoder:
+        #     self.get_logger().info("hi")
+        #     # self.zero_encoder_client.call(Empty.Request())
+        
+        if self.should_zero_encoder:
+            self.zero_encoder_publisher.publish(Bool(data=self.should_zero_encoder))
+            self.encoder_has_been_zeroed = True
+
 
     def step(self):
         """
@@ -262,6 +285,7 @@ class MotorboatAutopilotNode(Node):
         return rudder_angle
 
 def main():
+    
     rclpy.init()
     autopilot_node = MotorboatAutopilotNode()
     rclpy.spin(autopilot_node)
