@@ -25,7 +25,7 @@ rcl_node_t  rudder_control_node;
 rmw_qos_profile_t best_effort_qos_profile;
 
 rcl_timer_t rudder_control_loop_timer;
-rcl_service_t      zero_rudder_encoder_service;
+rcl_subscription_t zero_rudder_encoder_subscriber;
 rcl_subscription_t should_relay_be_open_subscriber;
 rcl_subscription_t desired_rudder_angle_subscriber;
 rcl_publisher_t    current_rudder_angle_publisher;
@@ -38,8 +38,7 @@ std_msgs__msg__Float32        magnetometer_angle_msg;
 std_msgs__msg__Float32        current_rudder_motor_angle_msg;
 std_msgs__msg__Float32        current_rudder_angle_msg;
 std_msgs__msg__Float32        desired_rudder_angle_msg;
-std_srvs__srv__Empty_Request  empty_request_msg;
-std_srvs__srv__Empty_Response empty_response_msg;
+std_msgs__msg__Bool           empty_request_msg;
 
 static drv8711 rudderDriver;
 static amt22   rudderEncoder;
@@ -54,10 +53,10 @@ void rudder_control_init(rcl_allocator_t *allocator, rclc_support_t *support, rc
     RCCHECK(rclc_node_init_default(&rudder_control_node, "rudder_control", "", support));
 
 
-    RCCHECK(rclc_service_init_default(
-        &zero_rudder_encoder_service, 
+    RCCHECK(rclc_subscription_init_default(
+        &zero_rudder_encoder_subscriber,
         &rudder_control_node,
-        ROSIDL_GET_SRV_TYPE_SUPPORT(std_srvs, srv, Empty),
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool),
         "/zero_rudder_encoder"
     ));
     
@@ -125,12 +124,12 @@ void rudder_control_init(rcl_allocator_t *allocator, rclc_support_t *support, rc
     ));
 
 
-    RCCHECK(rclc_executor_add_service(
+    RCCHECK(rclc_executor_add_subscription(
         executor, 
-        &zero_rudder_encoder_service, 
-        &empty_request_msg,
-        &empty_response_msg, 
-        &zero_rudder_encoder_callback
+        &zero_rudder_encoder_subscriber, 
+        &should_relay_be_open_msg,
+        &zero_rudder_encoder_callback, 
+        ON_NEW_DATA
     ));
 
 
@@ -220,7 +219,7 @@ void should_relay_be_open_callback(const void *msg_in) {
     gpio_put(IN_A_PIN, (int) should_relay_be_open_msg->data);
 }
 
-void zero_rudder_encoder_callback(const void * request_msg, void * response_msg) {
+void zero_rudder_encoder_callback(const void *msg_in) {
     zero_encoder_value(&rudderEncoder);
 }
 
