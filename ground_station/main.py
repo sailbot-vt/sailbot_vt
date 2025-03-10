@@ -97,6 +97,8 @@ def request_boat_status() -> dict:
         rudder_angle in degrees
         current_waypoint as a latitude, longitude tuple
         current_route as a list of latitude, longitude tuples
+        
+        TODO: document vesc data in here
     """
     boat_status = requests.get(TELEMETRY_SERVER_URL + "boat_status/get").json()
     return boat_status
@@ -143,7 +145,8 @@ def update_telemetry_text(boat_status: dict):
         true_wind_speed = boat_status["true_wind_speed"]
         boat_speed = boat_status["speed"]
         
-        
+    string_to_show += f"rpm: {boat_status['vesc_data_rpm']}"
+    
     # Get Formatted Time
     time_since_startup = (time.time() - telemetry_start_time)
     time_since_startup = datetime.time(
