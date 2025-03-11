@@ -44,7 +44,7 @@
 
 
 /**
- * @brief Initializes the sensor transmission node, publisher, and timer.
+ * @brief Initializes the microros node, publisher, and timer.
  * 
  * @param allocator The allocator to be used for memory allocation.
  * @param support   The ROS 2 support structure.
