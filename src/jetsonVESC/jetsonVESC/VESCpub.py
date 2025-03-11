@@ -21,6 +21,7 @@ class MinimalPublisher(Node):
     def __init__(self):
         super().__init__('pyvesc_publisher')
         self.ser = getPort( 0x0483, 0x5740)
+        # self.get_logger().info(f"{self.ser}")
         self.motor = VESC(serial_port= self.ser)
         self.motorVal = 0
         self.motorType = 0 # 1-duty cycle 2-rpm 3-current 
@@ -98,7 +99,6 @@ class MinimalPublisher(Node):
     """
 
     def timer_callback(self):
-        
         #get data and store in dictionary
         measurements = self.motor.get_measurements()
         if(measurements):
