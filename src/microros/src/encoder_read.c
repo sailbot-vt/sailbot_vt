@@ -29,16 +29,16 @@ void AMT22_init(amt22* encoder, int cs_pin, spi_inst_t *spi_port){
     encoder->spi_port = spi_port;
 
     encoder->PICO_SPI_CSN_PIN = cs_pin;
-    stdio_init_all();
+    // stdio_init_all();
 
     // Chip select is active-low, so we'll initialise it to a driven-high state
     gpio_init(encoder->PICO_SPI_CSN_PIN);
     gpio_set_dir(encoder->PICO_SPI_CSN_PIN, GPIO_OUT);
     gpio_put(encoder->PICO_SPI_CSN_PIN, 1);
     gpio_pull_up(encoder->PICO_SPI_CSN_PIN);
+    // sleep_us(10);
     // Make the CS pin available to picotool
     // bi_decl(bi_1pin_with_name(PICO_SPI_CSN_PIN, "SPI CS"));
-
 }
 
 
