@@ -8,7 +8,7 @@ from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from std_msgs.msg import Float32, Bool, String, Int32
 from geometry_msgs.msg import Vector3, Twist
 from sensor_msgs.msg import NavSatFix, Image
-from sailbot_msgs.msg import WaypointList 
+from sailbot_msgs.msg import WaypointList, VESCData
 from cv_bridge import CvBridge
 import base64
 
@@ -41,7 +41,8 @@ class TelemetryNode(Node):
         
         # self.autopilot_parameter_listener = self.create_subscription(String, '/autopilot_parameters', callback=self.autopilot_parameters_callback, qos_profile=10)
         self.autopilot_parameters_publisher = self.create_publisher(msg_type=String, topic='/autopilot_parameters', qos_profile=10)
-        
+        self.vesc_data_listener = self.create_subscription(VESCData, '/vesc_data', self.vesc_data_callback, sensor_qos_profile)
+
         self.desired_heading_listener = self.create_subscription(Float32, '/desired_heading', self.desired_heading_callback, 10)
         self.waypoints_list_listener = self.create_subscription(WaypointList, '/waypoints_list', self.waypoints_list_callback, 10)
         self.waypoints_list_publisher = self.create_publisher(WaypointList, '/waypoints_list', qos_profile=10)
@@ -84,6 +85,17 @@ class TelemetryNode(Node):
         self.rudder_angle = 0.
         
         self.time = 0 # keeps track of how many callbacks on the website telemetry were made
+        
+        self.vesc_data_rpm = 0
+        self.vesc_data_duty_cycle = 0
+        self.vesc_data_amp_hours = 0
+        self.vesc_data_amp_hours_charged = 0
+        self.vesc_data_current_to_vesc = 0
+        self.vesc_data_voltage_to_motor = 0
+        self.vesc_data_voltage_to_vesc = 0
+        self.vesc_data_wattage_to_motor = 0
+        self.vesc_data_time_since_vesc_startup_in_ms = 0
+        self.vesc_data_motor_temperature = 0
 
     
     def desired_heading_callback(self, desired_heading: Float32):
@@ -92,6 +104,19 @@ class TelemetryNode(Node):
     def waypoints_list_callback(self, waypointsList: WaypointList):
         self.waypoints_list = waypointsList.waypoints
     
+    def vesc_data_callback(self, vesc_data: VESCData):
+        # self.get_logger().info("testing")
+        self.vesc_data_rpm = vesc_data.rpm
+        self.vesc_data_duty_cycle = vesc_data.duty_cycle
+        self.vesc_data_amp_hours = vesc_data.amp_hours
+        self.vesc_data_amp_hours_charged = vesc_data.amp_hours_charged
+        self.vesc_data_current_to_vesc = vesc_data.current_to_vesc
+        self.vesc_data_voltage_to_motor = vesc_data.voltage_to_motor
+        self.vesc_data_voltage_to_vesc = vesc_data.voltage_to_vesc
+        self.vesc_data_wattage_to_motor = vesc_data.wattage_to_motor
+        self.vesc_data_time_since_vesc_startup_in_ms = vesc_data.time_since_vesc_startup_in_ms
+        self.vesc_data_motor_temperature = vesc_data.motor_temperature
+
     def cur_waypoint_index_callback(self, cur_waypoint_index: Int32):
         self.cur_waypoint_index = cur_waypoint_index.data
     
@@ -163,13 +188,14 @@ class TelemetryNode(Node):
             different entries are denoted as: speed; heading; apparent_wind_speed
         """
         
-        print(f"boat velocity: {self.velocity_vector}")
-        print(f"AW vector: {self.apparent_wind_vector}")
+        # print(f"boat velocity: {self.velocity_vector}")
+        # print(f"AW vector: {self.apparent_wind_vector}")
         true_wind_vector = self.apparent_wind_vector + self.velocity_vector
-        print(f"TW vector: {true_wind_vector}")
+        # print(f"TW vector: {true_wind_vector}")
         self.true_wind_speed, self.true_wind_angle = cartesian_vector_to_polar(true_wind_vector[0], true_wind_vector[1])
         # print(f"wind angle: {(self.true_wind_angle + self.heading) % 360}")
-        
+        self.get_logger().info(f"{self.vesc_data_rpm}")
+
         telemetry_dict = {
             "position": (self.position.latitude, self.position.longitude), 
             "state": self.autopilot_mode,
@@ -183,7 +209,18 @@ class TelemetryNode(Node):
             "current_waypoint_index": self.cur_waypoint_index,
             "current_route": [(waypoint.latitude, waypoint.longitude) for waypoint in self.waypoints_list],
             "parameters": self.autopilot_parameters,
-            "current_camera_image": self.base64_encoded_current_rgb_image
+            "current_camera_image": self.base64_encoded_current_rgb_image,
+
+            "vesc_data_rpm": self.vesc_data_rpm,
+            "vesc_data_duty_cycle": self.vesc_data_duty_cycle,
+            "vesc_data_amp_hours": self.vesc_data_amp_hours,
+            "vesc_data_amp_hours_charged": self.vesc_data_amp_hours_charged,
+            "vesc_data_current_to_vesc": self.vesc_data_current_to_vesc,
+            "vesc_data_voltage_to_motor": self.vesc_data_voltage_to_motor,
+            "vesc_data_voltage_to_vesc": self.vesc_data_voltage_to_vesc, 
+            "vesc_data_wattage_to_motor": self.vesc_data_wattage_to_motor,
+            "vesc_data_time_since_vesc_startup_in_ms": self.vesc_data_time_since_vesc_startup_in_ms,
+            "vesc_data_motor_temperature": self.vesc_data_motor_temperature,
         }
 
         requests.post(url=TELEMETRY_SERVER_URL + "/boat_status/set", json={"value": telemetry_dict})
@@ -203,7 +240,7 @@ class TelemetryNode(Node):
     
     def update_waypoints_from_telemetry(self):
         waypoints_list = self.get_raw_response("/waypoints/get")
-        print(f"waypoints_list: {waypoints_list}")
+        # print(f"waypoints_list: {waypoints_list}")
         
         if not waypoints_list: 
             return
@@ -231,7 +268,7 @@ class TelemetryNode(Node):
         
     def update_autopilot_parameters_from_telemetry(self):
         autopilot_parameters = self.get_raw_response("/autopilot_parameters/get")
-        print(f"autopilot_parameters: {autopilot_parameters}")
+        # print(f"autopilot_parameters: {autopilot_parameters}")
 
         if not autopilot_parameters: 
             return
@@ -248,6 +285,8 @@ class TelemetryNode(Node):
 
 
 def main():
+
+
     rclpy.init()
     telem_node = TelemetryNode()
     rclpy.spin(telem_node)

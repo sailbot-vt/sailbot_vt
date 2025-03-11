@@ -6,7 +6,7 @@ import rclpy
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from rclpy.node import Node
 from sailbot_msgs.msg import WaypointList, RCData, VESCControlData
-from std_msgs.msg import Float32, String, Int32, Bool
+from std_msgs.msg import Float32, String, Int32, Bool 
 from geometry_msgs.msg import Vector3, Twist
 from sensor_msgs.msg import NavSatFix
 from std_srvs.srv import Empty
@@ -112,6 +112,8 @@ class MotorboatAutopilotNode(Node):
         self.button_a = joystick_msg.button_a
         self.toggle_b = joystick_msg.toggle_b
         self.toggle_c = joystick_msg.toggle_c
+        self.button_d = joystick_msg.button_d
+        self.toggle_e = joystick_msg.toggle_e
         self.button_d = joystick_msg.button_d
         self.toggle_e = joystick_msg.toggle_e
         self.toggle_f = joystick_msg.toggle_f
