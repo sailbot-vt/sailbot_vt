@@ -114,8 +114,6 @@ class MotorboatAutopilotNode(Node):
         self.toggle_c = joystick_msg.toggle_c
         self.button_d = joystick_msg.button_d
         self.toggle_e = joystick_msg.toggle_e
-        self.button_d = joystick_msg.button_d
-        self.toggle_e = joystick_msg.toggle_e
         self.toggle_f = joystick_msg.toggle_f
         
         # kill switch
