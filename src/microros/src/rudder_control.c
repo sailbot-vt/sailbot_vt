@@ -99,13 +99,24 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
     // ------------------------------------
     //    PUBLISH DEBUGGING INFORMATION
     // ------------------------------------
-    #if DEBUG
     RCCHECK(rclc_publisher_init_default(
         &current_rudder_angle_publisher,
         &microros_node,
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
         "/current_rudder_angle"
     ));
+
+    #if BOATMODE
+    RCCHECK(rclc_publisher_init_default(
+        &current_sail_angle_publisher,
+        &microros_node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
+        "/current_sail_angle"
+    ));
+    #endif
+
+    
+    #if DEBUG
     RCCHECK(rclc_publisher_init_default(
         &current_rudder_motor_angle_publisher,
         &microros_node,
@@ -113,12 +124,6 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
         "/current_rudder_motor_angle"
     ));
 
-    RCCHECK(rclc_publisher_init_default(
-        &current_sail_angle_publisher,
-        &microros_node,
-        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),
-        "/current_sail_angle"
-    ));
     RCCHECK(rclc_publisher_init_default(
         &current_winch_angle_publisher,
         &microros_node,
@@ -284,6 +289,10 @@ void zero_rudder_encoder_callback(const void *msg_in) {
         zero_encoder_value(&rudderEncoder);
     }
 }
+
+
+
+
 
 void application_loop() {
 
