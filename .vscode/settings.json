@@ -45,7 +45,8 @@
         "math.h": "c",
         "rudder_control.h": "c",
         "bool.h": "c",
-        "bool__struct.h": "c"
+        "bool__struct.h": "c",
+        "ping.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 
