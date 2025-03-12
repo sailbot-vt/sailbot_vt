@@ -296,8 +296,6 @@ void zero_rudder_encoder_callback(const void *msg_in) {
 
 void application_loop() {
 
-    gpio_put(25, 1);
-
     float current_rudder_motor_angle = get_motor_angle(&rudderEncoder) + RUDDER_ANGLE_OFFSET;     // motor_angle % 360
     if (current_rudder_motor_angle >= 180) {
         current_rudder_motor_angle -= 360;
