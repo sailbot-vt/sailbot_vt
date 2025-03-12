@@ -78,7 +78,7 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
 
 
     // -----------------------------------------------------
-    // INITIALIZE THE CURRENT SAIL PUBLISHERS AND SUBSCRIBERS
+    // INITIALIZE THE CURRENT SAIL PUBLISHERS AND SUBSCRIBERS (ONLY FOR LUMPY)
     // -----------------------------------------------------
     #if BOAT_MODE == Lumpy
     RCCHECK(rclc_publisher_init_default(&current_sail_angle_publisher, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "/current_sail_angle"));
@@ -119,6 +119,17 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
     // -----------------------------------------------------
     //  INITIALIZE ALL CONNECTED DEVICES (SUCH AS COMPASS, ENCODER, CONTACTOR_DRIVER, STEPPER MOTOR DRIVER)
     // -----------------------------------------------------
+    // AMT22 single turn is the encoder that we are using: 
+        // https://www.sameskydevices.com/product/resource/amt22.pdf?srsltid=AfmBOorSuw8pg_K1wENhOY_XnnAFwlibV_cHx2dFayNq-89GXSfDkWn_
+    // drv8711 is the chip for the stepper motor driver we are using: 
+        // https://www.pololu.com/product/3730
+        // https://www.ti.com/lit/ds/symlink/drv8711.pdf
+    // CMPS14 is the compass module we are using: 
+        // https://www.robot-electronics.co.uk/files/cmps14.pdf
+    // For our contactor driver, we use an H-Bridge (VNH7100BAS):
+        // https://www.st.com/resource/en/datasheet/vnh7100bas.pdf
+        // https://www.st.com/resource/en/application_note/an5940-contactor-driver-using-the-vnh7100bas-stmicroelectronics.pdf
+
     AMT22_init(&rudderEncoder, RUDDER_ENCODER_CS_PIN, SPI_PORT);
     drv8711_init(&rudderStepperMotorDriver, SPI_PORT, RUDDER_MOTOR_CS_PIN, RUDDER_MOTOR_SLEEP_PIN, AutoMixed, MicroStep1, MAX_RUDDER_CURRENT);
 
