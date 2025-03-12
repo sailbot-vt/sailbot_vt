@@ -1,6 +1,5 @@
 #include "main_microros_node.h"
 
-
 rcl_node_t  microros_node;
 rmw_qos_profile_t best_effort_qos_profile;
 
