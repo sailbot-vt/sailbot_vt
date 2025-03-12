@@ -16,8 +16,6 @@ link_directories($ENV{PICO_MICROROS_SDK_PATH}/libmicroros)
 
 add_executable(pico_microros
     src/main.c
-    # src/sensor_transmission.c
-    # src/winch_control.c
     src/rudder_control.c
 
     $ENV{PICO_MICROROS_SDK_PATH}/pico_uart_transport.c
