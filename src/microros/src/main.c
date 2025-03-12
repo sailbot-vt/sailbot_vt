@@ -50,9 +50,6 @@ int main()
             rclc_executor_spin_some(&executor_core, RCL_MS_TO_NS(100));
         }
         
-        rmw_init();
-        rmw_shutdown();
-
         rclc_executor_fini(&executor_core);
         rclc_support_fini(&support_core);
     }
