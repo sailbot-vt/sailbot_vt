@@ -1,8 +1,8 @@
-#include "common_microros_libs.h"
+#ifndef CMPS14_COMPASS_LIBRARY_H
+#define CMPS14_COMPASS_LIBRARY_H
+
 #include "hardware/i2c.h"
 #include <math.h>
-
-
 
 // CMPS14 register definitions
 #define CONTROL_Register 0x00
@@ -122,3 +122,5 @@ void cmps14_readMagnet(cmps14* magnetometer, float *magnetX, float *magnetY, flo
     *magnetY = ((int16_t)(buffer[2] << 8 | buffer[3])) * MAGNETOMETER_SCALE;
     *magnetZ = ((int16_t)(buffer[4] << 8 | buffer[5])) * MAGNETOMETER_SCALE;
 }
+
+#endif

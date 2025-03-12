@@ -51,7 +51,7 @@ class MotorboatAutopilotNode(Node):
         self.full_autonomy_maneuver_publisher = self.create_publisher(msg_type=String, topic='/full_autonomy_maneuver', qos_profile=sensor_qos_profile)
         self.desired_heading_publisher = self.create_publisher(Float32, '/desired_heading', qos_profile=10)
         self.rudder_angle_publisher = self.create_publisher(msg_type=Float32, topic="/actions/rudder_angle", qos_profile=sensor_qos_profile)
-        self.should_relay_be_open_publisher = self.create_publisher(Bool, "/should_relay_be_open", qos_profile=10)
+        self.is_propeller_motor_enabled_publisher = self.create_publisher(Bool, "/is_propeller_motor_enabled", qos_profile=10)
         # self.zero_encoder_client = self.create_client(Empty, '/zero_rudder_encoder')
         self.zero_encoder_publisher = self.create_publisher(msg_type=Bool, topic="zero_rudder_encoder", qos_profile=10)
 
@@ -72,7 +72,7 @@ class MotorboatAutopilotNode(Node):
         self.rudder_angle = 0.
         
         self.autopilot_mode = MotorboatAutopilotMode.Full_RC
-        self.should_relay_be_open = True
+        self.is_propeller_motor_enabled = False
         self.should_zero_encoder = False
         self.encoder_has_been_zeroed = False
         #self.full_autonomy_maneuver = Maneuvers.AUTOPILOT_DISABLED
@@ -143,9 +143,9 @@ class MotorboatAutopilotNode(Node):
             self.propeller_motor_control_mode = MotorboatControls.CURRENT
         
         if self.toggle_e == 2:
-            self.should_relay_be_open = False
+            self.is_propeller_motor_enabled = True
         else:
-            self.should_relay_be_open = True
+            self.is_propeller_motor_enabled = False
 
 
     def autopilot_mode_callback(self, mode: String):
@@ -250,7 +250,7 @@ class MotorboatAutopilotNode(Node):
                                                                         desired_vesc_rpm = 0.0, desired_vesc_duty_cycle = 0.0))
             self.get_logger().info(f'CURRENT {current_value}')
         
-        self.should_relay_be_open_publisher.publish(Bool(data=self.should_relay_be_open))
+        self.is_propeller_motor_enabled_publisher.publish(Bool(data=self.is_propeller_motor_enabled))
 
         # if self.should_zero_encoder:
         #     self.get_logger().info("hi")

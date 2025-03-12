@@ -1,8 +1,14 @@
+#ifndef DRV8711_STEPPER_MOTOR_DRIVER_LIBRARY_H
+#define DRV8771_STEPPER_MOTOR_DRIVER_LIBRARY_H
+
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
+
+
 #define DRV8711_ENABLE_BIT 0
 #define DRV8711_DIRECTION_BIT 1
 #define DRV8711_STEP_BIT 2
+
 typedef enum {
     CTRL_REG_ADDRESS   = 0x00,
     TORQUE_REG_ADDRESS = 0x01,
@@ -48,6 +54,7 @@ typedef struct {
     uint16_t drive_reg;
     uint16_t status_reg;
 } drv8711;
+
 
 // PRIVATE METHODS
 static inline void select_chip(drv8711 *driver) {
@@ -128,14 +135,6 @@ void drv8711_resetSettings(drv8711 *driver) {
     driver->stall_reg  = 0x040;
     driver->drive_reg  = 0xA59;
     drv8711_applySettings(driver);
-}
-
-void drv8711_init(drv8711 *driver, uint8_t cs_pin, uint8_t slp_pin, spi_inst_t *spi_port) {
-    driver->spi_port = spi_port;
-    set_cs_pin(driver, cs_pin);     // Pulled low by default
-    set_slp_pin(driver, slp_pin);   // Pulled low by default
-    sleep_ms(1000);
-    // drv8711_resetSettings(driver); // Disables DRV8711 by default
 }
 
 bool drv8711_verifySettings(drv8711 *driver) {
@@ -267,3 +266,34 @@ void drv8711_clearFaults(drv8711 *driver) {
 bool drv8711_getDirection(drv8711 *driver) {
     return (driver->ctrl_reg & (1 << DRV8711_DIRECTION_BIT)) != 0;
 }
+
+
+
+
+void drv8711_init(
+    drv8711 *driver, 
+    spi_inst_t *spi_port, 
+    uint8_t cs_pin,
+    uint8_t slp_pin, 
+    DRV8711_decayMode decay_mode,
+    DRV8711_stepMode step_mode,
+    uint16_t max_winch_current
+) {
+
+
+driver->spi_port = spi_port;
+set_cs_pin(driver, cs_pin);     // Pulled low by default
+set_slp_pin(driver, slp_pin);   // Pulled low by default
+sleep_ms(1000);
+
+drv8711_clearStatus(driver);
+drv8711_setDecayMode(driver, AutoMixed);
+drv8711_setCurrent(driver, max_winch_current);
+drv8711_setStepMode(driver, MicroStep4);
+drv8711_enableDriver(driver);
+drv8711_setAwake(driver);
+
+// drv8711_resetSettings(driver); // Disables DRV8711 by default
+}
+
+#endif
