@@ -34,7 +34,7 @@
         "--net=host",
         "-v", "/dev:/dev",
         "-e", "DISPLAY=${env:DISPLAY}",
-        "-v", "/var/run/docker.sock:/var/run/docker.sock",
+        "-v", "/var/run/docker.sock:/var/run/docker.sock"
     ],
     "mounts": [
         "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
