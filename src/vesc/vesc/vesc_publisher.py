@@ -109,6 +109,8 @@ class MinimalPublisher(Node):
             
             return
         
+        else:
+            self.missed_measurements_in_a_row = 0
         
         rpm = measurements.rpm/motorPolePairs
         c_motor = measurements.avg_motor_current
