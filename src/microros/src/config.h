@@ -1,8 +1,16 @@
+/*
+PCB SPECIFIC CONFIGURATIONS
+*/
+
+
+
 // 0 for the motorboat mode
 // 1 for the sailboat mode
-#define BOATMODE 0
 #define DEBUG 0
 
+#define Theseus 0
+#define Lumpy 1
+#define BOAT_MODE Theseus
 
 // Important constants
 #define LED_PIN 25
@@ -30,26 +38,26 @@
 #define MOSI_PIN 11
 
 // RC Channels
-#define CH1_PIN 28
-#define CH2_PIN 27
-#define CH3_PIN 26
+#define RC_CHANNEL1_PIN 28
+#define RC_CHANNEL2_PIN 27
+#define RC_CHANNEL3_PIN 26
 
 // Chip Selections
-#define CS_RM_PIN 13
-#define CS_WM_PIN 6
-#define CS_RE_PIN 7
-#define CS_WE_PIN 9
+#define RUDDER_MOTOR_CS_PIN 13
+#define WINCH_MOTOR_CS_PIN 6
+#define RUDDER_ENCODER_CS_PIN 7
+#define WINCH_ENCODER_CS_PIN 9
 
 // Miscellaneous
-#define SLP_RM_PIN 17
-#define SLP_WM_PIN 14
-#define RELAY_PIN 22
+#define RUDDER_MOTOR_SLEEP_PIN 17
+#define WINCH_MOTOR_SLEEP_PIN 14
+#define RELAY_PIN 22 // NOTE: UNUSED BECAUSE OUR CURRENT BJT DRIVER DOESN'T WORK
 
 // Relay
-#define RELAY_SEL0_PIN 19
-#define RELAY_PWM_PIN 18
-#define IN_A_PIN 8
-#define IN_B_PIN 16
+#define CONTACTOR_DRIVER_SEL0_PIN 19
+#define CONTACTOR_DRIVER_PWM_PIN 18
+#define CONTACTOR_DRIVER_IN_A_PIN 8
+#define CONTACTOR_DRIVER_IN_B_PIN 16
 
 // Port declarations
 #define I2C_PORT i2c0

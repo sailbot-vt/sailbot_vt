@@ -1,8 +1,5 @@
-// Include the standard SDK libraries
-#include "common_microros_libs.h"
-
 // Include the microros nodes
-#include "rudder_control.h"
+#include "main_microros_node.c"
 
 // Change when adding new nodes
 #define NUMBER_OF_NODES 1
