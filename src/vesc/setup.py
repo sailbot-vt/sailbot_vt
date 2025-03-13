@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'rc'
+package_name = 'vesc'
 
 setup(
     name=package_name,
@@ -13,14 +13,14 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='animated',
-    maintainer_email='chrisjnassif@gmail.com',
+    maintainer='sailbot_user',
+    maintainer_email='76954090+ToastedFood@users.noreply.github.com',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'rc = rc.rc_publisher:main'
+            'vesc = vesc.vesc_publisher:main'
         ],
     },
 )
