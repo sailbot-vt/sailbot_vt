@@ -78,6 +78,7 @@ class MotorboatAutopilotNode(Node):
         #self.full_autonomy_maneuver = Maneuvers.AUTOPILOT_DISABLED
         self.heading_to_hold = 0.
         
+        self.self.last_rc_data_time = 0.    # used to check whether we have disconnected from the remote controller
         self.joystick_left_x = 0.
         self.joystick_left_y = 0.
         self.joystick_right_x = 0.
@@ -93,6 +94,7 @@ class MotorboatAutopilotNode(Node):
         self.propeller_motor_control_mode = MotorboatControls.RPM        
         
     def rc_data_callback(self, joystick_msg: RCData):
+        self.last_rc_data_time = time.time()
         
         if joystick_msg.toggle_f == 1 and self.toggle_f != 1:   # this means we have entered hold heading mode, so keep track of the current heading
             self.heading_to_hold = self.heading     
@@ -153,6 +155,7 @@ class MotorboatAutopilotNode(Node):
             self.heading_to_hold = self.heading
 
         self.autopilot_mode = MotorboatAutopilotMode[mode.data]
+
 
     def autopilot_parameters_callback(self, new_parameters: String):
         """
@@ -232,30 +235,56 @@ class MotorboatAutopilotNode(Node):
         if desired_rudder_angle != None:
             self.rudder_angle_publisher.publish(Float32(data=float(desired_rudder_angle)))
 
-        if self.propeller_motor_control_mode == MotorboatControls.RPM:
-            rpm_value = 100.0 * self.joystick_left_y #min -1e5 max 1e5
-            self.motor_control_struct_publisher.publish(VESCControlData(control_type_for_vesc = "rpm", desired_vesc_current = 0.0, 
-                                                                        desired_vesc_rpm = rpm_value, desired_vesc_duty_cycle = 0.0))
-            self.get_logger().info(f'RPM {rpm_value}')
-        
-        elif self.propeller_motor_control_mode == MotorboatControls.DUTY_CYCLE:
-            duty_cycle_value = self.joystick_left_y  #min 0 max 100
-            self.motor_control_struct_publisher.publish(VESCControlData(control_type_for_vesc = "duty_value", desired_vesc_current = duty_cycle_value, 
-                                                                        desired_vesc_rpm = 0.0, desired_vesc_duty_cycle = 0.0))
-            self.get_logger().info(f'DUTY CYCLE {duty_cycle_value}')
-        
-        elif self.propeller_motor_control_mode == MotorboatControls.CURRENT:
-            current_value = self.joystick_left_y
-            self.motor_control_struct_publisher.publish(VESCControlData(control_type_for_vesc = "current", desired_vesc_current = current_value, 
-                                                                        desired_vesc_rpm = 0.0, desired_vesc_duty_cycle = 0.0))
-            self.get_logger().info(f'CURRENT {current_value}')
+
+        # if we have not received data from the remote control for 3 seconds
+        has_rc_disconnected = False
+        if (time.time() - self.last_rc_data_time >= 3):
+            has_rc_disconnected = True
+            
+            self.motor_control_struct_publisher.publish(
+                VESCControlData(
+                    control_type_for_vesc = "rpm", desired_vesc_current = 0.0, 
+                    desired_vesc_rpm = 0.0, desired_vesc_duty_cycle = 0.0
+                )
+            )
+            
+            
+        if self.autopilot_mode == MotorboatAutopilotMode.Full_RC and not has_rc_disconnected:
+            if self.propeller_motor_control_mode == MotorboatControls.RPM:
+                rpm_value = 100.0 * self.joystick_left_y #min -1e5 max 1e5
+                self.motor_control_struct_publisher.publish(
+                    VESCControlData(
+                        control_type_for_vesc = "rpm", desired_vesc_current = 0.0, 
+                        desired_vesc_rpm = rpm_value, desired_vesc_duty_cycle = 0.0
+                    )
+                )
+                self.get_logger().info(f'RPM {rpm_value}')
+            
+            elif self.propeller_motor_control_mode == MotorboatControls.DUTY_CYCLE:
+                duty_cycle_value = self.joystick_left_y  #min 0 max 100
+                self.motor_control_struct_publisher.publish(
+                    VESCControlData(
+                        control_type_for_vesc = "duty_value", desired_vesc_current = duty_cycle_value, 
+                        desired_vesc_rpm = 0.0, desired_vesc_duty_cycle = 0.0
+                    )
+                )
+                self.get_logger().info(f'DUTY CYCLE {duty_cycle_value}')
+            
+            elif self.propeller_motor_control_mode == MotorboatControls.CURRENT:
+                current_value = self.joystick_left_y
+                self.motor_control_struct_publisher.publish(
+                    VESCControlData(
+                        control_type_for_vesc = "current", desired_vesc_current = current_value, 
+                        desired_vesc_rpm = 0.0, desired_vesc_duty_cycle = 0.0
+                    )
+                )
+                self.get_logger().info(f'CURRENT {current_value}')
+            
         
         self.is_propeller_motor_enabled_publisher.publish(Bool(data=self.is_propeller_motor_enabled))
 
-        # if self.should_zero_encoder:
-        #     self.get_logger().info("hi")
-        #     # self.zero_encoder_client.call(Empty.Request())
-        
+
+
         if self.should_zero_encoder:
             self.zero_encoder_publisher.publish(Bool(data=self.should_zero_encoder))
             self.encoder_has_been_zeroed = True
