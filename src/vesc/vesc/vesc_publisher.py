@@ -26,6 +26,7 @@ class MinimalPublisher(Node):
         self.motorVal = 0
         self.motorType = 0 # 1-duty cycle 2-rpm 3-current 
         self.missed_measurements_in_a_row = 0
+        self.last_command_time = 0
         
         sensor_qos_profile = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
@@ -66,7 +67,10 @@ class MinimalPublisher(Node):
         self.timer = self.create_timer(timer_period, self.timer_callback)
     
     def receive_control_data_callback(self, msg: VESCControlData):
+        self.last_command_time = time.time()
+        
         self.get_logger().info(f'{self.motorVal}')
+        
         if(msg.control_type_for_vesc == "rpm"):
             self.motorVal = msg.desired_vesc_rpm * motorPolePairs
             self.motor.set_rpm(int(self.motorVal))
@@ -100,6 +104,9 @@ class MinimalPublisher(Node):
     """
 
     def timer_callback(self):
+        if (time.time() - self.last_command_time >= 3):
+            self.motor.set_rpm(0)
+        
         #get data and store in dictionary
         measurements = self.motor.get_measurements()
         if not measurements:
