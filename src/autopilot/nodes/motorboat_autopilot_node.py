@@ -238,7 +238,7 @@ class MotorboatAutopilotNode(Node):
 
         # if we have not received data from the remote control for 3 seconds
         has_rc_disconnected = False
-        self.get_logger().info(f"{time.time() - self.last_rc_data_time}")
+        # self.get_logger().info(f"{time.time() - self.last_rc_data_time}")
         if (time.time() - self.last_rc_data_time >= 3):
             has_rc_disconnected = True
             
@@ -259,7 +259,7 @@ class MotorboatAutopilotNode(Node):
                         desired_vesc_rpm = rpm_value, desired_vesc_duty_cycle = 0.0
                     )
                 )
-                self.get_logger().info(f'RPM {rpm_value}')
+                # self.get_logger().info(f'RPM {rpm_value}')
             
             elif self.propeller_motor_control_mode == MotorboatControls.DUTY_CYCLE:
                 duty_cycle_value = self.joystick_left_y  #min 0 max 100
@@ -269,7 +269,7 @@ class MotorboatAutopilotNode(Node):
                         desired_vesc_rpm = 0.0, desired_vesc_duty_cycle = 0.0
                     )
                 )
-                self.get_logger().info(f'DUTY CYCLE {duty_cycle_value}')
+                # self.get_logger().info(f'DUTY CYCLE {duty_cycle_value}')
             
             elif self.propeller_motor_control_mode == MotorboatControls.CURRENT:
                 current_value = self.joystick_left_y
@@ -279,7 +279,7 @@ class MotorboatAutopilotNode(Node):
                         desired_vesc_rpm = 0.0, desired_vesc_duty_cycle = 0.0
                     )
                 )
-                self.get_logger().info(f'CURRENT {current_value}')
+                # self.get_logger().info(f'CURRENT {current_value}')
             
         
         self.is_propeller_motor_enabled_publisher.publish(Bool(data=self.is_propeller_motor_enabled))
