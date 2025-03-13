@@ -67,8 +67,9 @@ class VESCPublisher(Node):
         self.dutycycle_valueSub = self.create_subscription(Float32, "vesc/duty_cycle_value", self.dcv_callback, 10)
         """
 
-        self.csv_writer = csv.DictWriter(open("VescInfo.csv", 'w+'), fieldnames= ["time", "rpm", "duty_cycle", "v_in", "c_in", "c_motor", "temp_motor", "time_ms", "amp_hours", "amp_hours_charged","motor_wattage", "v_out"])
-        self.csv_writer.writeheader()
+        # (this doesn't work with systemctl automatic startup on boot)
+        # self.csv_writer = csv.DictWriter(open("VescInfo.csv", 'w+'), fieldnames= ["time", "rpm", "duty_cycle", "v_in", "c_in", "c_motor", "temp_motor", "time_ms", "amp_hours", "amp_hours_charged","motor_wattage", "v_out"])
+        # self.csv_writer.writeheader()
 
         timer_period = 0.05  # seconds
         
@@ -149,9 +150,8 @@ class VESCPublisher(Node):
             "v_out": rpm/180
         }
 
-        #write vesc data to csv file
-        #self.get_logger().info(f'{motorData}')
-        self.csv_writer.writerow(motorData)
+        #write vesc data to csv file (this doesn't work with systemctl automatic startup on boot)
+        # self.csv_writer.writerow(motorData)
         
         #publish vesc data to topic
         self.vesc_data_publisher.publish(
