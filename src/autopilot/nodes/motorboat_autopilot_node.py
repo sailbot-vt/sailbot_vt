@@ -78,7 +78,7 @@ class MotorboatAutopilotNode(Node):
         #self.full_autonomy_maneuver = Maneuvers.AUTOPILOT_DISABLED
         self.heading_to_hold = 0.
         
-        self.self.last_rc_data_time = 0.    # used to check whether we have disconnected from the remote controller
+        self.last_rc_data_time = 0.    # used to check whether we have disconnected from the remote controller
         self.joystick_left_x = 0.
         self.joystick_left_y = 0.
         self.joystick_right_x = 0.
