@@ -180,6 +180,9 @@ class RCPublisher(Node):
         
     def timer_callback(self):
         num_unread_bytes = self.sensor_serial.in_waiting
+        
+        if num_unread_bytes == 0: return
+        
         values = self.sensor_serial.read(num_unread_bytes)
     
         self.serial_stream.extend(values)
@@ -190,8 +193,8 @@ class RCPublisher(Node):
         if not self.crsf_frame_rc_data: return 
 
         rc_data = self.process_raw_channels(self.crsf_frame_rc_data.payload.channels)
-        print(rc_data)
-        print()
+        # print(rc_data)
+        # print()
         
         if rc_data == None: return
         

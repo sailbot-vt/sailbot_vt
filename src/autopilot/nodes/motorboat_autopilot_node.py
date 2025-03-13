@@ -238,6 +238,7 @@ class MotorboatAutopilotNode(Node):
 
         # if we have not received data from the remote control for 3 seconds
         has_rc_disconnected = False
+        self.get_logger().info(f"{time.time() - self.last_rc_data_time}")
         if (time.time() - self.last_rc_data_time >= 3):
             has_rc_disconnected = True
             
