@@ -131,7 +131,7 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
         // https://www.st.com/resource/en/application_note/an5940-contactor-driver-using-the-vnh7100bas-stmicroelectronics.pdf
 
     AMT22_init(&rudderEncoder, RUDDER_ENCODER_CS_PIN, SPI_PORT);
-    drv8711_init(&rudderStepperMotorDriver, SPI_PORT, RUDDER_MOTOR_CS_PIN, RUDDER_MOTOR_SLEEP_PIN, AutoMixed, MicroStep1, MAX_RUDDER_CURRENT);
+    drv8711_init(&rudderStepperMotorDriver, SPI_PORT, RUDDER_MOTOR_CS_PIN, RUDDER_MOTOR_SLEEP_PIN, AutoMixed, MicroStep32, MAX_RUDDER_CURRENT);
 
     #if BOAT_MODE == Lumpy
     AMT22_init(&winchEncoder, WINCH_ENCODER_CS_PIN, SPI_PORT);
@@ -228,8 +228,9 @@ void application_loop() {
     }
 
     float current_rudder_angle = get_rudder_angle_from_motor_angle(current_rudder_motor_angle);
-    float rudder_error = current_rudder_angle - desired_rudder_motor_angle;
+    float rudder_error = current_rudder_angle - desired_rudder_angle;
 
+    int number_of_steps = -10000;
     if (abs(rudder_error) > ACCEPTABLE_RUDDER_ERROR) {
         if (((int)rudder_error % 360) > 0 && ((int)rudder_error % 360) < 180) 
             drv8711_setDirection(&rudderStepperMotorDriver, COUNTER_CLOCKWISE);
@@ -237,11 +238,12 @@ void application_loop() {
         else 
             drv8711_setDirection(&rudderStepperMotorDriver, CLOCKWISE);
 
-        int number_of_steps = (int)(abs(rudder_error) * RUDDER_GAIN / MAX_RUDDER_ERROR);   
+        number_of_steps = pow(abs((float)(abs(rudder_error) * (RUDDER_GAIN / (MAX_RUDDER_ERROR)))), 3);
 
         if (number_of_steps > 50) {
             number_of_steps = 50;
         }
+
 
         for (int i = 0; i < number_of_steps; i++) {
             drv8711_step(&rudderStepperMotorDriver);
@@ -249,7 +251,8 @@ void application_loop() {
         }
     }
 
-    compass_angle_msg.data = cmps14_getBearing(&compass) / 10.0;
+    // compass_angle_msg.data = cmps14_getBearing(&compass) / 10.0;
+    compass_angle_msg.data = number_of_steps;
     current_rudder_angle_msg.data = current_rudder_angle;
     current_rudder_motor_angle_msg.data = current_rudder_motor_angle;
 
