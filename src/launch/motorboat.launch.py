@@ -60,7 +60,7 @@ def generate_launch_description():
             name='vesc_communication',
 
             respawn=True,
-            respawn_delay=2.0,
+            respawn_delay=0.01,
             # output="log"
         ),
 
