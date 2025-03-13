@@ -52,7 +52,9 @@
         "cmps14_compass_library.c": "cpp",
         "main_microros_node.h": "c",
         "common_libraries.h": "c",
-        "drv8711_stepper_motor_driver_library.h": "c"
+        "drv8711_stepper_motor_driver_library.h": "c",
+        "cmps14_compass_library.h": "c",
+        "amt22_encoder_library.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 
