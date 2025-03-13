@@ -35,7 +35,6 @@
         "-v", "/dev:/dev",
         "-e", "DISPLAY=${env:DISPLAY}",
         "-v", "/var/run/docker.sock:/var/run/docker.sock",
-        "-v", "${localWorkspaceFolder}/.devcontainer/docker_dev_environment_setup.sh:/home/ws/docker_dev_environment_setup.sh"
     ],
     "mounts": [
         "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
