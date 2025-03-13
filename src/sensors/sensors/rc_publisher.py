@@ -160,7 +160,7 @@ class RCPublisher(Node):
         joystick_right_y = self.normalize_joystick_input(raw_channel_array[13], 191, 1792)
         joystick_right_x = self.normalize_joystick_input(raw_channel_array[12], 174, 1811)
 
-        self.get_logger().info(str(raw_channel_array))
+        # self.get_logger().info(str(raw_channel_array))
         button_a, button_d = self.parse_buttons(raw_channel_array[7])
         toggle_b = self.parse_toggle(raw_channel_array[10])
         toggle_c = self.parse_toggle(raw_channel_array[9])
