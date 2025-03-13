@@ -6,3 +6,4 @@ do
     sudo chmod 777 /dev/tty* 
     echo hello >> /tmp/test.txt
 done
+

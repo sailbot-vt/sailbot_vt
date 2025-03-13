@@ -1,0 +1,5 @@
+## dev container crontabs
+* * * * * /bin/bash /home/ws/crontabs/chmod777.sh
+
+## jetson crontabs
+* * * * * /bin/bash /home/sailbot/sailbot_vt/crontabs/chmod777.sh 

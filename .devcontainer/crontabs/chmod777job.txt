@@ -1,1 +1,0 @@
-* * * * * /bin/bash /home/ws/.devcontainer/crontabs/chmod777.sh

@@ -25,13 +25,13 @@ colcon build
 
 cd ground_station 
 pip install -r requirements.txt
-
-
 cd ..
+
+
 
 echo 'alias python="python3"' >> /home/sailbot_user/.bashrc
 
 echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 
-crontab /home/ws/.devcontainer/crontabs/chmod777job.txt
+crontab crontabs/chmod777job.txt
 echo sudo service cron start >> ~/.bashrc
