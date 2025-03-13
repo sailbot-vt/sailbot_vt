@@ -1,3 +1,6 @@
+#ifndef AMT22_ENCODER_LIBRARY_H
+#define AMT22_ENCODER_LIBRARY_H
+
 #include "hardware/spi.h"
 #include "pico/stdlib.h"
 #include <math.h>
@@ -87,25 +90,6 @@ static inline uint8_t* read_position(amt22* encoder, uint8_t * bytes_read){
 
 }
 
-// uint8_t* read_position_multiturn(){
-//     sleep_us(40);
-//     gpio_put(PICO_SPI_CSN_PIN, 0);
-//     static uint8_t bytes_read[4] = {0x00, 0x00, 0x00,0x00};
-//     sleep_us(3);
-//     spi_write_read_blocking(spi1, &NO_OP, &bytes_read[0],8);
-//     sleep_us(3);
-//     spi_write_read_blocking(spi1, &READ_TURNS, &bytes_read[1],8);
-//     sleep_us(3);
-//     spi_write_read_blocking(spi1, &NO_OP, &bytes_read[2],8);
-//     sleep_us(3);
-//     spi_write_read_blocking(spi1, &NO_OP, &bytes_read[3],8);
-//     sleep_us(3);
-
-//     gpio_put(PICO_SPI_CSN_PIN, 1);
-
-//     return bytes_read;
-
-// }
 
 static inline bool get_bit(uint8_t byte, int index){
     return (byte & 1 << (index)) != 0;
@@ -175,3 +159,6 @@ float get_motor_angle(amt22* encoder){
     encoder->cur_angle = next_angle;
     return encoder->cur_angle;
 }
+
+
+#endif
