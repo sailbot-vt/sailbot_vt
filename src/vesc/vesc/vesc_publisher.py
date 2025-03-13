@@ -7,6 +7,7 @@ import serial
 import time
 import csv
 from serial.tools import list_ports
+import os, signal
 
 from rclpy.node import Node
 
@@ -16,13 +17,20 @@ from sailbot_msgs.msg import VESCData, VESCControlData
 
 motorPolePairs = 7
 
-class MinimalPublisher(Node):
+class VESCPublisher(Node):
 
     def __init__(self):
         super().__init__('pyvesc_publisher')
         self.ser = getPort( 0x0483, 0x5740)
         # self.get_logger().info(f"{self.ser}")
-        self.motor = VESC(serial_port= self.ser)
+        try:
+            self.motor = VESC(serial_port= self.ser)
+        except:
+            self.get_logger().error("failed to connect to the motor")
+            self.destroy_node()
+            rclpy.shutdown()
+            os.kill(os.getpid(), signal.SIGTERM)
+
         self.motorVal = 0
         self.motorType = 0 # 1-duty cycle 2-rpm 3-current 
         self.missed_measurements_in_a_row = 0
@@ -66,6 +74,7 @@ class MinimalPublisher(Node):
         
         self.timer = self.create_timer(timer_period, self.timer_callback)
     
+    
     def receive_control_data_callback(self, msg: VESCControlData):
         self.last_command_time = time.time()
         
@@ -104,6 +113,7 @@ class MinimalPublisher(Node):
     """
 
     def timer_callback(self):
+        
         if (time.time() - self.last_command_time >= 3):
             self.motor.set_rpm(0)
         
@@ -112,7 +122,10 @@ class MinimalPublisher(Node):
         if not measurements:
             self.missed_measurements_in_a_row += 1
             if (self.missed_measurements_in_a_row >= 20):
-                raise Exception("Disconnected from the VESC")
+                self.get_logger().error("Disconnected from the VESC")
+                self.destroy_node()
+                rclpy.shutdown()
+                os.kill(os.getpid(), signal.SIGTERM)
             
             return
         
@@ -154,19 +167,20 @@ class MinimalPublisher(Node):
     
 
     def __del__(self):
-        self.motor.stop_heartbeat()
+        if hasattr(self, "motor"):
+            self.motor.stop_heartbeat()
 
 
 def main(args=None):
     rclpy.init(args=args)
-    minimal_publisher = MinimalPublisher()
+    vesc_publisher = VESCPublisher()
     
-    rclpy.spin(minimal_publisher)
+    rclpy.spin(vesc_publisher)
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
-    minimal_publisher.destroy_node()
+    vesc_publisher.destroy_node()
     
     rclpy.shutdown()
 
