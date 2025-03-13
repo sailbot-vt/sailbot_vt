@@ -194,7 +194,7 @@ class TelemetryNode(Node):
         # print(f"TW vector: {true_wind_vector}")
         self.true_wind_speed, self.true_wind_angle = cartesian_vector_to_polar(true_wind_vector[0], true_wind_vector[1])
         # print(f"wind angle: {(self.true_wind_angle + self.heading) % 360}")
-        self.get_logger().info(f"{self.vesc_data_rpm}")
+        # self.get_logger().info(f"{self.vesc_data_rpm}")
 
         telemetry_dict = {
             "position": (self.position.latitude, self.position.longitude), 

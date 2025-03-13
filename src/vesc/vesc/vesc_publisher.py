@@ -25,7 +25,8 @@ class MinimalPublisher(Node):
         self.motor = VESC(serial_port= self.ser)
         self.motorVal = 0
         self.motorType = 0 # 1-duty cycle 2-rpm 3-current 
-
+        self.missed_measurements_in_a_row = 0
+        
         sensor_qos_profile = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
             history=QoSHistoryPolicy.KEEP_LAST,
@@ -101,50 +102,46 @@ class MinimalPublisher(Node):
     def timer_callback(self):
         #get data and store in dictionary
         measurements = self.motor.get_measurements()
-        if(measurements):
-            rpm = measurements.rpm/motorPolePairs
-            c_motor = measurements.avg_motor_current
-            motorData = {
-                "time": time.time(),
-                "rpm": measurements.rpm/motorPolePairs,
-                "duty_cycle": measurements.duty_cycle_now,
-                "v_in": measurements.v_in,
-                "c_in": measurements.avg_input_current,
-                "c_motor": measurements.avg_motor_current,
-                "temp_motor": measurements.temp_motor, 
-                "time_ms": measurements.time_ms,
-                "amp_hours": measurements.amp_hours, 
-                "amp_hours_charged": measurements.amp_hours_charged,
-                "motor_wattage": c_motor*rpm/180,
-                "v_out": rpm/180
-            }
-
-            #write vesc data to csv file
-            #self.get_logger().info(f'{motorData}')
-            self.csv_writer.writerow(motorData)
+        if not measurements:
+            self.missed_measurements_in_a_row += 1
+            if (self.missed_measurements_in_a_row >= 20):
+                raise Exception("Disconnected from the VESC")
             
-            #publish vesc data to topic
-            self.vesc_data_publisher.publish(VESCData(rpm= motorData["rpm"], duty_cycle= motorData["duty_cycle"], 
-                                                      voltage_to_vesc= motorData["v_in"], current_to_vesc= motorData["c_in"],
-                                                      voltage_to_motor = motorData["v_out"], avg_current_to_motor = motorData["c_motor"],
-                                                      wattage_to_motor = motorData["motor_wattage"], 
-                                                      motor_temperature = motorData["temp_motor"],
-                                                      time_since_vesc_startup_in_ms= motorData["time_ms"],
-                                                      amp_hours = motorData["amp_hours"], amp_hours_charged = motorData["amp_hours_charged"]  
-                                                      ))
-            """
-            self.rpmPub.publish(Float32(data = rpm))
-            self.vInPub.publish(Float32(data = v_in))
-            self.motorCurrentPub.publish(Float32(data = c_motor))
-            self.dutyCyclePub.publish(Float32(data = duty_cycle))
-            self.vOutPub.publish(Float32(data = rpm/180))
-            self.motorWattagePub.publish(Float32(data = c_motor*rpm/180))  
-            self.temp_motorPub.publish(Float32(data = measurements.temp_motor))
-            self.timeMsPub.publish(Float32(data = measurements.time_ms)) 
-            self.c_inPub.publish(Float32(data = c_in))
-            self.amp_hoursChargedPub.publish(Float32(data = measurements.amp_hours_charged))
-            self.amp_hoursPub.publish(Float32(data = measurements.amp_hours))
-            """
+            return
+        
+        
+        rpm = measurements.rpm/motorPolePairs
+        c_motor = measurements.avg_motor_current
+        motorData = {
+            "time": time.time(),
+            "rpm": measurements.rpm/motorPolePairs,
+            "duty_cycle": measurements.duty_cycle_now,
+            "v_in": measurements.v_in,
+            "c_in": measurements.avg_input_current,
+            "c_motor": measurements.avg_motor_current,
+            "temp_motor": measurements.temp_motor, 
+            "time_ms": measurements.time_ms,
+            "amp_hours": measurements.amp_hours, 
+            "amp_hours_charged": measurements.amp_hours_charged,
+            "motor_wattage": c_motor*rpm/180,
+            "v_out": rpm/180
+        }
+
+        #write vesc data to csv file
+        #self.get_logger().info(f'{motorData}')
+        self.csv_writer.writerow(motorData)
+        
+        #publish vesc data to topic
+        self.vesc_data_publisher.publish(
+            VESCData(
+                rpm= motorData["rpm"], duty_cycle= motorData["duty_cycle"], 
+                voltage_to_vesc= motorData["v_in"], current_to_vesc= motorData["c_in"],
+                voltage_to_motor = motorData["v_out"], avg_current_to_motor = motorData["c_motor"],
+                wattage_to_motor = motorData["motor_wattage"], motor_temperature = motorData["temp_motor"],
+                time_since_vesc_startup_in_ms= motorData["time_ms"], amp_hours = motorData["amp_hours"], 
+                amp_hours_charged = motorData["amp_hours_charged"]  
+            )
+        )
     
 
     def __del__(self):

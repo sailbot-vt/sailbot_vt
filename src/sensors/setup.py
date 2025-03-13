@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'jetsonVESC'
+package_name = 'sensors'
 
 setup(
     name=package_name,
@@ -14,13 +14,15 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='sailbot_user',
-    maintainer_email='76954090+ToastedFood@users.noreply.github.com',
+    maintainer_email='chrisjnassif@gmail.com',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'jetsonVESC = jetsonVESC.VESCpub:main'
+            "gps = sensors.gps_node:main",
+            'wind_sensor = sensors.wind_sensor_node:main',
+            'rc = sensors.rc_publisher:main'
         ],
     },
 )
