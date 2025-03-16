@@ -1,8 +1,10 @@
 import rclpy
 import pyvesc
 from pyvesc import VESC
-from pyvesc.VESC.messages import GetValues, SetRPM, SetCurrent, SetRotorPositionMode, GetRotorPosition
+# from pyvesc.VESC.messages import GetValues, SetRPM, SetCurrent, SetRotorPositionMode, GetRotorPosition
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from pyvesc.protocol.interface import encode_request, encode, decode
+from pyvesc.VESC.messages import *
 import serial
 import time
 import csv
@@ -125,13 +127,13 @@ class VESCPublisher(Node):
             self.motor.set_rpm(0)
         
         #get data and store in dictionary
-        try:
-            measurements = self.motor.get_measurements()
-        except:
-            self.get_logger().error("Disconnected from the VESC")
-            self.destroy_node()
-            rclpy.shutdown()
-            os.kill(os.getpid(), signal.SIGTERM)
+        # try:
+        measurements = self.get_motor_measurements()
+        # except:
+        #     self.get_logger().error("Disconnected from the VESC")
+        #     self.destroy_node()
+        #     rclpy.shutdown()
+        #     os.kill(os.getpid(), signal.SIGTERM)
         if not measurements:
             self.missed_measurements_in_a_row += 1
             if (self.missed_measurements_in_a_row >= 20):
@@ -177,6 +179,21 @@ class VESCPublisher(Node):
             )
         )
     
+    def get_motor_measurements(self):
+        data = self.motor._get_values_msg
+        num_read_bytes = self.motor._get_values_msg_expected_length
+        
+        self.serial_port.write(data)
+        if num_read_bytes is not None:
+            num_times_read_failed = 0
+            while self.serial_port.in_waiting <= num_read_bytes:
+                time.sleep(0.000001)  # add some delay just to help the CPU
+                num_times_read_failed += 1
+                if num_times_read_failed >= 500000:
+                    raise Exception("failed to read motor measurements")
+                    
+            response, consumed = decode(self.serial_port.read(self.serial_port.in_waiting))
+        return response
 
     def __del__(self):
         if hasattr(self, "motor"):
@@ -188,12 +205,6 @@ def main(args=None):
     vesc_publisher = VESCPublisher()
     
     rclpy.spin(vesc_publisher)
-
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
-    vesc_publisher.destroy_node()
-    
     rclpy.shutdown()
 
 def getPort(vid, pid) -> str:
