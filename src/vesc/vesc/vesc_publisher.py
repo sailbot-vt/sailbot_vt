@@ -81,16 +81,22 @@ class VESCPublisher(Node):
         
         self.get_logger().info(f'{self.motorVal}')
         
-        if(msg.control_type_for_vesc == "rpm"):
-            self.motorVal = msg.desired_vesc_rpm * motorPolePairs
-            self.motor.set_rpm(int(self.motorVal))
-        elif(msg.control_type_for_vesc == "duty_cycle"):
-            self.motorVal = msg.desired_vesc_duty_cycle
-            self.motor.set_duty_cycle(int(self.motorVal))
-        else:
-            self.motorVal = msg.desired_vesc_current
-            self.motor.set_current(int(self.motorVal))
-
+        try:
+            if(msg.control_type_for_vesc == "rpm"):
+                self.motorVal = msg.desired_vesc_rpm * motorPolePairs
+                self.motor.set_rpm(int(self.motorVal))
+            elif(msg.control_type_for_vesc == "duty_cycle"):
+                self.motorVal = msg.desired_vesc_duty_cycle
+                self.motor.set_duty_cycle(int(self.motorVal))
+            else:
+                self.motorVal = msg.desired_vesc_current
+                self.motor.set_current(int(self.motorVal))
+        except:
+            self.get_logger().error("Disconnected from the VESC")
+            self.destroy_node()
+            rclpy.shutdown()
+            os.kill(os.getpid(), signal.SIGTERM)
+            
     """
     def ct_callback(self, msg):
         if msg == "DUTY_CYCLE":
@@ -119,7 +125,13 @@ class VESCPublisher(Node):
             self.motor.set_rpm(0)
         
         #get data and store in dictionary
-        measurements = self.motor.get_measurements()
+        try:
+            measurements = self.motor.get_measurements()
+        except:
+            self.get_logger().error("Disconnected from the VESC")
+            self.destroy_node()
+            rclpy.shutdown()
+            os.kill(os.getpid(), signal.SIGTERM)
         if not measurements:
             self.missed_measurements_in_a_row += 1
             if (self.missed_measurements_in_a_row >= 20):
