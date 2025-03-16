@@ -119,7 +119,12 @@ class MotorboatAutopilotNode(Node):
         self.toggle_f = joystick_msg.toggle_f
         
         # kill switch
-        if self.toggle_b != 0:
+        if self.toggle_b == 0:
+            self.is_propeller_motor_enabled = True
+        elif self.toggle_b == 1:
+            self.is_propeller_motor_enabled = False
+            
+        if self.toggle_b == 2:
             self.autopilot_mode = MotorboatAutopilotMode.Disabled
             
         # full autonomy
@@ -144,10 +149,10 @@ class MotorboatAutopilotNode(Node):
         elif self.toggle_c == 2:
             self.propeller_motor_control_mode = MotorboatControls.CURRENT
         
-        if self.toggle_e == 2:
-            self.is_propeller_motor_enabled = True
-        else:
-            self.is_propeller_motor_enabled = False
+        # if self.toggle_e == 2:
+        #     self.is_propeller_motor_enabled = True
+        # else:
+        #     self.is_propeller_motor_enabled = False
 
 
     def autopilot_mode_callback(self, mode: String):
