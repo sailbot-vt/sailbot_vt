@@ -127,21 +127,22 @@ class VESCPublisher(Node):
             self.motor.set_rpm(0)
         
         #get data and store in dictionary
-        try:
-            measurements = self.get_motor_measurements()
-        except:
-             self.get_logger().error("Disconnected from the VESC")
-             self.destroy_node()
-             rclpy.shutdown()
-             os.kill(os.getpid(), signal.SIGTERM)
+        measurements = self.motor.get_motor_measurements()
+        # try:
+        #     measurements = self.get_motor_measurements()
+        # except:
+        #      self.get_logger().error("Disconnected from the VESC")
+        #      self.destroy_node()
+        #      rclpy.shutdown()
+        #      os.kill(os.getpid(), signal.SIGTERM)
         
         if not measurements:
             self.missed_measurements_in_a_row += 1
-            if (self.missed_measurements_in_a_row >= 20):
-                self.get_logger().error("Disconnected from the VESC")
-                self.destroy_node()
-                rclpy.shutdown()
-                os.kill(os.getpid(), signal.SIGTERM)
+            # if (self.missed_measurements_in_a_row >= 20):
+            #     self.get_logger().error("Disconnected from the VESC")
+            #     self.destroy_node()
+            #     rclpy.shutdown()
+            #     os.kill(os.getpid(), signal.SIGTERM)
             
             return
         
@@ -180,21 +181,21 @@ class VESCPublisher(Node):
             )
         )
     
-    def get_motor_measurements(self):
-        data = self.motor._get_values_msg
-        num_read_bytes = self.motor._get_values_msg_expected_length
+    # def get_motor_measurements(self):
+    #     data = self.motor._get_values_msg
+    #     num_read_bytes = self.motor._get_values_msg_expected_length
         
-        self.serial_port.write(data)
-        if num_read_bytes is not None:
-            num_times_read_failed = 0
-            while self.serial_port.in_waiting <= num_read_bytes:
-                time.sleep(0.000001)  # add some delay just to help the CPU
-                num_times_read_failed += 1
-                if num_times_read_failed >= 50000:
-                    raise Exception("failed to read motor measurements")
+    #     self.motor.serial_port.write(data)
+    #     if num_read_bytes is not None:
+    #         num_times_read_failed = 0
+    #         while self.motor.serial_port.in_waiting <= num_read_bytes:
+    #             time.sleep(0.000001)  # add some delay just to help the CPU
+    #             num_times_read_failed += 1
+    #             if num_times_read_failed >= 50000:
+    #                 raise Exception("failed to read motor measurements")
                     
-            response, consumed = decode(self.serial_port.read(self.serial_port.in_waiting))
-        return response
+    #         response, consumed = decode(self.motor.serial_port.read(self.motor.serial_port.in_waiting))
+    #     return response
 
     def __del__(self):
         if hasattr(self, "motor"):
