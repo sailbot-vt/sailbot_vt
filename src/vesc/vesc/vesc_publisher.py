@@ -19,16 +19,21 @@ from sailbot_msgs.msg import VESCData, VESCControlData
 
 motorPolePairs = 7
 
+VESC_VID = 0x0403
+VESC_PID = 0x6001
+VESC_SERIAL_NUMBER = "AB7IMXEU"
+
 class VESCPublisher(Node):
 
     def __init__(self):
         super().__init__('pyvesc_publisher')
-        self.ser = getPort( 0x0483, 0x5740)
-        # self.get_logger().info(f"{self.ser}")
+        # self.ser = getPort( 0x0483, 0x5740)
+        
+        self.ser = getPorts(0x0403, 0x6001, VESC_SERIAL_NUMBER)
         try:
             self.motor = VESC(serial_port= self.ser)
-        except:
-            self.get_logger().error("failed to connect to the motor")
+        except Exception as e:
+            self.get_logger().error(f"failed to connect to the motor: {e}")
             self.destroy_node()
             rclpy.shutdown()
             os.kill(os.getpid(), signal.SIGTERM)
@@ -127,7 +132,7 @@ class VESCPublisher(Node):
             self.motor.set_rpm(0)
         
         #get data and store in dictionary
-        measurements = self.motor.get_motor_measurements()
+        measurements = self.motor.get_measurements()
         # try:
         #     measurements = self.get_motor_measurements()
         # except:
@@ -209,11 +214,10 @@ def main(args=None):
     rclpy.spin(vesc_publisher)
     rclpy.shutdown()
 
-def getPort(vid, pid) -> str:
+def getPorts(vid, pid, serial_number) -> str:
     device_list = list_ports.comports()
     for device in device_list:
-        print(device.serial_number)
-        if device.vid == vid and device.pid == pid:
+        if device.vid == vid and device.pid == pid and device.serial_number == serial_number:
             return device.device
     raise OSError('Device not found')
 
