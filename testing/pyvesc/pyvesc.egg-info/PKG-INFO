@@ -1,0 +1,15 @@
+Metadata-Version: 2.1
+Name: pyvesc
+Version: 1.0.5
+Summary: Python implementation of the VESC communication protocol.
+Home-page: https://github.com/LiamBindle/PyVESC
+Author: Liam Bindle
+Author-email: liambindle@gmail.com
+License: UNKNOWN
+Download-URL: https://github.com/LiamBindle/PyVESC/tarball/1.0.5
+Keywords: vesc,VESC,communication,protocol,packet
+Platform: UNKNOWN
+License-File: LICENSE.txt
+
+UNKNOWN
+
