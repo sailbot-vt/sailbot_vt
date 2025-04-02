@@ -1,8 +1,8 @@
 {
     "name": "ROS 2 Development Container",
     "privileged": true,
-    "remoteUser": "",
-    "containerUser": "",
+    "remoteUser": "sailbot_user",
+    "containerUser": "sailbot_user",
     "build": {
         "dockerfile": "Dockerfile",
         "args": {
@@ -26,15 +26,14 @@
         }
     },
     "containerEnv": {
-        "DISPLAY": "unix:0",
+        "DISPLAY": "host.docker.internal:0",
         "ROS_AUTOMATIC_DISCOVERY_RANGE": "LOCALHOST",
         "ROS_DOMAIN_ID": "42"
     },
     "runArgs": [
-        "--net=host",
-        "-v", "/dev:/dev",
-        "-e", "DISPLAY=${env:DISPLAY}",
-        "-v", "/var/run/docker.sock:/var/run/docker.sock"
+        "-v",
+        "/var/run/docker.sock:/var/run/docker.sock",
+        "--add-host=host.docker.internal:host-gateway"
     ],
     "mounts": [
         "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
