@@ -25,6 +25,7 @@ target_link_libraries(pico_microros
     pico_multicore
     hardware_spi
     hardware_i2c
+    hardware_pwm
 )
 
 target_include_directories(pico_microros PUBLIC
@@ -33,6 +34,7 @@ target_include_directories(pico_microros PUBLIC
     $ENV{PICO_MICROROS_SDK_PATH}/libmicroros
     $ENV{PICO_MICROROS_SDK_PATH}/libmicroros/include
     $ENV{PICO_SDK_PATH}/src/rp2_common/pico_multicore/include
+    $ENV{PICO_SDK_PATH}/src/rp2_common/hardware_pwm/include
 )
 
 SET(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -ffunction-sections -fdata-sections")

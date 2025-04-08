@@ -10,6 +10,8 @@
 #include "amt22_encoder_library.h"
 #include "drv8711_stepper_motor_driver_library.h"
 
+#include "hardware/pwm.h"
+
 #include <math.h>
 
 #define CLOCKWISE 1
@@ -19,7 +21,8 @@
 #define MAX_WINCH_CURRENT 2000
 
 #if BOAT_MODE == Theseus
-#define RUDDER_GAIN (float)80
+#define RUDDER_GAIN (float)2
+#define RUDDER_GAIN_Q (float)0.5
 #else
 #define RUDDER_GAIN 200
 #endif
@@ -104,5 +107,10 @@ void is_propeller_motor_enabled_callback(const void *msg_in);
 void zero_rudder_encoder_callback(const void *msg_in);
 
 void zero_winch_encoder_callback(const void *msg_in);
+
+void pwm_motor_init(); 
+
+void pwm_motor_callback(const void *msg_in);
+
 
 #endif
