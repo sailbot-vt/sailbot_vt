@@ -272,8 +272,8 @@ void application_loop() {
         }
     }
 
-    // compass_angle_msg.data = cmps14_getBearing(&compass) / 10.0;
-    compass_angle_msg.data = number_of_steps;
+    compass_angle_msg.data = cmps14_getBearing(&compass) / 10.0;
+    // compass_angle_msg.data = number_of_steps;
     current_rudder_angle_msg.data = current_rudder_angle;
     current_rudder_motor_angle_msg.data = current_rudder_motor_angle;
 
