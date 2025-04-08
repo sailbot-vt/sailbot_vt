@@ -8,6 +8,7 @@ rcl_subscription_t desired_rudder_angle_subscriber;
 rcl_subscription_t desired_winch_angle_subscriber;
 rcl_subscription_t zero_rudder_encoder_subscriber;
 rcl_subscription_t zero_winch_encoder_subscriber;
+rcl_subscription_t pwm_motor_subscriber;
 rcl_publisher_t    current_rudder_angle_publisher;
 rcl_publisher_t    current_rudder_motor_angle_publisher;
 rcl_publisher_t    current_sail_angle_publisher;
@@ -25,6 +26,7 @@ std_msgs__msg__Float32        current_rudder_angle_msg;
 std_msgs__msg__Float32        current_sail_angle_msg;
 std_msgs__msg__Float32        desired_rudder_angle_msg;
 std_msgs__msg__Float32        desired_winch_angle_msg;
+std_msgs__msg__Float32        pwm_motor_msg;
 std_srvs__srv__Empty_Request  empty_request_msg;
 std_srvs__srv__Empty_Response empty_response_msg;
 
@@ -65,6 +67,8 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
     #if BOAT_MODE == Theseus
     RCCHECK(rclc_subscription_init_default(&is_propeller_motor_enabled_subscriber, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool), "/is_propeller_motor_enabled"));
     RCCHECK(rclc_executor_add_subscription(executor, &is_propeller_motor_enabled_subscriber, &is_propeller_motor_enabled_msg, &is_propeller_motor_enabled_callback, ON_NEW_DATA));
+    RCCHECK(rclc_subscription_init_default(&pwm_motor_subscriber, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool), "/is_propeller_motor_enabled"));
+    RCCHECK(rclc_executor_add_subscription(executor, &pwm_motor_subscriber, &pwm_motor_msg, &pwm_motor_callback, ON_NEW_DATA));
     #endif
     
 
@@ -142,6 +146,7 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
 
     #if BOAT_MODE == Theseus
     initialize_contactor_driver(CONTACTOR_DRIVER_SEL0_PIN, CONTACTOR_DRIVER_PWM_PIN, CONTACTOR_DRIVER_IN_A_PIN, CONTACTOR_DRIVER_IN_B_PIN);
+    pwm_motor_init();
     #endif
 
 
@@ -186,6 +191,7 @@ void desired_winch_angle_received_callback(const void *msg_in) {
 }
 
 void is_propeller_motor_enabled_callback(const void *msg_in) {
+    
     const std_msgs__msg__Bool *is_propeller_motor_enabled_msg = (const std_msgs__msg__Bool *)msg_in;
 
     if (is_propeller_motor_enabled_msg->data)
@@ -199,7 +205,7 @@ void zero_rudder_encoder_callback(const void *msg_in) {
     
     if (zero_msg->data) {  // If message is true, zero the encoder
         zero_encoder_value(&rudderEncoder);
-    }
+    }   
 }
 
 void zero_winch_encoder_callback(const void *msg_in) {
@@ -208,6 +214,21 @@ void zero_winch_encoder_callback(const void *msg_in) {
     if (zero_msg->data) {  // If message is true, zero the encoder
         zero_encoder_value(&winchEncoder);
     }
+}
+
+void pwm_motor_callback(const void *msg_in) {
+    const std_msgs__msg__Float32 *pwm_motor_msg = (const std_msgs__msg__Float32 *)msg_in;
+    pwm_set_chan_level(0, PWM_CHAN_A, (uint16_t)((pwm_motor_msg->data / 100.0f) * 65535));
+}
+
+void pwm_motor_init() {
+    gpio_set_function(0, GPIO_FUNC_PWM);
+
+    uint slice_num = pwm_gpio_to_slice_num(0);
+
+    pwm_set_wrap(slice_num, 3);
+    pwm_set_chan_level(slice_num, PWM_CHAN_A, 1);
+    pwm_set_enabled(slice_num, true);
 }
 
 
@@ -238,7 +259,7 @@ void application_loop() {
         else 
             drv8711_setDirection(&rudderStepperMotorDriver, CLOCKWISE);
 
-        number_of_steps = pow(abs((float)(abs(rudder_error) * (RUDDER_GAIN / (MAX_RUDDER_ERROR)))), 3);
+        number_of_steps = RUDDER_GAIN * abs(rudder_error) + RUDDER_GAIN_Q * pow(abs(rudder_error), 2);
 
         if (number_of_steps > 50) {
             number_of_steps = 50;
