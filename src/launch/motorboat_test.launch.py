@@ -33,15 +33,15 @@ def generate_launch_description():
         #     # output="log"
         # ),
 
-        # Node(
-        #     package='sensors',
-        #     executable='gps',
-        #     name='gps_publisher',
+        # # Node(
+        # #     package='sensors',
+        # #     executable='gps',
+        # #     name='gps_publisher',
 
-        #     respawn=True,
-        #     respawn_delay=2.0,
-        #     # output="log"
-        # ),
+        # #     respawn=True,
+        # #     respawn_delay=2.0,
+        # #     # output="log"
+        # # ),
 
         # Node(
         #     package='sensors',
