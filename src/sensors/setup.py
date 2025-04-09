@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "gps = sensors.gps_node:main",
+            "gps = sensors.gps_publisher:main",
             'wind_sensor = sensors.wind_sensor_node:main',
             'rc = sensors.rc_publisher:main'
         ],

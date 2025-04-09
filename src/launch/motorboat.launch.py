@@ -13,56 +13,56 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     return LaunchDescription([
-        # Node(
-        #     package='autopilot',
-        #     executable='motorboat_autopilot',
-        #     name='motorboat_autopilot',
+        Node(
+            package='autopilot',
+            executable='motorboat_autopilot',
+            name='motorboat_autopilot',
 
-        #     respawn=True,
-        #     respawn_delay=2.0,
-        #     # output="log"
-        # ),
+            respawn=True,
+            respawn_delay=2.0,
+            # output="log"
+        ),
 
-        # Node(
-        #     package='autopilot',
-        #     executable='telemetry',
-        #     name='telemetry',
+        Node(
+            package='autopilot',
+            executable='telemetry',
+            name='telemetry',
 
-        #     respawn=True,
-        #     respawn_delay=2.0,
-        #     # output="log"
-        # ),
+            respawn=True,
+            respawn_delay=2.0,
+            # output="log"
+        ),
 
-        # Node(
-        #     package='sensors',
-        #     executable='gps',
-        #     name='gps_publisher',
+        Node(
+            package='sensors',
+            executable='gps',
+            name='gps_publisher',
 
-        #     respawn=True,
-        #     respawn_delay=2.0,
-        #     # output="log"
-        # ),
+            respawn=True,
+            respawn_delay=2.0,
+            # output="log"
+        ),
 
-        # Node(
-        #     package='sensors',
-        #     executable='rc',
-        #     name='rc_publisher',
+        Node(
+            package='sensors',
+            executable='rc',
+            name='rc_publisher',
 
-        #     respawn=True,
-        #     respawn_delay=2.0,
-        #     # output="log"
-        # ),
+            respawn=True,
+            respawn_delay=2.0,
+            # output="log"
+        ),
 
 
-        # Node(
-        #     package='vesc',
-        #     executable='vesc',
-        #     name='vesc_communication',
+        Node(
+            package='vesc',
+            executable='vesc',
+            name='vesc_communication',
 
-        #     respawn=True,
-        #     respawn_delay=0.01,
-        #     # output="log"
-        # ),
+            respawn=True,
+            respawn_delay=0.01,
+            # output="log"
+        ),
 
         Node(
             package='micro_ros_agent',
