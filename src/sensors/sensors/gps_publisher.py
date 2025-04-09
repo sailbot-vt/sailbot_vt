@@ -65,8 +65,8 @@ class GPSPublisher(Node):
         self.position_publisher = self.create_publisher(NavSatFix, '/position', sensor_qos_profile)
         self.velocity_publisher = self.create_publisher(Twist, '/velocity', sensor_qos_profile)
 
-        self.csv_writer = csv.DictWriter(open("gps_data.csv", "w+"), fieldnames=["time", "SOG", "velocity_east", "velocity_north"])
-        self.csv_writer.writeheader()
+        # self.csv_writer = csv.DictWriter(open("gps_data.csv", "w+"), fieldnames=["time", "SOG", "velocity_east", "velocity_north"])
+        # self.csv_writer.writeheader()
         
         self.create_timer(1/REFRESH_RATE, self.publish)
 
@@ -97,7 +97,7 @@ class GPSPublisher(Node):
         velE_mph = velE * 2.2369/ 1000 # mm/s to mph
         velN_mph = velN * 2.2369/ 1000 # mm/s to mph
 
-        self.csv_writer.writerow({"time": time.time(), "SOG": np.sqrt(velE_mph**2 + velN_mph**2), "velocity_east": velE_mph, "velocity_north": velN_mph})
+        # self.csv_writer.writerow({"time": time.time(), "SOG": np.sqrt(velE_mph**2 + velN_mph**2), "velocity_east": velE_mph, "velocity_north": velN_mph})
         
         
         print(f"velocity vector (mph): <{float(velE_mph)}, {float(velN_mph)}>")
