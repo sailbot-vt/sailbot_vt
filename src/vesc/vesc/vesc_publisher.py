@@ -21,15 +21,15 @@ motorPolePairs = 7
 
 VESC_VID = 0x0403
 VESC_PID = 0x6001
-VESC_SERIAL_NUMBER = "AB7IMXEU"
+# VESC_SERIAL_NUMBER = "AB7IMXEU"
 
 class VESCPublisher(Node):
 
     def __init__(self):
         super().__init__('pyvesc_publisher')
-        # self.ser = getPort( 0x0483, 0x5740)
+        self.ser = getPort( VESC_VID, VESC_PID)
         
-        self.ser = getPorts(0x0403, 0x6001, VESC_SERIAL_NUMBER)
+        # self.ser = getPorts(0x0403, 0x6001, VESC_SERIAL_NUMBER)
         try:
             self.motor = VESC(serial_port= self.ser)
         except Exception as e:
@@ -214,10 +214,10 @@ def main(args=None):
     rclpy.spin(vesc_publisher)
     rclpy.shutdown()
 
-def getPorts(vid, pid, serial_number) -> str:
+def getPort(vid, pid) -> str:
     device_list = list_ports.comports()
     for device in device_list:
-        if device.vid == vid and device.pid == pid and device.serial_number == serial_number:
+        if device.vid == vid and device.pid == pid:
             return device.device
     raise OSError('Device not found')
 
