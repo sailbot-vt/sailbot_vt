@@ -55,7 +55,6 @@ class MotorboatAutopilotNode(Node):
         # self.zero_encoder_client = self.create_client(Empty, '/zero_rudder_encoder')
         self.zero_encoder_publisher = self.create_publisher(msg_type=Bool, topic="zero_rudder_encoder", qos_profile=10)
 
-        self.motor_control_temp_publisher = self.create_publisher(msg_type=Float32, topic="/motor_control_temp", qos_profile=10);
         self.motor_control_struct_publisher = self.create_publisher(msg_type= VESCControlData, topic="/motor_control_struct", qos_profile=sensor_qos_profile)
         """
         self.propellor_motor_rpm_value_publisher = self.create_publisher(msg_type=Float32, topic="vesc/rpm_value", qos_profile = sensor_qos_profile)
@@ -247,7 +246,6 @@ class MotorboatAutopilotNode(Node):
         if (time.time() - self.last_rc_data_time >= 3):
             has_rc_disconnected = True
             
-            self.motor_control_temp_publisher.publish(data=0.0)
             self.motor_control_struct_publisher.publish(
                 VESCControlData(
                     control_type_for_vesc = "rpm", desired_vesc_current = 0.0, 
@@ -260,8 +258,6 @@ class MotorboatAutopilotNode(Node):
             if self.propeller_motor_control_mode == MotorboatControls.RPM:
                 rpm_value = 100.0 * self.joystick_left_y #min -1e5 max 1e5
 
-                self.motor_control_temp_publisher.publish(data=rpm_value)
-
                 self.motor_control_struct_publisher.publish(
                     VESCControlData(
                         control_type_for_vesc = "rpm", desired_vesc_current = 0.0, 
@@ -273,7 +269,6 @@ class MotorboatAutopilotNode(Node):
             elif self.propeller_motor_control_mode == MotorboatControls.DUTY_CYCLE:
                 duty_cycle_value = self.joystick_left_y  #min 0 max 100
 
-                #self.motor_control_temp_publisher.publish(data=duty_cycle_value)
                 self.motor_control_struct_publisher.publish(
                     VESCControlData(
                         control_type_for_vesc = "duty_value", desired_vesc_current = duty_cycle_value, 
