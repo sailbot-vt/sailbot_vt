@@ -19,8 +19,13 @@ from sailbot_msgs.msg import VESCData, VESCControlData
 
 motorPolePairs = 7
 
-VESC_VID = 0x0403
-VESC_PID = 0x6001
+# VESC_VID = 0x0403
+# VESC_PID = 0x6001
+
+
+VESC_VID = 0x0483
+VESC_PID = 0x5740
+
 # VESC_SERIAL_NUMBER = "AB7IMXEU"
 
 class VESCPublisher(Node):
@@ -164,6 +169,7 @@ class VESCPublisher(Node):
             "c_in": measurements.avg_input_current,
             "c_motor": measurements.avg_motor_current,
             "temp_motor": measurements.temp_motor, 
+            "temp_vesc": measurements.temp_fet,
             "time_ms": measurements.time_ms,
             "amp_hours": measurements.amp_hours, 
             "amp_hours_charged": measurements.amp_hours_charged,
@@ -181,8 +187,8 @@ class VESCPublisher(Node):
                 voltage_to_vesc= motorData["v_in"], current_to_vesc= motorData["c_in"],
                 voltage_to_motor = motorData["v_out"], avg_current_to_motor = motorData["c_motor"],
                 wattage_to_motor = motorData["motor_wattage"], motor_temperature = motorData["temp_motor"],
-                time_since_vesc_startup_in_ms= motorData["time_ms"], amp_hours = motorData["amp_hours"], 
-                amp_hours_charged = motorData["amp_hours_charged"]  
+                vesc_temperature = motorData["temp_vesc"], time_since_vesc_startup_in_ms= motorData["time_ms"], 
+                amp_hours = motorData["amp_hours"], amp_hours_charged = motorData["amp_hours_charged"]  
             )
         )
     

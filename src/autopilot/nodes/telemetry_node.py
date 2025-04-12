@@ -96,6 +96,7 @@ class TelemetryNode(Node):
         self.vesc_data_wattage_to_motor = 0
         self.vesc_data_time_since_vesc_startup_in_ms = 0
         self.vesc_data_motor_temperature = 0
+        self.vesc_data_vesc_temperature = 0
 
     
     def desired_heading_callback(self, desired_heading: Float32):
@@ -116,6 +117,7 @@ class TelemetryNode(Node):
         self.vesc_data_wattage_to_motor = vesc_data.wattage_to_motor
         self.vesc_data_time_since_vesc_startup_in_ms = vesc_data.time_since_vesc_startup_in_ms
         self.vesc_data_motor_temperature = vesc_data.motor_temperature
+        self.vesc_data_vesc_temperature = vesc_data.vesc_temperature
 
     def cur_waypoint_index_callback(self, cur_waypoint_index: Int32):
         self.cur_waypoint_index = cur_waypoint_index.data
@@ -221,6 +223,7 @@ class TelemetryNode(Node):
             "vesc_data_wattage_to_motor": self.vesc_data_wattage_to_motor,
             "vesc_data_time_since_vesc_startup_in_ms": self.vesc_data_time_since_vesc_startup_in_ms,
             "vesc_data_motor_temperature": self.vesc_data_motor_temperature,
+            "vesc_data_vesc_temperature": self.vesc_data_vesc_temperature
         }
 
         requests.post(url=TELEMETRY_SERVER_URL + "/boat_status/set", json={"value": telemetry_dict})
