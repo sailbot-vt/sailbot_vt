@@ -35,9 +35,9 @@ class VESC(object):
             self.start_heartbeat()
 
         # check firmware version and set GetValue fields to old values if pre version 3.xx
-        version = self.get_firmware_version()
-        if int(version.split('.')[0]) < 3:
-            GetValues.fields = pre_v3_33_fields
+        # version = self.get_firmware_version()
+        # if int(version.split('.')[0]) < 3:
+        #     GetValues.fields = pre_v3_33_fields
 
         # store message info for getting values so it doesn't need to calculate it every time
         msg = GetValues()

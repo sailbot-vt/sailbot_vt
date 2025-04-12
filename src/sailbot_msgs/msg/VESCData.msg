@@ -7,6 +7,7 @@ float32 voltage_to_motor
 float32 avg_current_to_motor
 float32 wattage_to_motor
 float32 motor_temperature
+float32 vesc_temperature
 
 float32 time_since_vesc_startup_in_ms
 float32 amp_hours
