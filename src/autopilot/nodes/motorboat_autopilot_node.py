@@ -106,7 +106,7 @@ class MotorboatAutopilotNode(Node):
         
 
         self.joystick_left_x = joystick_msg.joystick_left_x
-        self.joystick_left_y = joystick_msg.joystick_left_y
+        self.joystick_left_y = -1 * joystick_msg.joystick_left_y # this is negated because positive throttle ends up making the boat go in reverse
         self.joystick_right_x = joystick_msg.joystick_right_x
         self.joystick_right_y = joystick_msg.joystick_right_y
         
