@@ -24,7 +24,8 @@
 #define RUDDER_GAIN (float)2
 #define RUDDER_GAIN_Q (float)0.5
 #else
-#define RUDDER_GAIN 200
+#define RUDDER_GAIN (float)2
+#define RUDDER_GAIN_Q (float)0.5
 #endif
 
 #define WINCH_GAIN 150
@@ -41,7 +42,7 @@
 #define MIN_SAIL_ANGLE 0
 
 #define ACCEPTABLE_RUDDER_ERROR 0.1
-#define ACCEPTABLE_SAIL_ERROR 0.5
+#define ACCEPTABLE_WINCH_ERROR 0.5
 
 #define RUDDER_ANGLE_OFFSET 36
 #define WINCH_ANGLE_OFFSET 0
@@ -100,7 +101,7 @@ void application_loop();
 
 void desired_rudder_angle_received_callback(const void *msg_in);
 
-void desired_winch_angle_received_callback(const void *msg_in);
+void desired_sail_angle_received_callback(const void *msg_in);
 
 void is_propeller_motor_enabled_callback(const void *msg_in);
 

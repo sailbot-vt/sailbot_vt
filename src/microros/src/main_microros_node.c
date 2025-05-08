@@ -20,10 +20,10 @@ std_msgs__msg__Bool           is_propeller_motor_enabled_msg;
 std_msgs__msg__Bool           zero_rudder_encoder_msg;
 std_msgs__msg__Bool           zero_winch_encoder_msg;
 std_msgs__msg__Float32        compass_angle_msg;
-std_msgs__msg__Float32        current_rudder_motor_angle_msg;
 std_msgs__msg__Float32        current_winch_angle_msg;
-std_msgs__msg__Float32        current_rudder_angle_msg;
 std_msgs__msg__Float32        current_sail_angle_msg;
+std_msgs__msg__Float32        current_rudder_angle_msg;
+std_msgs__msg__Float32        current_rudder_motor_angle_msg;
 std_msgs__msg__Float32        desired_rudder_angle_msg;
 std_msgs__msg__Float32        desired_winch_angle_msg;
 std_msgs__msg__Float32        pwm_motor_msg;
@@ -58,7 +58,7 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
     RCCHECK(rclc_executor_add_subscription(executor, &zero_rudder_encoder_subscriber, &zero_rudder_encoder_msg, &zero_rudder_encoder_callback, ON_NEW_DATA));
     #if BOAT_MODE == Lumpy
     RCCHECK(rclc_subscription_init_default(&zero_winch_encoder_subscriber, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool), "/zero_winch_encoder"));
-    RCCHECK(rclc_executor_add_subscription(executor, &zero_rudder_winch_subscriber, &zero_winch_encoder_msg, &zero_winch_encoder_callback, ON_NEW_DATA));
+    RCCHECK(rclc_executor_add_subscription(executor, &zero_winch_encoder_subscriber, &zero_winch_encoder_msg, &zero_winch_encoder_callback, ON_NEW_DATA));
     #endif
 
     // -----------------------------------------------------
@@ -87,8 +87,8 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
     #if BOAT_MODE == Lumpy
     RCCHECK(rclc_publisher_init_default(&current_sail_angle_publisher, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "/current_sail_angle"));
     RCCHECK(rclc_publisher_init_default(&current_winch_angle_publisher,&microros_node,ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),"/current_winch_angle"));
-    RCCHECK(rclc_subscription_init_best_effort(&desired_winch_angle_subscriber, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "/actions/winch_angle"));
-    RCCHECK(rclc_executor_add_subscription(executor, &desired_winch_angle_subscriber, &desired_winch_angle_msg, &desired_winch_angle_received_callback, ON_NEW_DATA));
+    RCCHECK(rclc_subscription_init_best_effort(&desired_winch_angle_subscriber, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "/actions/sail_angle"));
+    RCCHECK(rclc_executor_add_subscription(executor, &desired_winch_angle_subscriber, &desired_winch_angle_msg, &desired_sail_angle_received_callback, ON_NEW_DATA));
     #endif
 
 
@@ -177,7 +177,7 @@ void desired_rudder_angle_received_callback(const void *msg_in) {
     desired_rudder_motor_angle = get_motor_angle_from_rudder_angle(desired_rudder_angle);
 }
 
-void desired_winch_angle_received_callback(const void *msg_in) {
+void desired_sail_angle_received_callback(const void *msg_in) {
     const std_msgs__msg__Float32 *desired_sail_angle_msg = (const std_msgs__msg__Float32 *)msg_in;
     desired_sail_angle = desired_sail_angle_msg->data;
 
@@ -251,7 +251,7 @@ void application_loop() {
     float current_rudder_angle = get_rudder_angle_from_motor_angle(current_rudder_motor_angle);
     float rudder_error = current_rudder_angle - desired_rudder_angle;
 
-    int number_of_steps = -10000;
+    int number_of_steps_rudder = -10000;
     if (abs(rudder_error) > ACCEPTABLE_RUDDER_ERROR) {
         if (((int)rudder_error % 360) > 0 && ((int)rudder_error % 360) < 180) 
             drv8711_setDirection(&rudderStepperMotorDriver, COUNTER_CLOCKWISE);
@@ -259,21 +259,20 @@ void application_loop() {
         else 
             drv8711_setDirection(&rudderStepperMotorDriver, CLOCKWISE);
 
-        number_of_steps = RUDDER_GAIN * abs(rudder_error) + RUDDER_GAIN_Q * pow(abs(rudder_error), 2);
+            number_of_steps_rudder = RUDDER_GAIN * abs(rudder_error) + RUDDER_GAIN_Q * pow(abs(rudder_error), 2);
 
-        if (number_of_steps > 50) {
-            number_of_steps = 50;
+        if (number_of_steps_rudder > 50) {
+            number_of_steps_rudder = 50;
         }
 
 
-        for (int i = 0; i < number_of_steps; i++) {
+        for (int i = 0; i < number_of_steps_rudder; i++) {
             drv8711_step(&rudderStepperMotorDriver);
             sleep_us(MIN_TIME_BETWEEN_MOTOR_STEPS_MICROSECONDS);
         }
     }
 
-    compass_angle_msg.data = cmps14_getBearing(&compass) / 10.0;
-    // compass_angle_msg.data = number_of_steps;
+    // compass_angle_msg.data = cmps14_getBearing(&compass) / 10.0;
     current_rudder_angle_msg.data = current_rudder_angle;
     current_rudder_motor_angle_msg.data = current_rudder_motor_angle;
 
@@ -288,14 +287,16 @@ void application_loop() {
     #if BOAT_MODE == Lumpy
     float current_winch_angle = get_motor_angle(&winchEncoder) + WINCH_ANGLE_OFFSET + 360 * get_turn_count(&winchEncoder);
     float current_sail_angle = get_sail_angle_from_winch_angle(current_winch_angle);
+    float winch_error = desired_winch_angle - current_winch_angle;
+    int number_of_steps_winch = -10000;
 
 
     // check for absurd errors, and if there is an absurd error, do nothing
-    if (abs(sail_error) > 1000000 || sail_error != sail_error) 
-        sail_error = 0;
+    if (abs(winch_error) > 1000000 || winch_error != winch_error) 
+        winch_error = 0;
 
-    if (abs(sail_error) > ACCEPTABLE_SAIL_ERROR) {
-        if (sail_error > 0) {
+    if (abs(winch_error) > ACCEPTABLE_WINCH_ERROR) {
+        if (winch_error > 0) {
             drv8711_setDirection(&winchStepperMotorDriver, COUNTER_CLOCKWISE);
         }
         else {
@@ -304,20 +305,21 @@ void application_loop() {
 
     // number of steps is some linear function that maps the error of the rudder to a number of steps we want to take per loop.
     // This ends up cooresponding to the speed of the rudder. The higher the rudder_error, the higher the speed of the rudder will be
-        int number_of_steps = (int)(abs(sail_error) * WINCH_GAIN / MAX_SAIL_ERROR);  
+        number_of_steps_winch = (int)(abs(winch_error) * WINCH_GAIN / MAX_WINCH_ERROR);  
 
-        if (number_of_steps > 150) {
-            number_of_steps = 150;
+        if (number_of_steps_winch > 150) {
+            number_of_steps_winch = 150;
         }
 
-        for (int i = 0; i < number_of_steps; i++) {
+        for (int i = 0; i < number_of_steps_winch; i++) {
             drv8711_step(&winchStepperMotorDriver);
             sleep_us(MIN_TIME_BETWEEN_MOTOR_STEPS_MICROSECONDS);
         }
     }
     
     current_sail_angle_msg.data = current_sail_angle;
-    current_winch_angle_msg.cleadata = current_winch_angle;
+    current_winch_angle_msg.data = current_winch_angle;
+    compass_angle_msg.data = number_of_steps_winch;
 
     rcl_publish(&current_winch_angle_publisher, &current_winch_angle_msg, NULL);
     rcl_publish(&current_sail_angle_publisher, &current_sail_angle_msg, NULL);
