@@ -47,7 +47,7 @@ def generate_launch_description():
         
         
         Node(
-            package='sensor',
+            package='sensors',
             executable='wind_sensor',
             name='wind_sensor',
 
