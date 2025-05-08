@@ -7,8 +7,8 @@
     "autopilot_refresh_rate": 100,
     "tack_distance": 100,
 
-    "rudder_p_gain": 1,
-    "rudder_i_gain": 0,
-    "rudder_d_gain": 0,
-    "rudder_n_gain": 0
+    "heading_p_gain": 75,
+    "heading_i_gain": 0,
+    "heading_d_gain": 0,
+    "heading_n_gain": 0
 }

@@ -16,7 +16,7 @@ from geometry_msgs.msg import Vector3
 # SERIAL_PORT = "/dev/ttyUSB0"  # temporary for now
 WIND_SENSOR_VID = 0x0403
 WIND_SENSOR_PID = 0x6001
-WIND_SENSOR_SERIAL_NUMBER = "AB7IMXEU"
+WIND_SENSOR_SERIAL_NUMBER = "ABSCDYAB"
 BAUD_RATE = 38400
 
 KNOTS_TO_METERS_PER_SECOND = 0.514444
@@ -74,9 +74,9 @@ class WindSensorPublisher(Node):
 
 
     def timer_callback(self):
-        
+        print("hi")
         raw_data = self.sensor_serial.readline().decode('ascii')
-        
+        print(raw_data)
         split_data = raw_data.split(',')
 
         if len(split_data) != 6: return
