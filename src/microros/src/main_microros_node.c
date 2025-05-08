@@ -272,7 +272,7 @@ void application_loop() {
         }
     }
 
-    // compass_angle_msg.data = cmps14_getBearing(&compass) / 10.0;
+    compass_angle_msg.data = cmps14_getBearing(&compass) / 10.0;
     current_rudder_angle_msg.data = current_rudder_angle;
     current_rudder_motor_angle_msg.data = current_rudder_motor_angle;
 
@@ -297,10 +297,10 @@ void application_loop() {
 
     if (abs(winch_error) > ACCEPTABLE_WINCH_ERROR) {
         if (winch_error > 0) {
-            drv8711_setDirection(&winchStepperMotorDriver, COUNTER_CLOCKWISE);
+            drv8711_setDirection(&winchStepperMotorDriver, CLOCKWISE);
         }
         else {
-            drv8711_setDirection(&winchStepperMotorDriver, CLOCKWISE);
+            drv8711_setDirection(&winchStepperMotorDriver, COUNTER_CLOCKWISE);
         }
 
     // number of steps is some linear function that maps the error of the rudder to a number of steps we want to take per loop.
@@ -319,7 +319,6 @@ void application_loop() {
     
     current_sail_angle_msg.data = current_sail_angle;
     current_winch_angle_msg.data = current_winch_angle;
-    compass_angle_msg.data = number_of_steps_winch;
 
     rcl_publish(&current_winch_angle_publisher, &current_winch_angle_msg, NULL);
     rcl_publish(&current_sail_angle_publisher, &current_sail_angle_msg, NULL);
