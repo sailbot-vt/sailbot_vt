@@ -6,8 +6,8 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='autopilot',
-            executable='autopilot',
-            name='autopilot',
+            executable='sailboat_autopilot',
+            name='sailboat_autopilot',
 
             respawn=True, 
             respawn_delay=2.0,
@@ -26,7 +26,7 @@ def generate_launch_description():
         ),
         
         Node(
-            package='rc',
+            package='sensors',
             executable='rc',
             name='rc',
 
@@ -36,7 +36,7 @@ def generate_launch_description():
         ),
         
         Node(
-            package='gps',
+            package='sensors',
             executable='gps',
             name='gps',
 
@@ -45,18 +45,9 @@ def generate_launch_description():
             output="log"
         ),
         
-        Node(
-            package='mcu',
-            executable='mcu',
-            name='mcu',
-
-            respawn=True, 
-            respawn_delay=2.0,
-            output="log"
-        ),
         
         Node(
-            package='wind_sensor',
+            package='sensor',
             executable='wind_sensor',
             name='wind_sensor',
 
@@ -65,24 +56,22 @@ def generate_launch_description():
             output="log"
         ),
         
-        Node(
-            package='compass',
-            executable='compass',
-            name='compass',
-
-            respawn=True, 
-            respawn_delay=2.0,
-            output="log"
-        ),
         
-        Node(
-            package='realsense2_camera',
-            executable='rs_launch.py',
-            name='camera',
+        # Node(
+        #     package='realsense2_camera',
+        #     executable='rs_launch.py',
+        #     name='camera',
 
-            respawn=True, 
-            respawn_delay=0.5,
-            output="log"
+        #     respawn=True, 
+        #     respawn_delay=0.5,
+        #     output="log"
+        # ),
+        Node(
+            package='micro_ros_agent',
+            executable='micro_ros_agent',
+            name='micro_ros_agent',
+            output='screen',
+            arguments=['serial', '--dev', "/dev/pico", "-b", "115200"]
         ),
         
         # ros2 launch realsense2_camera rs_launch.py enable_rgbd:=true enable_sync:=true align_depth.enable:=true enable_color:=true enable_depth:=true rgb_camera.color_profile:=1280x720x15
