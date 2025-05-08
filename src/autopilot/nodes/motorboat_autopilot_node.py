@@ -1,4 +1,5 @@
 from autopilot.autopilot import SailbotAutopilot
+from autopilot.autopilot import Discrete_PID
 from autopilot.utils import *
 
 
@@ -55,7 +56,14 @@ class MotorboatAutopilotNode(Node):
         # self.zero_encoder_client = self.create_client(Empty, '/zero_rudder_encoder')
         self.zero_encoder_publisher = self.create_publisher(msg_type=Bool, topic="zero_rudder_encoder", qos_profile=10)
 
+
+
         self.motor_control_struct_publisher = self.create_publisher(msg_type= VESCControlData, topic="/motor_control_struct", qos_profile=sensor_qos_profile)
+
+        self.heading_pid_controller = Discrete_PID(
+            sample_period=(1 / self.parameters['autopilot_refresh_rate']), 
+            Kp=1, Ki=0, Kd=0, n=1, 
+        )
         """
         self.propellor_motor_rpm_value_publisher = self.create_publisher(msg_type=Float32, topic="vesc/rpm_value", qos_profile = sensor_qos_profile)
         self.propellor_motor_current_value_publisher = self.create_publisher(msg_type=Float32, topic="vesc/current_value", qos_profile = sensor_qos_profile)
@@ -70,7 +78,7 @@ class MotorboatAutopilotNode(Node):
         self.heading = 0.
         self.rudder_angle = 0.
         
-        self.autopilot_mode = MotorboatAutopilotMode.Full_RC
+        self.autopilot_mode = MotorboatAutopilotMode.Hold_Heading
         self.is_propeller_motor_enabled = False
         self.should_zero_encoder = False
         self.encoder_has_been_zeroed = False
@@ -243,6 +251,12 @@ class MotorboatAutopilotNode(Node):
         # if we have not received data from the remote control for 3 seconds
         has_rc_disconnected = False
         # self.get_logger().info(f"{time.time() - self.last_rc_data_time}")
+        self.get_logger().info(f"heading P gain : {self.parameters['heading_p_gain']}")
+        self.get_logger().info(f"heading I gain : {self.parameters['heading_i_gain']}")
+        self.get_logger().info(f"heading D gain : {self.parameters['heading_d_gain']}")
+        self.get_logger().info(f"heading N gain : {self.parameters['heading_n_gain']}")
+        self.get_logger().info(f"distance between angles:   {self.heading - self.heading_to_hold}")
+
         if (time.time() - self.last_rc_data_time >= 3):
             has_rc_disconnected = True
             
@@ -297,6 +311,20 @@ class MotorboatAutopilotNode(Node):
             self.encoder_has_been_zeroed = True
 
 
+    def get_optimal_rudder_angle(self, heading, desired_heading):
+        error = get_distance_between_angles(desired_heading, heading)
+
+
+        self.heading_pid_controller.set_gains(
+            Kp=self.parameters['heading_p_gain'], Ki=self.parameters['heading_i_gain'], Kd=self.parameters['heading_d_gain'], 
+            n=self.parameters['heading_n_gain'], sample_period=self.parameters['autopilot_refresh_rate']
+        )
+        
+        rudder_angle = self.heading_pid_controller(error)
+        rudder_angle = np.clip(rudder_angle, self.parameters['min_rudder_angle'], self.parameters['max_rudder_angle'])
+        return rudder_angle
+    
+
     def step(self):
         """
         Computes the best sail and rudder angles for the given mode and state
@@ -309,7 +337,7 @@ class MotorboatAutopilotNode(Node):
             _, rudder_angle = self.sailbot_autopilot.run_waypoint_mission_step(self.position, self.velocity, self.heading, self.apparent_wind_vector)
             
         elif self.autopilot_mode == MotorboatAutopilotMode.Hold_Heading:
-            rudder_angle = self.sailbot_autopilot.get_optimal_rudder_angle(self.heading, self.heading_to_hold)
+            rudder_angle = self.get_optimal_rudder_angle(self.heading, self.heading_to_hold)
             
         elif self.autopilot_mode == MotorboatAutopilotMode.Full_RC:
             _, rudder_angle = self.sailbot_autopilot.run_rc_control(self.joystick_left_y, self.joystick_right_x)

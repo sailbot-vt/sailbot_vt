@@ -21,7 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             "gps = sensors.gps_publisher:main",
-            'wind_sensor = sensors.wind_sensor_node:main',
+            'wind_sensor = sensors.wind_sensor_publisher:main',
             'rc = sensors.rc_publisher:main'
         ],
     },
