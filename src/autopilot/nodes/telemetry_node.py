@@ -190,8 +190,8 @@ class TelemetryNode(Node):
             different entries are denoted as: speed; heading; apparent_wind_speed
         """
         
-        # print(f"boat velocity: {self.velocity_vector}")
-        # print(f"AW vector: {self.apparent_wind_vector}")
+        print(f"boat velocity: {self.velocity_vector}")
+        print(f"AW vector: {self.apparent_wind_vector}")
         true_wind_vector = self.apparent_wind_vector + self.velocity_vector
         # print(f"TW vector: {true_wind_vector}")
         self.true_wind_speed, self.true_wind_angle = cartesian_vector_to_polar(true_wind_vector[0], true_wind_vector[1])
@@ -271,7 +271,7 @@ class TelemetryNode(Node):
         
     def update_autopilot_parameters_from_telemetry(self):
         autopilot_parameters = self.get_raw_response("/autopilot_parameters/get")
-        # print(f"autopilot_parameters: {autopilot_parameters}")
+        print(f"autopilot_parameters: {autopilot_parameters}")
 
         if not autopilot_parameters: 
             return
