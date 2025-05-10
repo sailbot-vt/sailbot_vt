@@ -272,7 +272,8 @@ void application_loop() {
         }
     }
 
-    compass_angle_msg.data = cmps14_getBearing(&compass) / 10.0;
+    // compass_angle_msg.data = cmps14_getBearing(&compass) / 10.0;
+    compass_angle_msg.data = desired_winch_angle;
     current_rudder_angle_msg.data = current_rudder_angle;
     current_rudder_motor_angle_msg.data = current_rudder_motor_angle;
 
@@ -305,7 +306,7 @@ void application_loop() {
 
     // number of steps is some linear function that maps the error of the rudder to a number of steps we want to take per loop.
     // This ends up cooresponding to the speed of the rudder. The higher the rudder_error, the higher the speed of the rudder will be
-        number_of_steps_winch = (int)(abs(winch_error) * WINCH_GAIN / MAX_WINCH_ERROR);  
+        number_of_steps_winch = abs(winch_error) * WINCH_GAIN;  
 
         if (number_of_steps_winch > 150) {
             number_of_steps_winch = 150;

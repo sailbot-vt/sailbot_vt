@@ -28,7 +28,7 @@
 #define RUDDER_GAIN_Q (float)0.5
 #endif
 
-#define WINCH_GAIN 150
+#define WINCH_GAIN 2
 
 #define WINCH_ZERO_POINT 100
 
