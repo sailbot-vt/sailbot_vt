@@ -16,8 +16,7 @@ from std_msgs.msg import Float32, String, Int32
 from geometry_msgs.msg import Vector3, Twist
 from sensor_msgs.msg import NavSatFix
 
-import json, yaml
-import os, time
+import json, yaml, os
 
 # from ament_index_python.packages import get_package_share_directory
 
