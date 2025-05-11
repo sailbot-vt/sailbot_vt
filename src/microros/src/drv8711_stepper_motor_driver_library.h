@@ -293,6 +293,7 @@ drv8711_setStepMode(driver, step_mode);
 drv8711_enableDriver(driver);
 drv8711_setAwake(driver);
 
+sleep_ms(50);
 // drv8711_resetSettings(driver); // Disables DRV8711 by default
 }
 
