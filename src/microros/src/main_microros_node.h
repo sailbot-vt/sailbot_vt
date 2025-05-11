@@ -28,8 +28,8 @@
 #else
 #define RUDDER_GAIN (float)150
 #define RUDDER_GAIN_Q (float)2
-#define RUDDER_MICROSTEP MicroStep1
 #define RUDDER_NUMBER_OF_STEPS_TO_CLIP_AT 150
+#define RUDDER_MICROSTEP MicroStep1
 #endif
 
 #define WINCH_GAIN 150

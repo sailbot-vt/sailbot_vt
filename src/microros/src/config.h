@@ -3,11 +3,6 @@ PCB SPECIFIC CONFIGURATIONS
 */
 
 
-
-// 0 for the motorboat mode
-// 1 for the sailboat mode
-#define DEBUG 0
-
 #define Theseus 0
 #define Lumpy 1
 #define BOAT_MODE Lumpy
