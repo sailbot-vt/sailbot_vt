@@ -101,7 +101,7 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
     // -----------------------------------------------------
     // INITIALIZE APPLICATION LOOP TIMER
     // -----------------------------------------------------    
-    RCCHECK(rclc_timer_init_default(&application_loop_timer, support, 500, application_loop));
+    RCCHECK(rclc_timer_init_default(&application_loop_timer, support, RCL_MS_TO_NS(1), application_loop));
     RCCHECK(rclc_executor_add_timer(executor, &application_loop_timer));
 
 
