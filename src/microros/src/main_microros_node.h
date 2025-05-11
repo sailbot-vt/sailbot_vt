@@ -25,9 +25,9 @@
 #define RUDDER_GAIN_Q (float)0.5
 #define RUDDER_MICROSTEP MicroStep32
 #else
-#define RUDDER_GAIN (float)4
+#define RUDDER_GAIN (float)10
 #define RUDDER_GAIN_Q (float)2
-#define RUDDER_MICROSTEP MicroStep4
+#define RUDDER_MICROSTEP MicroStep1
 #endif
 
 #define WINCH_GAIN 150
