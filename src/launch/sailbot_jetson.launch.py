@@ -1,7 +1,7 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
-# VERY MUCH IN DEVELOPMENT THIS IS JUST A TEMPLATE
+
 def generate_launch_description():
     return LaunchDescription([
         Node(
