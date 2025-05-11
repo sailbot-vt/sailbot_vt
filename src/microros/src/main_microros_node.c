@@ -262,8 +262,8 @@ void application_loop() {
             // number_of_steps_rudder = RUDDER_GAIN * abs(rudder_error) + RUDDER_GAIN_Q * pow(abs(rudder_error), 2);
             number_of_steps_rudder = RUDDER_GAIN * abs(rudder_error);
 
-        if (number_of_steps_rudder > 50) {
-            number_of_steps_rudder = 50;
+        if (number_of_steps_rudder > RUDDER_NUMBER_OF_STEPS_TO_CLIP_AT) {
+            number_of_steps_rudder = RUDDER_NUMBER_OF_STEPS_TO_CLIP_AT;
         }
 
 
@@ -308,8 +308,8 @@ void application_loop() {
     // This ends up cooresponding to the speed of the rudder. The higher the rudder_error, the higher the speed of the rudder will be
         number_of_steps_winch = (int)(abs(winch_error) * WINCH_GAIN / MAX_WINCH_ERROR);  
 
-        if (number_of_steps_winch > 150) {
-            number_of_steps_winch = 150;
+        if (number_of_steps_winch > WINCH_NUMBER_OF_STEPS_TO_CLIP_AT) {
+            number_of_steps_winch = WINCH_NUMBER_OF_STEPS_TO_CLIP_AT;
         }
 
         for (int i = 0; i < number_of_steps_winch; i++) {

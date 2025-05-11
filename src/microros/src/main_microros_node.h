@@ -23,15 +23,18 @@
 #if BOAT_MODE == Theseus
 #define RUDDER_GAIN (float)2
 #define RUDDER_GAIN_Q (float)0.5
+#define RUDDER_NUMBER_OF_STEPS_TO_CLIP_AT 150
 #define RUDDER_MICROSTEP MicroStep32
 #else
 #define RUDDER_GAIN (float)150
 #define RUDDER_GAIN_Q (float)2
 #define RUDDER_MICROSTEP MicroStep1
+#define RUDDER_NUMBER_OF_STEPS_TO_CLIP_AT 50
 #endif
 
 #define WINCH_GAIN 150
 #define WINCH_MICROSTEP MicroStep4
+#define WINCH_NUMBER_OF_STEPS_TO_CLIP_AT 150
 
 #define WINCH_ZERO_POINT 100
 
