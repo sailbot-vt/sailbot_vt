@@ -259,7 +259,8 @@ void application_loop() {
         else 
             drv8711_setDirection(&rudderStepperMotorDriver, CLOCKWISE);
 
-            number_of_steps_rudder = RUDDER_GAIN * abs(rudder_error) + RUDDER_GAIN_Q * pow(abs(rudder_error), 2);
+            // number_of_steps_rudder = RUDDER_GAIN * abs(rudder_error) + RUDDER_GAIN_Q * pow(abs(rudder_error), 2);
+            number_of_steps_rudder = RUDDER_GAIN * abs(rudder_error);
 
         if (number_of_steps_rudder > 50) {
             number_of_steps_rudder = 50;
