@@ -82,6 +82,7 @@ class SailboatAutopilotNode(Node):
         self.speed = 0.
         self.heading = 0.
         self.apparent_wind_vector = np.array([0., 0.])
+        self.apparent_wind_angle = 0.
         self.sail_angle = 0.
         self.rudder_angle = 0.
         
