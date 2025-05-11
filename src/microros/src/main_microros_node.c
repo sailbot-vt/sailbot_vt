@@ -134,13 +134,13 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
         // https://www.st.com/resource/en/datasheet/vnh7100bas.pdf
         // https://www.st.com/resource/en/application_note/an5940-contactor-driver-using-the-vnh7100bas-stmicroelectronics.pdf
 
-    AMT22_init(&rudderEncoder, RUDDER_ENCODER_CS_PIN, SPI_PORT);
-    drv8711_init(&rudderStepperMotorDriver, SPI_PORT, RUDDER_MOTOR_CS_PIN, RUDDER_MOTOR_SLEEP_PIN, AutoMixed, RUDDER_MICROSTEP, MAX_RUDDER_CURRENT);
-
     #if BOAT_MODE == Lumpy
     AMT22_init(&winchEncoder, WINCH_ENCODER_CS_PIN, SPI_PORT);
     drv8711_init(&winchStepperMotorDriver, SPI_PORT, WINCH_MOTOR_CS_PIN, WINCH_MOTOR_SLEEP_PIN, AutoMixed, WINCH_MICROSTEP, MAX_WINCH_CURRENT);
     #endif
+
+    AMT22_init(&rudderEncoder, RUDDER_ENCODER_CS_PIN, SPI_PORT);
+    drv8711_init(&rudderStepperMotorDriver, SPI_PORT, RUDDER_MOTOR_CS_PIN, RUDDER_MOTOR_SLEEP_PIN, AutoMixed, RUDDER_MICROSTEP, MAX_RUDDER_CURRENT);
 
     cmps14_init(&compass, I2C_PORT, 0x60);
 
