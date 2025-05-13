@@ -42,7 +42,7 @@ class SailbotAutopilot:
 
     def get_optimal_sail_angle(self, apparent_wind_angle: float):
         """
-        Runs a single step by using the sail lookup table. No side effects. Apparent wind angle is measured ccw from the right hand side of the boat.
+        Runs a single step by using the sail lookup table. No side effects. Apparent wind angle is measured ccw from the centerline of the boat.
         
         Doesn't return an exit code because there is no reason why this should fail and this part of the code doesn't figure out if the boat has reached the waypoint
         Returns the desired sail angle and rudder angle as a tuple given the current observations
