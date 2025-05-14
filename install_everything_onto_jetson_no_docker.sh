@@ -1,8 +1,3 @@
-cd /home/${User}
-
-# install git repo
-git clone https://github.com/sailbot-vt/sailbot_vt
-
 # install ros2 humble
 locale  # check for UTF-8
 
