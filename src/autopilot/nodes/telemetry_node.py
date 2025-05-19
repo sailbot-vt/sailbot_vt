@@ -1,9 +1,4 @@
 #!usr/bin/python3
-
-# TODO: we can speed this up through async processing by 3x. Since we are making 3 or 4 api requests, these can be made in parallel and processed once each of them are done
-
-
-
 from autopilot.utils import *
 
 import rclpy

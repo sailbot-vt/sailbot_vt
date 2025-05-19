@@ -1,4 +1,5 @@
 #!usr/bin/python3
+from pympler import asizeof
 
 # TODO: Implement a graceful way to handle simulation termination with the control scripts
 
@@ -18,6 +19,7 @@ from geometry_msgs.msg import Vector3, Twist
 from sensor_msgs.msg import NavSatFix
 from sailbot_msgs.msg import WaypointList
 import navpy
+import sys
 
 
 # this is the wind direction measured as (what seems like) counter clockwise from true east
@@ -78,11 +80,11 @@ class SimNode(Node):
         sim_time = 0
 
         self.env = TimeLimit(self.env, max_episode_steps=self.episode_length)
-        self.env = RecordVideo(self.env, video_folder='./output/videos/')
+        # self.env = RecordVideo(self.env, video_folder='./output/videos/')
 
         obs, info = self.env.reset(seed=10)
         
-        self.display_image(self.env.render())
+        # self.display_image(self.env.render())
         self.publish_observation_data(obs)
         
         self.desired_rudder_angle, self.desired_sail_angle = None, None
@@ -193,6 +195,11 @@ class SimNode(Node):
         assert self.desired_rudder_angle != None
         assert self.desired_sail_angle != None
 
+        # self.get_logger().info(f"env: {asizeof.asizeof(self.env)}")
+        # for thing_name, thing_value in self.env.__dict__.items():
+        #     self.get_logger().info(f"{thing_name}: {asizeof.asizeof(thing_value)}")
+
+
         # print(f"desired rudder angle: {self.desired_rudder_angle}; desired sail angle: {self.desired_sail_angle}")
         
         action = {"theta_rudder": np.deg2rad(self.desired_rudder_angle), "theta_sail": np.deg2rad(self.desired_sail_angle)}
@@ -203,22 +210,10 @@ class SimNode(Node):
         # if terminated or truncated: rclpy.shutdown()
 
         # if self.route == None: self.display_image(self.env.render())
-        self.display_image(self.env.render())
+        
+        
+        #self.display_image(self.env.render())
 
-        # self.publish_observation_data(
-        #     Observation(
-        #         p_boat=np.zeros(3),
-        #         dt_p_boat=np.zeros(3),
-        #         theta_boat=np.zeros(3),
-        #         dt_theta_boat=np.zeros(3),
-        #         theta_rudder=np.zeros(3),
-        #         dt_theta_rudder=np.zeros(3),
-        #         theta_sail=np.zeros(3),
-        #         dt_theta_sail=np.zeros(3),
-        #         wind=np.zeros(3),
-        #         water=np.zeros(3)
-        #     )
-        # )
         self.publish_observation_data(obs)
 
 
@@ -240,6 +235,8 @@ class SimNode(Node):
         return magnitude, direction
     
     def display_image(self, img):
+        # # NOTE: DISABLING DISPLAY IMAGE FOR NOW 
+        # return
         cv2.imshow("Simulation Real Time", img)
         cv2.waitKey(1)
     
