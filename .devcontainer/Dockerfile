@@ -40,7 +40,7 @@ RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sud
 #Used to automate tasks
 RUN sudo apt-get install cron
 RUN sudo apt-get install usbutils
-
+RUN sudo apt-get install ros-humble-cv-bridge -y
 
 
 USER $USERNAME

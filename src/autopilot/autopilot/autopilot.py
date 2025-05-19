@@ -22,7 +22,7 @@ class SailbotAutopilot:
 
         self.rudder_pid_controller = Discrete_PID(
             sample_period=(1 / parameters['autopilot_refresh_rate']), 
-            Kp=parameters['rudder_p_gain'], Ki=parameters['rudder_i_gain'], Kd=parameters['rudder_d_gain'], n=parameters['rudder_n_gain'], 
+            Kp=parameters['heading_p_gain'], Ki=parameters['heading_i_gain'], Kd=parameters['heading_d_gain'], n=parameters['heading_n_gain'], 
         )
         
         self.parameters = parameters
@@ -77,14 +77,20 @@ class SailbotAutopilot:
         
         
     def get_optimal_rudder_angle(self, heading, desired_heading):
+        
+        self.logger.info(f"heading: {heading}, desired_heading: {desired_heading}")
+        
         error = get_distance_between_angles(desired_heading, heading)
         
+        self.logger.info(f"error: {error}")
+        
         self.rudder_pid_controller.set_gains(
-            Kp=self.parameters['rudder_p_gain'], Ki=self.parameters['rudder_i_gain'], Kd=self.parameters['rudder_d_gain'], 
-            n=self.parameters['rudder_n_gain'], sample_period=self.parameters['autopilot_refresh_rate']
+            Kp=self.parameters['heading_p_gain'], Ki=self.parameters['heading_i_gain'], Kd=self.parameters['heading_d_gain'], 
+            n=self.parameters['heading_n_gain'], sample_period=self.parameters['autopilot_refresh_rate']
         )
         
         rudder_angle = self.rudder_pid_controller(error)
+        self.logger.info(f"rudder_angle: {rudder_angle}, gain: {self.parameters}")
         rudder_angle = np.clip(rudder_angle, self.parameters['min_rudder_angle'], self.parameters['max_rudder_angle'])
         return rudder_angle
     

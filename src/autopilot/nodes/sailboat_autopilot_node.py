@@ -85,8 +85,8 @@ class SailboatAutopilotNode(Node):
         self.sail_angle = 0.
         self.rudder_angle = 0.
         
-        self.autopilot_mode = SailboatAutopilotMode.Waypoint_Mission    # Should be this by default: SailboatAutopilotMode.Full_RC
-        self.full_autonomy_maneuver = SailboatManeuvers.AUTOPILOT_DISABLED
+        self.autopilot_mode = SailboatAutopilotMode.Waypoint_Mission    # Should this be by default: SailboatAutopilotMode.Full_RC
+        self.full_autonomy_maneuver = SailboatManeuvers.STANDARD
         self.heading_to_hold = 0.
      
         self.joystick_left_x = 0.

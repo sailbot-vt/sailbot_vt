@@ -145,7 +145,6 @@ def update_telemetry_text(boat_status: dict):
         true_wind_speed = boat_status["true_wind_speed"]
         boat_speed = boat_status["speed"]
         
-    string_to_show += f"rpm: {boat_status['vesc_data_battery_vin']}"
     
     # Get Formatted Time
     time_since_startup = (time.time() - telemetry_start_time)
