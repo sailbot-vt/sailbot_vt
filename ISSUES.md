@@ -1,0 +1,1 @@
+if you have trouble displaying anything on ubuntu with the simulation, use "xhost +" on ubuntu to solve that 

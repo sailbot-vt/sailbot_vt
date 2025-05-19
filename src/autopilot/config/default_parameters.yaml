@@ -15,7 +15,7 @@ heading_i_gain: 0
 heading_d_gain: 0
 heading_n_gain: 1
 
-rudder_hard_over: 35
+rudder_hard_over: 25
 no_sail_zone_size: 100
 autopilot_refresh_rate: 15
 
