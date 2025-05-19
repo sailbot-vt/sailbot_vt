@@ -1,5 +1,9 @@
 #!usr/bin/python3
 
+# TODO: we can speed this up through async processing by 3x. Since we are making 3 or 4 api requests, these can be made in parallel and processed once each of them are done
+
+
+
 from autopilot.utils import *
 
 import rclpy
@@ -15,6 +19,9 @@ import base64
 import numpy as np
 import array, time, json, requests
 import cv2
+import threading
+
+
 
 TELEMETRY_SERVER_URL = 'http://18.191.164.84:8080/'
 
@@ -175,10 +182,17 @@ class TelemetryNode(Node):
     
     
     def update_everything(self):
-        self.update_boat_status()
-        self.update_autopilot_parameters_from_telemetry()
-        self.update_waypoints_from_telemetry()
+        update_boat_status_thread = threading.Thread(target=self.update_boat_status)
+        update_autopilot_parameters_thread = threading.Thread(target=self.update_autopilot_parameters_from_telemetry)
+        update_waypoints_from_telemetry_thread = threading.Thread(target=self.update_waypoints_from_telemetry)
+
+        update_boat_status_thread.start()
+        update_autopilot_parameters_thread.start()
+        update_waypoints_from_telemetry_thread.start()
+        
+        update_waypoints_from_telemetry_thread.join()
     
+
     
     
     def update_boat_status(self):
@@ -190,8 +204,7 @@ class TelemetryNode(Node):
             different entries are denoted as: speed; heading; apparent_wind_speed
         """
         
-        print(f"boat velocity: {self.velocity_vector}")
-        print(f"AW vector: {self.apparent_wind_vector}")
+        self.get_logger().info(f"updating")        
         true_wind_vector = self.apparent_wind_vector + self.velocity_vector
         # print(f"TW vector: {true_wind_vector}")
         self.true_wind_speed, self.true_wind_angle = cartesian_vector_to_polar(true_wind_vector[0], true_wind_vector[1])
@@ -226,7 +239,9 @@ class TelemetryNode(Node):
             "vesc_data_vesc_temperature": self.vesc_data_vesc_temperature
         }
 
+        start_time = time.time()
         requests.post(url=TELEMETRY_SERVER_URL + "/boat_status/set", json={"value": telemetry_dict})
+        print(f"time taken: {time.time() - start_time}")
         self.time+=1
 
 
@@ -271,7 +286,7 @@ class TelemetryNode(Node):
         
     def update_autopilot_parameters_from_telemetry(self):
         autopilot_parameters = self.get_raw_response("/autopilot_parameters/get")
-        print(f"autopilot_parameters: {autopilot_parameters}")
+        # print(f"autopilot_parameters: {autopilot_parameters}")
 
         if not autopilot_parameters: 
             return

@@ -1,1 +1,2 @@
 if you have trouble displaying anything on ubuntu with the simulation, use "xhost +" on ubuntu to solve that 
+https://askubuntu.com/questions/115675/xhost-setting-at-boot (maybe look into this for the above issue)
