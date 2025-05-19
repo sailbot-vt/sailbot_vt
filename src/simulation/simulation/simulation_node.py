@@ -75,6 +75,7 @@ class SimNode(Node):
             map_scale=0.1,
             keep_sim_alive=True
         )
+        self.env.NB_STEPS_PER_SECONDS = 1000
         
         self.episode_length = self.env.NB_STEPS_PER_SECONDS * 60 * 400000000
         sim_time = 0
@@ -212,7 +213,7 @@ class SimNode(Node):
         # if self.route == None: self.display_image(self.env.render())
         
         
-        #self.display_image(self.env.render())
+        # self.display_image(self.env.render())
 
         self.publish_observation_data(obs)
 
@@ -235,8 +236,6 @@ class SimNode(Node):
         return magnitude, direction
     
     def display_image(self, img):
-        # # NOTE: DISABLING DISPLAY IMAGE FOR NOW 
-        # return
         cv2.imshow("Simulation Real Time", img)
         cv2.waitKey(1)
     
