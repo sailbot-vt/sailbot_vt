@@ -94,19 +94,6 @@ class SailbotAutopilot:
         rudder_angle = np.clip(rudder_angle, self.parameters['min_rudder_angle'], self.parameters['max_rudder_angle'])
         return rudder_angle
     
-            
-    def run_rc_control(self, joystick_left_y, joystick_right_x):
-        # https://stackoverflow.com/questions/929103/convert-a-number-range-to-another-range-maintaining-ratio 
-        
-        min_sail_angle, max_sail_angle = self.parameters['min_sail_angle'], self.parameters['max_sail_angle']
-        sail_angle = (((joystick_left_y - -100) * (max_sail_angle - min_sail_angle)) / (100 - -100)) + min_sail_angle
-        
-        min_rudder_angle, max_rudder_angle = self.parameters['min_rudder_angle'], self.parameters['max_rudder_angle']
-        rudder_angle = (((joystick_right_x - -100) * (max_rudder_angle - min_rudder_angle)) / (100 - -100)) + min_rudder_angle
-    
-        return sail_angle, rudder_angle
-    
-    
     
     def get_decision_zone_size(self, distance_to_waypoint):
         tack_distance = self.parameters['tack_distance']
@@ -286,3 +273,19 @@ class SailbotAutopilot:
         
         
         return sail_angle, rudder_angle
+    
+    
+    
+    
+    
+    def run_rc_control(self, joystick_left_y, joystick_right_x):
+        # https://stackoverflow.com/questions/929103/convert-a-number-range-to-another-range-maintaining-ratio 
+        
+        min_sail_angle, max_sail_angle = self.parameters['min_sail_angle'], self.parameters['max_sail_angle']
+        sail_angle = (((joystick_left_y - -100) * (max_sail_angle - min_sail_angle)) / (100 - -100)) + min_sail_angle
+        
+        min_rudder_angle, max_rudder_angle = self.parameters['min_rudder_angle'], self.parameters['max_rudder_angle']
+        rudder_angle = (((joystick_right_x - -100) * (max_rudder_angle - min_rudder_angle)) / (100 - -100)) + min_rudder_angle
+    
+        return sail_angle, rudder_angle
+    
