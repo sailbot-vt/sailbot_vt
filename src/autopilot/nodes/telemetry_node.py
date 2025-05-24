@@ -198,8 +198,7 @@ class TelemetryNode(Node):
             tuples are denoted as: element1, element2, ... such as for latitude/ longitude
             different entries are denoted as: speed; heading; apparent_wind_speed
         """
-        
-        self.get_logger().info(f"updating")        
+
         true_wind_vector = self.apparent_wind_vector + self.velocity_vector
         # print(f"TW vector: {true_wind_vector}")
         self.true_wind_speed, self.true_wind_angle = cartesian_vector_to_polar(true_wind_vector[0], true_wind_vector[1])
