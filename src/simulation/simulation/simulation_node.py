@@ -28,12 +28,20 @@ WIND_SPEED = 1
 
 sim_time = 0
 
-# def generate_wind(_): 
-#     return np.array([np.cos(WIND_DIRECTION), np.sin(WIND_DIRECTION)]) * WIND_SPEED * random.gauss(sigma=0.7)
+
+# randomize the wind direction to be more like real life
 def generate_wind(_): 
-    # wind_direction = 0.4 * np.sin(0 * np.deg2rad(sim_time)) + WIND_DIRECTION
-    # return np.array([np.cos(WIND_DIRECTION) + random.random()*0.2, np.sin(WIND_DIRECTION) + random.random()*0.2]) * WIND_SPEED
-    return np.array([np.cos(WIND_DIRECTION) + random.random()*0., np.sin(WIND_DIRECTION) + random.random()*0.]) * WIND_SPEED
+    random_angle = WIND_DIRECTION + random.gauss(sigma=np.deg2rad(5), mu=0)
+    generated_wind = np.array([np.cos(random_angle), np.sin(random_angle)]) * (WIND_SPEED + random.gauss(sigma=0.3, mu=0))
+    # print(np.rad2deg(random_angle))
+    # print(generated_wind)
+    # print()
+    return generated_wind
+
+# def generate_wind(_): 
+#     # wind_direction = 0.4 * np.sin(0 * np.deg2rad(sim_time)) + WIND_DIRECTION
+#     # return np.array([np.cos(WIND_DIRECTION) + random.random()*0.2, np.sin(WIND_DIRECTION) + random.random()*0.2]) * WIND_SPEED
+#     return np.array([np.cos(WIND_DIRECTION) + random.random()*0., np.sin(WIND_DIRECTION) + random.random()*0.]) * WIND_SPEED
 
 
 def up_wind_generator(_):
@@ -175,6 +183,10 @@ class SimNode(Node):
         true_wind_speed, global_wind_angle = self.cartesian_vector_to_polar(obs["wind"][0].item(), obs["wind"][1].item())
 
         true_wind_angle = global_wind_angle - heading_angle.data
+        # print(global_wind_angle)
+        # print(obs["wind"])
+        # print()
+        
         self.true_wind_vector = Vector3(x= (true_wind_speed * np.cos(np.deg2rad(true_wind_angle))), y= (true_wind_speed * np.sin(np.deg2rad(true_wind_angle))))
         self.apparent_wind_vector = Vector3(x= (self.true_wind_vector.x - boat_linear_velocity_vector.x), y= (self.true_wind_vector.y - boat_linear_velocity_vector.y)) 
         
