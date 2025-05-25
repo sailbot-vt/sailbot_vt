@@ -8,6 +8,10 @@ import random
 import gymnasium as gym
 from gymnasium.wrappers.time_limit import TimeLimit
 from gymnasium.wrappers.record_video import RecordVideo
+import navpy
+import pandas as pd
+import math
+import os
 
 from sailboat_gym import CV2DRenderer, Observation
 
@@ -18,25 +22,45 @@ from std_msgs.msg import Float32, Bool
 from geometry_msgs.msg import Vector3, Twist
 from sensor_msgs.msg import NavSatFix
 from sailbot_msgs.msg import WaypointList
-import navpy
-import sys
-
-
-# this is the wind direction measured as (what seems like) counter clockwise from true east
-WIND_DIRECTION = np.deg2rad(-90)
-WIND_SPEED = 1
 
 sim_time = 0
 
 
-# randomize the wind direction to be more like real life
+
+# this is the wind direction measured as (what seems like) counter clockwise from true east
+# WIND_DIRECTION = np.deg2rad(-90)
+# WIND_SPEED = 1
+
+cur_folder_path = os.path.dirname(os.path.realpath(__file__))
+wind_df = pd.read_csv(cur_folder_path + "/wind_data_claytor1.csv")
+wind_data = []
+for index, row in wind_df.iterrows():
+    print(row["wind_speed_m/s"])
+    print(row["wind_direction_degrees_ccw_east"])
+    print()
+    wind_data.append((row["wind_speed_m/s"], row["wind_direction_degrees_ccw_east"]))
+
+
+# randomize the wind direction and use real life data to be more like real life
 def generate_wind(_): 
+    index = math.floor(sim_time/250) % len(wind_data)
+    WIND_SPEED = min(wind_data[index][0], 2.5)
+    WIND_DIRECTION = wind_data[index][1]
+    
+    print(WIND_SPEED)
+    print(WIND_DIRECTION)
+    print()
+    
     random_angle = WIND_DIRECTION + random.gauss(sigma=np.deg2rad(5), mu=0)
-    generated_wind = np.array([np.cos(random_angle), np.sin(random_angle)]) * (WIND_SPEED + random.gauss(sigma=0.3, mu=0))
-    # print(np.rad2deg(random_angle))
-    # print(generated_wind)
-    # print()
+    generated_wind = np.array([np.cos(random_angle), np.sin(random_angle)]) * (min(WIND_SPEED, 2.5) + random.gauss(sigma=0.3, mu=0))
     return generated_wind
+
+
+# # randomize the wind direction to be more like real life
+# def generate_wind(_): 
+#     random_angle = WIND_DIRECTION + random.gauss(sigma=np.deg2rad(5), mu=0)
+#     generated_wind = np.array([np.cos(random_angle), np.sin(random_angle)]) * (WIND_SPEED + random.gauss(sigma=0.3, mu=0))
+#     return generated_wind
 
 # def generate_wind(_): 
 #     # wind_direction = 0.4 * np.sin(0 * np.deg2rad(sim_time)) + WIND_DIRECTION
@@ -44,10 +68,10 @@ def generate_wind(_):
 #     return np.array([np.cos(WIND_DIRECTION) + random.random()*0., np.sin(WIND_DIRECTION) + random.random()*0.]) * WIND_SPEED
 
 
-def up_wind_generator(_):
-    if sim_time >= 150:
-        return np.array([np.cos(np.deg2rad(180)), np.sin(np.deg2rad(180))]) * WIND_SPEED
-    return np.array([np.cos(0), np.sin(0)]) * WIND_SPEED
+# def up_wind_generator(_):
+#     if sim_time >= 150:
+#         return np.array([np.cos(np.deg2rad(180)), np.sin(np.deg2rad(180))]) * WIND_SPEED
+#     return np.array([np.cos(0), np.sin(0)]) * WIND_SPEED
 
 
 class SimNode(Node):
