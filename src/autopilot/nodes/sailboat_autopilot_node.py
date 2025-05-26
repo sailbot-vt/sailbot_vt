@@ -1,9 +1,3 @@
-# TODO VERY IMPORTANT: 
-#   REFACTOR THE WIND SENSOR LISTENER HERE AND THE PUBLISHER IN THE SIM TO BE COMPATIBLE WITH THE WIND DATA TYPE IN SAILBOT_MSGS
-#   FIND A WAY TO MAKE THE WIND DIRECTION RELATIVE TO TRUE NORTH
-
-# TODO: Find a way to set the destination pos
-
 from autopilot.autopilot import SailbotAutopilot
 from autopilot.utils import *
 
@@ -16,19 +10,16 @@ from std_msgs.msg import Float32, String, Int32
 from geometry_msgs.msg import Vector3, Twist
 from sensor_msgs.msg import NavSatFix
 
-import json, yaml, os
+import json, yaml, os, time
 
-# from ament_index_python.packages import get_package_share_directory
 
 
 
 class SailboatAutopilotNode(Node):
     """
     Handles communications between the autopilot and all of the other nodes/ topics through ros2
-    The autopilot takes in a waypoints (list of gps positions that represent waypoints) and attempts to traverses through the waypoints by continuously publishing to the sail angle and rudder angle topics.
-    
-    You may disable the autopilot by publishing to the /disable_autopilot topic. Otherwise, the autopilot will always publishes to the sail and rudder
-    
+    The autopilot takes in a bunch of sensor data and waypoints (list of gps positions that represent waypoints) and attempts to traverses through the waypoints by continuously publishing to the sail angle and rudder angle topics.
+        
     NOTE: All units are in standard SI units and angles are generally measured in degrees unless otherwise specified
     """
     
@@ -86,7 +77,6 @@ class SailboatAutopilotNode(Node):
         self.rudder_angle = 0.
         
         self.autopilot_mode = SailboatAutopilotMode.Waypoint_Mission    # Should this be by default: SailboatAutopilotMode.Full_RC
-        self.full_autonomy_maneuver = SailboatManeuvers.STANDARD
         self.heading_to_hold = 0.
      
         self.joystick_left_x = 0.
@@ -179,8 +169,8 @@ class SailboatAutopilotNode(Node):
         
     def waypoints_list_callback(self, waypoints: WaypointList):
         """
-        convert the list of Nav Sat Fix objects (ros2) to a list of Position objects, which are a custom datatype that has some useful helper methods.
-        The Position object should be simpler to do calculations with
+        Convert the list of Nav Sat Fix objects (ros2) to a list of Position objects, which are a custom datatype that has some useful helper methods.
+        The Position object should be simpler to do calculations with, so we would rather deal with them. There are many helper functios in utils.py for using Position objects
         """
         if len(waypoints.waypoints) == 0: return
         
@@ -209,6 +199,8 @@ class SailboatAutopilotNode(Node):
     def apparent_wind_vector_callback(self, apparent_wind_vector: Vector3):
         self.apparent_wind_vector = np.array([apparent_wind_vector.x, apparent_wind_vector.y])
         _, self.apparent_wind_angle = cartesian_vector_to_polar(apparent_wind_vector.x, apparent_wind_vector.y)
+
+
 
 
 
@@ -246,47 +238,73 @@ class SailboatAutopilotNode(Node):
         return rudder_angle, sail_angle
 
 
-    # MAIN METHOD
+    
     def update_ros_topics(self):
         """
+        This is the main function that is called constantely by the timer.
+        
         Updates the sail_angle and rudder_angle topics based on the output of stepping in the autopilot controller
-        """
-
+        
+        Each call to this function takes around 2 milliseconds as of 5/26/2025 (aka this is not a super important place to find optimizations since it doesn't take that much time from a cpu core)
+        """        
+        
         desired_rudder_angle, desired_sail_angle = self.step()
         
         
         self.cur_waypoint_index_publisher.publish(Int32(data=self.sailbot_autopilot.cur_waypoint_index))
         
+        
+        # Publish the autonomy maneuever (aka whether we are currently CW tacking, CCW tacking, or normal sailing)
         self.autopilot_mode_publisher.publish(String(data=self.autopilot_mode.name))
         if self.autopilot_mode == SailboatAutopilotMode.Waypoint_Mission:
             self.full_autonomy_maneuver_publisher.publish(String(data=self.sailbot_autopilot.current_state.name))
+            
         else:
             self.full_autonomy_maneuver_publisher.publish(String(data="N/A"))
     
     
+    
+    
+        # Publish the desired heading
         if self.autopilot_mode == SailboatAutopilotMode.Hold_Heading or self.autopilot_mode == SailboatAutopilotMode.Hold_Heading_And_Best_Sail:
             self.desired_heading_publisher.publish(Float32(data=float(self.heading_to_hold)))
             
         elif self.autopilot_mode == SailboatAutopilotMode.Waypoint_Mission and self.sailbot_autopilot.waypoints != None:
             current_waypoint = self.sailbot_autopilot.waypoints[self.sailbot_autopilot.cur_waypoint_index]
-            bearing_to_waypoint = get_bearing(self.position, current_waypoint) #TODO make it so that this is the actual heading the autopilot is trying to follow (this is different when tacking)
+            
+            # TODO make it so that the bearing is the actual heading the autopilot is trying to follow (this is different when tacking)
+            # when tacking, the boat is not trying to head straight towards the waypoint, but rather, it is travelling on a tacking line
+            bearing_to_waypoint = get_bearing(self.position, current_waypoint)
             self.desired_heading_publisher.publish(Float32(data=float(bearing_to_waypoint)))
             
         else:
             self.desired_heading_publisher.publish(Float32(data=0.))
             
             
+            
+        # Finally, ensure that we tell the motor driver what we want the rudder angle and the sail angle to do through ros
         if desired_rudder_angle != None:
             self.rudder_angle_publisher.publish(Float32(data=float(desired_rudder_angle)))
             
         if desired_sail_angle != None:
             self.sail_angle_publisher.publish(Float32(data=float(desired_sail_angle)))
-        
+
+
+
+
+
 
 def main():
+    
     rclpy.init()
-    autopilot_node = SailboatAutopilotNode()
-    rclpy.spin(autopilot_node)
+    sailboat_autopilot_node = SailboatAutopilotNode()
+    rclpy.spin(sailboat_autopilot_node)
+
+    sailboat_autopilot_node.destroy_node()
+    rclpy.shutdown()
 
 
-if __name__ == "__main__": main()
+
+
+if __name__ == "__main__": 
+    main()

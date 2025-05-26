@@ -2,16 +2,27 @@
 # Do not remove unless we are releasing this software as a product
 echo sudo chmod 777 /var/run/docker.sock >> "/home/sailbot_user/.bashrc"
 echo sudo chmod -R 777 /home/ >> "/home/sailbot_user/.bashrc"
+echo sudo chmod -R 777 /etc/udev/ >> "/home/sailbot_user/.bashrc"
+sudo chmod -R 777 /etc/udev/
 
+
+# Install all python packages
+echo 'alias python="python3"' >> /home/sailbot_user/.bashrc
 
 pip install -r requirements.txt
+
 cd /home/ws/testing/pyvesc
 git clone https://github.com/LiamBindle/PyVESC .
 pip install .
 cd /home/ws
 
-source /opt/ros/humble/setup.bash
+cd ground_station_old 
+pip install -r requirements.txt
+cd /home/ws
 
+
+# Build the ros2 workspace for the first time
+source /opt/ros/humble/setup.bash
 echo source /opt/ros/humble/setup.bash >> "/home/sailbot_user/.bashrc"
 source /home/sailbot_user/.bashrc
 
@@ -23,15 +34,24 @@ source /home/sailbot_user/.bashrc
 colcon build
 
 
-cd ground_station 
-pip install -r requirements.txt
-cd ..
 
-
-
-echo 'alias python="python3"' >> /home/sailbot_user/.bashrc
-
-echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
-
+# Load all crontabs
 crontab crontabs/chmod777job.txt
 echo sudo service cron start >> ~/.bashrc
+
+
+
+
+# Load udev rules for each device and remove any sailbot udev rules that existed before
+if [ -f "/etc/udev/rules.d/99-sailbot-udev.rules" ]; then
+    rm -f /etc/udev/rules.d/99-sailbot-udev.rules
+fi
+
+# echo ACTION=="add", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", SYMLINK+="pico" >> /etc/udev/rules.d/99-sailbot-udev.rules
+sudo echo ACTION=="add", ATTRS{idVendor}=="1546", ATTRS{idProduct}=="01a8", SYMLINK+="gps" >> /etc/udev/rules.d/99-sailbot-udev.rules
+sudo echo ACTION=="add", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", ATTRS{serial}=="A9001WL3", SYMLINK+="rc" >> /etc/udev/rules.d/99-sailbot-udev.rules
+sudo echo ACTION=="add", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", ATTRS{serial}=="ABSCDYAB", SYMLINK+="wind_sensor" >> /etc/udev/rules.d/99-sailbot-udev.rules
+
+sudo udevadm trigger
+
+

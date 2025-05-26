@@ -1,4 +1,3 @@
-**Welcome to the main autopilot software package for Virginia Tech Sailbot!**
+# Welcome to the Main Autopilot Software Package for Virginia Tech Sailbot! #
 
-Current Documentation: https://sailbot-vt.github.io/sailbot_docs/ 
-
+**Current Documentation and Installation Instructions**: https://sailbot-vt.github.io/sailbot_docs/ 

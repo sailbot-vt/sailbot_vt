@@ -87,6 +87,8 @@ class WindSensorPublisher(Node):
         apparent_wind_speed = float(apparent_wind_speed) * KNOTS_TO_METERS_PER_SECOND  # given knots but want m/s
         
         # we are given the wind angle from the source in cw from the centerline of the boat based on the labels adam made, but we would like ccw from the centerline of the boat for where the wind is blowing to
+        # always remember that true wind and apparent wind are measured ccw from the centerline of the boat, 
+        # while the global true wind is measured ccw from true east
         apparent_wind_angle = (180 - float(apparent_wind_angle)) % 360 
         
         wind_vector = (apparent_wind_speed * np.cos(np.deg2rad(apparent_wind_angle)), apparent_wind_speed * np.sin(np.deg2rad(apparent_wind_angle)))
@@ -105,6 +107,9 @@ class WindSensorPublisher(Node):
     def __del__(self):
         self.get_logger().info("closing wind sensor publisher")
         self.sensor_serial.close()
+
+
+
 
 
 def main(args=None):

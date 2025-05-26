@@ -54,9 +54,6 @@ class SailbotAutopilot:
 
         sail_positions = self.parameters['sail_lookup_table_sail_positions']
         wind_angles = self.parameters['sail_lookup_table_wind_angles']
-
-        # print(f"wind angles: {wind_angles}")
-        # print(f"apparent wind angle: {apparent_wind_angle}")
         
         left = max(filter(lambda pos: pos <= float(apparent_wind_angle), wind_angles))
         right = min(filter(lambda pos: pos >= float(apparent_wind_angle), wind_angles))
@@ -77,12 +74,7 @@ class SailbotAutopilot:
         
         
     def get_optimal_rudder_angle(self, heading, desired_heading):
-        
-        # self.logger.info(f"heading: {heading}, desired_heading: {desired_heading}")
-        
         error = get_distance_between_angles(desired_heading, heading)
-        
-        # self.logger.info(f"error: {error}")
         
         self.rudder_pid_controller.set_gains(
             Kp=self.parameters['heading_p_gain'], Ki=self.parameters['heading_i_gain'], Kd=self.parameters['heading_d_gain'], 
@@ -90,9 +82,11 @@ class SailbotAutopilot:
         )
         
         rudder_angle = self.rudder_pid_controller(error)
-        # self.logger.info(f"rudder_angle: {rudder_angle}, gain: {self.parameters}")
         rudder_angle = np.clip(rudder_angle, self.parameters['min_rudder_angle'], self.parameters['max_rudder_angle'])
         return rudder_angle
+    
+    
+    
     
     
     def get_decision_zone_size(self, distance_to_waypoint):
@@ -131,15 +125,10 @@ class SailbotAutopilot:
             (global_true_up_wind_angle - decision_zone_size/2) % 360, # lower
             (global_true_up_wind_angle + decision_zone_size/2) % 360  # upper
         )
-        
-        # print(f"no go zone bounds: {no_sail_zone_bounds}")
-        # print(f"decision zone bounds: {decision_zone_bounds}")
-        # print(f"desired heading: {desired_heading}")
     
     
         # If desired heading it is not in any of the zones
         if not is_angle_between_boundaries(desired_heading, no_sail_zone_bounds[0], no_sail_zone_bounds[1]): 
-            # print("I AM IN ZONE NONE, SAILING NORMAL")  
             if get_maneuver_from_desired_heading(heading, desired_heading, true_wind_angle) == SailboatManeuvers.TACK:
                 return desired_heading, True
             else:
@@ -148,7 +137,6 @@ class SailbotAutopilot:
 
         # If desired heading is in zone 1
         if is_angle_between_boundaries(desired_heading, decision_zone_bounds[1], no_sail_zone_bounds[1]):
-            # print("I AM IN ZONE 1")  
             if (heading - global_true_up_wind_angle) % 360 < 180:   # Starboard side of true wind
                 return no_sail_zone_bounds[1], False
                 
@@ -159,7 +147,6 @@ class SailbotAutopilot:
                                 
         # If desired heading is in zone 3
         if is_angle_between_boundaries(desired_heading, decision_zone_bounds[0], no_sail_zone_bounds[0]):
-            # print("I AM IN ZONE 3")  
             if (heading - global_true_up_wind_angle) % 360 < 180:   # Starboard side of true wind
                 # port tack
                 return no_sail_zone_bounds[0], True
@@ -169,7 +156,6 @@ class SailbotAutopilot:
     
         
         # If desired heading in zone 2      
-        # print("I AM IN ZONE 2")  
         distance_to_lower_no_sail_zone = abs(get_distance_between_angles(no_sail_zone_bounds[0], heading))
         distance_to_upper_no_sail_zone = abs(get_distance_between_angles(no_sail_zone_bounds[1], heading))
        

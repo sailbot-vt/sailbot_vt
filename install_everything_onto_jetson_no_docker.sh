@@ -84,3 +84,5 @@ sudo apt install ros-humble-realsense2-*
 # fix .bashrc 
 # TODO
 
+
+# setup udev rule stuff for the pico and other devices

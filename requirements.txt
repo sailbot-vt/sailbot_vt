@@ -21,6 +21,7 @@ pyzmq==25.0.2
 pydantic
 multiexit
 
+
 # Image processing/ Object Detection
 opencv-python
 Pillow

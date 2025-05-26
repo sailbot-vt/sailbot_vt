@@ -39,9 +39,12 @@ RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sud
 
 #Used to automate tasks
 RUN sudo apt-get install cron
+
+# MISC necessary things
 RUN sudo apt-get install usbutils
 RUN sudo apt-get install ros-humble-cv-bridge -y
-
+RUN sudo apt install udev -y
+RUN sudo apt install nano -y
 
 USER $USERNAME
 # [Optional] Set the default user. Omit if you want to keep the default as root.

@@ -12,7 +12,7 @@ from cv_bridge import CvBridge
 import base64
 
 import numpy as np
-import array, time, json, requests
+import time, json, requests
 import cv2
 import threading
 
@@ -20,11 +20,7 @@ import threading
 
 TELEMETRY_SERVER_URL = 'http://18.191.164.84:8080/'
 
-# TODO: MOST IMPORTANT MAKE THE IP AN ARGUMENT INTO THE ROS NODE AND DOCKER CONTAINER
-
-# TODO: Update the website info at a fixed rate
-# TODO: add current state of the board and the FSM
-
+ 
 class TelemetryNode(Node):
 
     def __init__(self):
@@ -191,19 +187,8 @@ class TelemetryNode(Node):
     
     
     def update_boat_status(self):
-        """
-        FORMAT:
-            position (Lat Lon tuple); current state; speed; bearing; heading; wind speed; wind direction; sail angle; rudder angle; cur_waypoint; the entire waypoint list for the current route
-            each of them are separated as a semicolon
-            tuples are denoted as: element1, element2, ... such as for latitude/ longitude
-            different entries are denoted as: speed; heading; apparent_wind_speed
-        """
-
         true_wind_vector = self.apparent_wind_vector + self.velocity_vector
-        # print(f"TW vector: {true_wind_vector}")
         self.true_wind_speed, self.true_wind_angle = cartesian_vector_to_polar(true_wind_vector[0], true_wind_vector[1])
-        # print(f"wind angle: {(self.true_wind_angle + self.heading) % 360}")
-        # self.get_logger().info(f"{self.vesc_data_rpm}")
 
         telemetry_dict = {
             "position": (self.position.latitude, self.position.longitude), 
@@ -233,9 +218,7 @@ class TelemetryNode(Node):
             "vesc_data_vesc_temperature": self.vesc_data_vesc_temperature
         }
 
-        start_time = time.time()
         requests.post(url=TELEMETRY_SERVER_URL + "/boat_status/set", json={"value": telemetry_dict})
-        print(f"time taken: {time.time() - start_time}")
         self.time+=1
 
 
@@ -252,7 +235,6 @@ class TelemetryNode(Node):
     
     def update_waypoints_from_telemetry(self):
         waypoints_list = self.get_raw_response("/waypoints/get")
-        # print(f"waypoints_list: {waypoints_list}")
         
         if not waypoints_list: 
             return
@@ -280,7 +262,6 @@ class TelemetryNode(Node):
         
     def update_autopilot_parameters_from_telemetry(self):
         autopilot_parameters = self.get_raw_response("/autopilot_parameters/get")
-        # print(f"autopilot_parameters: {autopilot_parameters}")
 
         if not autopilot_parameters: 
             return
@@ -296,12 +277,16 @@ class TelemetryNode(Node):
         self.autopilot_parameters = autopilot_parameters
 
 
+
+
 def main():
 
-
     rclpy.init()
-    telem_node = TelemetryNode()
-    rclpy.spin(telem_node)
+    telemetry_node = TelemetryNode()
+    rclpy.spin(telemetry_node)
+    
+    telemetry_node.destroy_node()
+    rclpy.shutdown()
     
 
 
