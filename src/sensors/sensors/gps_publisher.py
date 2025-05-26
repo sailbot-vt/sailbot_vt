@@ -135,10 +135,14 @@ class GPSPublisher(Node):
 
 
 def main(args=None):
+    
     rclpy.init(args=args)
-
     gps_publisher = GPSPublisher()
     rclpy.spin(gps_publisher)
+    
+    gps_publisher.destroy_node()
+    rclpy.shutdown()
+
 
 
 if __name__ == '__main__':

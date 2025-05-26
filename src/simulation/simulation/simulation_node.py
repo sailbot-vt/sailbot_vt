@@ -1,6 +1,4 @@
 #!usr/bin/python3
-from pympler import asizeof
-
 # TODO: Implement a graceful way to handle simulation termination with the control scripts
 
 import numpy as np, cv2
@@ -23,37 +21,34 @@ from geometry_msgs.msg import Vector3, Twist
 from sensor_msgs.msg import NavSatFix
 from sailbot_msgs.msg import WaypointList
 
+
+
 sim_time = 0
 
 
 
-# this is the wind direction measured as (what seems like) counter clockwise from true east
-# WIND_DIRECTION = np.deg2rad(-90)
-# WIND_SPEED = 1
 
 cur_folder_path = os.path.dirname(os.path.realpath(__file__))
 wind_df = pd.read_csv(cur_folder_path + "/wind_data_claytor1.csv")
 wind_data = []
 for index, row in wind_df.iterrows():
-    print(row["wind_speed_m/s"])
-    print(row["wind_direction_degrees_ccw_east"])
-    print()
     wind_data.append((row["wind_speed_m/s"], row["wind_direction_degrees_ccw_east"]))
 
 
 # randomize the wind direction and use real life data to be more like real life
-def generate_wind(_): 
-    index = math.floor(sim_time/250) % len(wind_data)
-    WIND_SPEED = min(wind_data[index][0], 2.5)
-    WIND_DIRECTION = wind_data[index][1]
-    
-    print(WIND_SPEED)
-    print(WIND_DIRECTION)
-    print()
-    
-    random_angle = WIND_DIRECTION + random.gauss(sigma=np.deg2rad(5), mu=0)
-    generated_wind = np.array([np.cos(random_angle), np.sin(random_angle)]) * (min(WIND_SPEED, 2.5) + random.gauss(sigma=0.3, mu=0))
-    return generated_wind
+# def generate_wind(_): 
+#     index = math.floor(sim_time/250) % len(wind_data)
+#     WIND_SPEED = min(wind_data[index][0], 2.5)
+#     WIND_DIRECTION = wind_data[index][1]
+ 
+#     random_angle = WIND_DIRECTION + random.gauss(sigma=np.deg2rad(5), mu=0)
+#     generated_wind = np.array([np.cos(random_angle), np.sin(random_angle)]) * (min(WIND_SPEED, 2.5) + random.gauss(sigma=0.3, mu=0))
+#     return generated_wind
+
+def generate_wind(_):
+    # this is the wind direction measured as (what seems like) counter clockwise from true east
+    return np.array([np.cos(np.deg2rad(-90)), np.sin(np.deg2rad(-90))])
+
 
 
 # # randomize the wind direction to be more like real life
@@ -187,12 +182,11 @@ class SimNode(Node):
             boat_linear_velocity_vector = Vector3(x=obs["dt_p_boat"][0].item(), y=obs["dt_p_boat"][1].item(), z=obs["dt_p_boat"][2].item())
             
         boat_velocity = Twist(linear=boat_linear_velocity_vector)
-        # print(f"boat velocity: {(boat_linear_velocity_vector.x, boat_linear_velocity_vector.y)}")
-        
         
         roll, pitch, yaw = obs["theta_boat"]
-        # standard heading calculations from pitch, yaw, and roll
         
+        
+        # standard heading calculations from pitch, yaw, and roll
         heading_vector = np.array([np.cos(yaw) * np.cos(pitch), np.sin(yaw) * np.cos(pitch), np.sin(pitch)])
         heading_vector = Vector3(x = heading_vector[0].item(), y = heading_vector[1].item(), z = heading_vector[2].item())
         
@@ -202,27 +196,27 @@ class SimNode(Node):
         # calculates the magnitude and direction of the wind velocity both true and apparent
         # Approximately 7:30 was most useful for me: https://www.youtube.com/watch?v=ndL1FcTRPwU&t=472s&ab_channel=BasicCruisingwithOwen
         # https://en.wikipedia.org/wiki/Apparent_wind#/media/File:DiagramApparentWind.png 
-        # Apparent Wind = True Wind + Velocity
+        # Apparent Wind = True Wind - Velocity
         # Global refers to being measured ccw from true east and not being measured from atop the boat
+        # always remember that true wind and apparent wind are measured ccw from the centerline of the boat, 
+        # while the global true wind is measured ccw from true east
+
         true_wind_speed, global_wind_angle = self.cartesian_vector_to_polar(obs["wind"][0].item(), obs["wind"][1].item())
 
         true_wind_angle = global_wind_angle - heading_angle.data
-        # print(global_wind_angle)
-        # print(obs["wind"])
-        # print()
+        
+        self.get_logger().info(f"true wind: {true_wind_angle}")
+        self.get_logger().info(f"velocity: {boat_linear_velocity_vector}")
+        self.get_logger().info(f"position: {position}")
+        self.get_logger().info("")
         
         self.true_wind_vector = Vector3(x= (true_wind_speed * np.cos(np.deg2rad(true_wind_angle))), y= (true_wind_speed * np.sin(np.deg2rad(true_wind_angle))))
         self.apparent_wind_vector = Vector3(x= (self.true_wind_vector.x - boat_linear_velocity_vector.x), y= (self.true_wind_vector.y - boat_linear_velocity_vector.y)) 
-        
-        # print(f'TW vector: {self.true_wind_vector}')
-        # print(f"AW vector: {self.apparent_wind_vector}")
         
         self.position_publisher.publish(gps_position)
         self.velocity_publisher.publish(boat_velocity)
         self.heading_publisher.publish(heading_angle)
         self.apparent_wind_vector_publisher.publish(self.apparent_wind_vector)
-        # print()
-        # print(f'current rudder angle: {np.rad2deg(obs["theta_rudder"])[0]}; current sail angle: {np.rad2deg(obs["theta_sail"])[0]}')
 
 
 
@@ -231,23 +225,11 @@ class SimNode(Node):
 
         assert self.desired_rudder_angle != None
         assert self.desired_sail_angle != None
-
-        # self.get_logger().info(f"env: {asizeof.asizeof(self.env)}")
-        # for thing_name, thing_value in self.env.__dict__.items():
-        #     self.get_logger().info(f"{thing_name}: {asizeof.asizeof(thing_value)}")
-
-
-        # print(f"desired rudder angle: {self.desired_rudder_angle}; desired sail angle: {self.desired_sail_angle}")
         
         action = {"theta_rudder": np.deg2rad(self.desired_rudder_angle), "theta_sail": np.deg2rad(self.desired_sail_angle)}
         obs, reward, terminated, truncated, info = self.env.step(action)
 
         sim_time += 1
-
-        # if terminated or truncated: rclpy.shutdown()
-
-        # if self.route == None: self.display_image(self.env.render())
-        
         
         # self.display_image(self.env.render())
 

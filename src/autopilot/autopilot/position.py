@@ -10,7 +10,7 @@ class Position:
     A position that describes a point on the earth which is stored internally as its longitude and latitude.
     Whenever a function such as get_local_coordinates is called, this class has to perform conversions which may or may not be expensive to compute.
     This can be fixed by caching results from conversions (so maybe TODO). 
-    Really this caching doesn't matter anymore as we have pretty much scrapped utm so conversions can't really be cached in the same way
+    In reality, this caching doesn't matter anymore as we have pretty much scrapped UTM so conversions can't really be cached in the same way
     
     """
     

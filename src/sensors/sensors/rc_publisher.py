@@ -213,11 +213,14 @@ class RCPublisher(Node):
 
 
 def main(args=None):
+    
     rclpy.init(args=args)
-
     rc_publisher = RCPublisher()
-
     rclpy.spin(rc_publisher)
+
+    rc_publisher.destroy_node()
+    rclpy.shutdown()
+
 
 
 if __name__ == "__main__":

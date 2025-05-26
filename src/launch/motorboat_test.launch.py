@@ -1,12 +1,3 @@
-"""
-TO DO:
-launch gps node and pyvesc node
-automatically install pyvesc //worry about it later (saturday)
-search up how to launch microROS node // know for later (wednesday)
-push to new remote branch (the local one i made today)
-
-"""
-
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
@@ -36,7 +27,7 @@ def generate_launch_description():
         # # Node(
         # #     package='sensors',
         # #     executable='gps',
-        # #     name='gps_publisher',
+        # #     name='gps',
 
         # #     respawn=True,
         # #     respawn_delay=2.0,
@@ -46,7 +37,7 @@ def generate_launch_description():
         # Node(
         #     package='sensors',
         #     executable='rc',
-        #     name='rc_publisher',
+        #     name='rc',
 
         #     respawn=True,
         #     respawn_delay=2.0,
@@ -57,7 +48,7 @@ def generate_launch_description():
         # Node(
         #     package='vesc',
         #     executable='vesc',
-        #     name='vesc_communication',
+        #     name='vesc',
 
         #     respawn=True,
         #     respawn_delay=0.01,
@@ -69,7 +60,7 @@ def generate_launch_description():
             executable='micro_ros_agent',
             name='micro_ros_agent',
             output='screen',
-            arguments=['serial', '--dev', "/dev/ttyACM0", "-b", "115200"]
+            arguments=['serial', '--dev', "/dev/pico", "-b", "115200"]
         ),
     ]
 )
