@@ -1,16 +1,16 @@
 #!usr/bin/python3
 # TODO: Implement a graceful way to handle simulation termination with the control scripts
 
-import numpy as np, cv2
 import random
+import numpy as np, cv2
 import gymnasium as gym
-from gymnasium.wrappers.time_limit import TimeLimit
-from gymnasium.wrappers.record_video import RecordVideo
 import navpy
 import pandas as pd
 import math
 import os
 
+from gymnasium.wrappers.time_limit import TimeLimit
+from gymnasium.wrappers.record_video import RecordVideo
 from sailboat_gym import CV2DRenderer, Observation
 
 import rclpy
@@ -36,18 +36,18 @@ for index, row in wind_df.iterrows():
 
 
 # randomize the wind direction and use real life data to be more like real life
-# def generate_wind(_): 
-#     index = math.floor(sim_time/250) % len(wind_data)
-#     WIND_SPEED = min(wind_data[index][0], 2.5)
-#     WIND_DIRECTION = wind_data[index][1]
+def generate_wind(_): 
+    index = math.floor(sim_time/250) % len(wind_data)
+    WIND_SPEED = min(wind_data[index][0], 2.5)
+    WIND_DIRECTION = wind_data[index][1]
  
-#     random_angle = WIND_DIRECTION + random.gauss(sigma=np.deg2rad(5), mu=0)
-#     generated_wind = np.array([np.cos(random_angle), np.sin(random_angle)]) * (min(WIND_SPEED, 2.5) + random.gauss(sigma=0.3, mu=0))
-#     return generated_wind
+    random_angle = WIND_DIRECTION + random.gauss(sigma=np.deg2rad(5), mu=0)
+    generated_wind = np.array([np.cos(random_angle), np.sin(random_angle)]) * (min(WIND_SPEED, 2.5) + random.gauss(sigma=0.3, mu=0))
+    return generated_wind
 
-def generate_wind(_):
-    # this is the wind direction measured as (what seems like) counter clockwise from true east
-    return np.array([np.cos(np.deg2rad(-90)), np.sin(np.deg2rad(-90))])
+# def generate_wind(_):
+#     # this is the wind direction measured as (what seems like) counter clockwise from true east
+#     return np.array([np.cos(np.deg2rad(-90)), np.sin(np.deg2rad(-90))])
 
 
 
