@@ -33,7 +33,26 @@ def getPort(vid, pid, serial_number) -> str:
 
 
 class WindSensorPublisher(Node):
-
+    """
+    Reads wind data from the wind sensor over a serial USB connection and then publishes that data so that the autopilot can use it
+    
+    This node publishes the apparent wind velocity vector measured counter-clockwise from the centerline of the boat. 
+    Aka, the centerline of the boat is the x axis of the vector and the left of the boat is the y axis of the vector. 
+    The cartesian angle of that vector is measured counter-clockwise from the centerline of the boat, and that is how we are calculating the vector
+    
+     
+    So, for example, if the wind is blowing straight into the boat at 1 m/s and you are facing downwind (aka you are running https://lakestclairsailingschool.com/understanding-the-points-of-sail/)
+    then, the angle is 0 degrees, and the wind vector will be <1, 0>. 
+    
+    If the wind is blowing towards the left of the boat at 1 m/s, then the angle is 90 degrees, and the wind vector will be <0, 1>
+    
+    If you have any other questions about the "apparent wind angle"/ the "true wind angle" or how it is measured, then please ask Chris
+    Remember, the "global true wind angle" is the only angle that does not follow this convention, and instead is measured counter-clockwise from true east on a map, 
+    so none of this applies whenever we are talking about the "global true wind angle"
+    """
+    
+    
+    
     def __init__(self):
         super().__init__("wind_sensor_publisher")
         
@@ -56,10 +75,13 @@ class WindSensorPublisher(Node):
         
         self.apparent_wind_vector_queue = deque(maxlen=15)
     
+    
+    
     def sum_integers(self, integer):
         """ Sums up all positive integers less than or equal to the number that was passed in"""
         # nothing but this formula: https://www.youtube.com/watch?app=desktop&v=bWZwF1H9YbU
         return (integer * (integer + 1))/ 2
+
 
     def linear_moving_weighted_average(self, data_tuple):
         weighted_list_1 = []
@@ -74,16 +96,13 @@ class WindSensorPublisher(Node):
 
 
     def timer_callback(self):
-        print("hi")
         raw_data = self.sensor_serial.readline().decode('ascii')
-        print(raw_data)
         split_data = raw_data.split(',')
 
         if len(split_data) != 6: return
         
         NMEA_encoding, apparent_wind_angle, _, apparent_wind_speed, speed_type, checksum = split_data
         
-        print(f"Raw AWA: {apparent_wind_angle}")
         apparent_wind_speed = float(apparent_wind_speed) * KNOTS_TO_METERS_PER_SECOND  # given knots but want m/s
         
         # we are given the wind angle from the source in cw from the centerline of the boat based on the labels adam made, but we would like ccw from the centerline of the boat for where the wind is blowing to
@@ -113,14 +132,15 @@ class WindSensorPublisher(Node):
 
 
 def main(args=None):
+    
     rclpy.init(args=args)
-
     wind_sensor = WindSensorPublisher()
-
     rclpy.spin(wind_sensor)
 
     wind_sensor.destroy_node()
     rclpy.shutdown()
+
+
 
 
 if __name__ == "__main__":

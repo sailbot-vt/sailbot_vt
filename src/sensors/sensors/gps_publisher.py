@@ -23,11 +23,15 @@ import csv
 RTCM_MESSAGE_CLASS = 0xF5
 RTCM_MESSAGE_ID = 0x05
 
+
+
 GPS_VID = 0x1546
 GPS_PID = 0x01a8
 BAUD_RATE = 38400
 
 REFRESH_RATE = 10 # HERTZ
+
+
 
 def getPort(vid, pid) -> str:
     device_list = list_ports.comports()
@@ -52,8 +56,18 @@ def linear_moving_weighted_average(gps_data):
     return (sum(weighted_list_1)/ sum_integers(length)), sum(weighted_list_2)/ sum_integers(length)
 
 
-class GPSPublisher(Node):
 
+
+
+
+class GPSPublisher(Node):
+    """
+    Reads GPS data from the GPS over a serial USB connection and then publishes that data so that the autopilot can use it
+    
+    This node publishes the current position and velocity
+    """
+    
+    
     def __init__(self):
         super().__init__('gps_publisher')
 
@@ -62,13 +76,14 @@ class GPSPublisher(Node):
             history=QoSHistoryPolicy.KEEP_LAST,
             depth=1
         )
+        
         self.position_publisher = self.create_publisher(NavSatFix, '/position', sensor_qos_profile)
         self.velocity_publisher = self.create_publisher(Twist, '/velocity', sensor_qos_profile)
 
         # self.csv_writer = csv.DictWriter(open("gps_data.csv", "w+"), fieldnames=["time", "SOG", "velocity_east", "velocity_north"])
         # self.csv_writer.writeheader()
         
-        self.create_timer(1/REFRESH_RATE, self.publish)
+        self.create_timer(1 / REFRESH_RATE, self.publish)
 
         serial_port = getPort(GPS_VID, GPS_PID)
         self.sensor_serial = serial.Serial(serial_port, baudrate=BAUD_RATE, timeout=1)
@@ -105,33 +120,19 @@ class GPSPublisher(Node):
         print(f"DIR: {np.rad2deg(np.arctan2(velN_mph, velE_mph))}")
         print(f"Acc: {geo.sAcc}")
         print(f"Sats: {geo.numSV}")
-
-        
-        # Heading Calculations from GPS data
-        # azimuth_heading, _, _ = pyproj.Geod(ellps='WGS84').inv(prev_lon, prev_lat, geo.lon, geo.lat)
-        # heading = (((-azimuth_heading) % 360) + 90) % 360   # azimuth is cw from true north while we want ccw from true east
-        # heading_msg = Float32(data=heading)     # TODO: currently heading is assumed to be the same direction as the velocity
-        
-        
-        # Velocity Calculation from GPS data
-        # time_between_publishes = 1/REFRESH_RATE
-        # distance_traveled = geopy.distance.geodesic((prev_lat, prev_lon), (geo.lat, geo.lon)).m
-        # speed = distance_traveled/time_between_publishes
-        # velocity_msg = Vector3(x= (speed * np.cos(np.deg2rad(heading))), y= (speed * np.sin(np.deg2rad(heading))))
-    
-        
-        # self.prev_lat_lon = (geo.lat, geo.lon)
-    
         
         self.position_publisher.publish(gps_msg)
         self.velocity_publisher.publish(velocity_msg)
-        # self.heading_publisher.publish(heading_msg)
 
 
     def __del__(self):
-        self.port.close()
+        self.sensor_serial.close()
         self.destroy_node()
         rclpy.shutdown()
+
+
+
+
 
 
 def main(args=None):

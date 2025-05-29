@@ -21,10 +21,13 @@ from crsf_parser.frames import crsf_frame
 from crsf_parser import CRSFParser, PacketValidationStatus
 
 
+
 RC_VID = 0x0403
 RC_PID = 0x6001
 RC_SERIAL_NUMBER = "A9001WL3"
 BAUD_RATE = 420000
+
+
 
 def getPort(vid, pid, serial_number) -> str:
     device_list = list_ports.comports()
@@ -33,7 +36,16 @@ def getPort(vid, pid, serial_number) -> str:
             return device.device
     raise OSError('Device not found')
 
+
+
+
 class RCPublisher(Node):
+    """
+    Reads Remote Control data from the RC receiver over a serial USB connection and then publishes that data so that the autopilot can use it
+    
+    This node publishes the state of all of the 16 RC channels, which are configured on the remote to mean certain things 
+    """
+    
     
     def __init__(self):
         super().__init__("rc_publisher")
@@ -56,6 +68,7 @@ class RCPublisher(Node):
         
         self.rc_data_publisher = self.create_publisher(RCData, '/rc_data', sensor_qos_profile)
         self.termination_listener = self.create_subscription(msg_type=Bool, topic="/should_terminate", callback=self.should_terminate_callback, qos_profile=10)
+
 
 
     def save_frame(self, frame: crsf_frame, status: PacketValidationStatus) -> crsf_frame:
@@ -113,7 +126,9 @@ class RCPublisher(Node):
             print(f"WARNING: Toggle state was not properly accounted for: {toggle_state}")
             return -1
     
-    def parse_buttons(self, button_state):
+    
+    
+    def parse_multiplexed_buttons(self, button_state):
         """
         In an effort to reduce the number of channels needed for communications (because for some reason crsf doesn't support 10 channels),
         we have decided to have a little bit of a convoluted scheme for reading button inputs to the controller
@@ -123,34 +138,44 @@ class RCPublisher(Node):
         if pwm > 1000 and pwm < 1500 then only button d is pressed
         if pwm > 1500 then both button_a and button_d are pressed
 
-        This method returns button_a, button_d in that order where not pressed is False and pressed is Trye
+        This method returns button_a, button_d in that order where not pressed is False and pressed is True
+        
+        This is bound onto the RC controller, meaning that if you would like to change the RC controller that we are using, you will have to program this 
+        functionality into the controller itself
         """
+        
+        
         if button_state < 500: return False, False
         elif button_state >= 500 and button_state < 1000: return True, False
         elif button_state >= 1000 and button_state < 1500: return False, True
         elif button_state >= 1500: return True, True
 
 
+
+
     def process_raw_channels(self, raw_channel_array: list) -> RCData:
         """
         Processes the raw channel outputs from the receiver and returns the ros2 msg to publish
         Toggle states:
-            State 1: Fully Up
-            State 2: Middle
-            State 3: Fully Down
+            State 0: Fully Up
+            State 1: Middle
+            State 2: Fully Down
 
-        THROTTLE Up/Down: 13 (175-1811)
-        THROTTLE Left/Right: 12 (174-1793)
-        STEERING Up: 7 (191-997)
-        STEERING Left/Right: 15 (193-1811)
-        A Button: Makes ch7 always greater than 997 maxing out at 1792 and transforms it to steering Down. Don't use this
-        B Toggle: 10 (State 1: 191, State 2: 191, State 3: 997)
-        C Toggle: 8 (State 1: 191, State 2: 997, State 3: 1792)
-        D Button: 6 (191/ 1792)
-        E Toggle: 11 (State 1: 191, State 2: 191, State 3: 1792)
-        F Toggle: 10 + 14 (State 1: 174, State 2: 992, State 3: 1811). This interferes with B Switch so don't use B switch, only use the F Switch
-        Left Potentiometer: 5 (191-1792)
-        Right Potentiometer: 4 (191-1792)
+
+        THROTTLE Up/Down: 15 (174 - 1811) 
+        THROTTLE Left/Right: 14 (174 - 1811)
+        STEERING Up/Down: 13 (191 - 1792)
+        STEERING Left/Right: 12 (174 - 1811)
+        
+        A Button: Multiplexed with button d on channel 7 (see parse_multiplexed_buttons)
+        B Toggle: 10 (State 1: ~191, State 2: ~997, State 3: ~1792)
+        C Toggle: 9 (State 1: ~191, State 2: ~997, State 3: ~1792)
+        D Button: Multiplexed with button a on channel 7 (see parse_multiplexed_buttons)
+        E Toggle: 11 (State 1: ~191, State 2: ~997, State 3: ~1792)
+        F Toggle: 8 (State 1: ~191, State 2: ~997, State 3: ~1792)
+        
+        btw "~" means approximately. Its hard to make the buttons consistent, 
+        so we just take in a large swath of values where the button signal will be and call it a day
         """
         
         # tranform from [175, 1811] to [-100, 100]
@@ -160,8 +185,7 @@ class RCPublisher(Node):
         joystick_right_y = self.normalize_joystick_input(raw_channel_array[13], 191, 1792)
         joystick_right_x = self.normalize_joystick_input(raw_channel_array[12], 174, 1811)
 
-        # self.get_logger().info(str(raw_channel_array))
-        button_a, button_d = self.parse_buttons(raw_channel_array[7])
+        button_a, button_d = self.parse_multiplexed_buttons(raw_channel_array[7])
         toggle_b = self.parse_toggle(raw_channel_array[10])
         toggle_c = self.parse_toggle(raw_channel_array[9])
         toggle_e = self.parse_toggle(raw_channel_array[11])
@@ -193,12 +217,11 @@ class RCPublisher(Node):
         if not self.crsf_frame_rc_data: return 
 
         rc_data = self.process_raw_channels(self.crsf_frame_rc_data.payload.channels)
-        # print(rc_data)
-        # print()
         
         if rc_data == None: return
         
         self.rc_data_publisher.publish(rc_data)
+
 
 
     def should_terminate_callback(self, msg: Bool):
@@ -212,6 +235,9 @@ class RCPublisher(Node):
         rclpy.shutdown()    
 
 
+
+
+
 def main(args=None):
     
     rclpy.init(args=args)
@@ -220,6 +246,7 @@ def main(args=None):
 
     rc_publisher.destroy_node()
     rclpy.shutdown()
+
 
 
 
