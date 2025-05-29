@@ -21,7 +21,14 @@ pip install -r requirements.txt
 cd /home/ws
 
 
-# Build the ros2 workspace for the first time
+#cd ground_station_25 
+#pip install -r requirements.txt
+#cd /home/ws
+
+
+
+
+# Build the ros2 workspace for the first time (sometimes this takes two colon builds to clear all of the warnings/ errors)
 source /opt/ros/humble/setup.bash
 echo source /opt/ros/humble/setup.bash >> "/home/sailbot_user/.bashrc"
 source /home/sailbot_user/.bashrc

@@ -178,7 +178,6 @@ class SimulationNode(Node):
         position = Vector3(x=obs["p_boat"][0].item(), y=obs["p_boat"][1].item(), z=-obs["p_boat"][2].item())
         gps_position = NavSatFix()
         
-        # TODO: lat ref could be: 37.229572, lon ref: -80.413940
         if position.x == 0. and position.y == 0.:
             latitude, longitude = 0., 0.
         else:
