@@ -38,13 +38,36 @@ RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sud
 #RUN sudo apt install ros-humble-realsense2-* -y
 
 #Used to automate tasks
-RUN sudo apt-get install cron
+RUN sudo apt-get install cron --fix-missing
 
 # MISC necessary things
-RUN sudo apt-get install usbutils
-RUN sudo apt-get install ros-humble-cv-bridge -y
-RUN sudo apt install udev -y
-RUN sudo apt install nano -y
+RUN sudo apt-get install usbutils --fix-missing
+RUN sudo apt-get install ros-humble-cv-bridge -y --fix-missing --fix-broken
+RUN sudo apt install udev -y --fix-missing
+RUN sudo apt install nano -y --fix-missing
+
+
+# Required installations for new groundstation
+RUN sudo apt install golang -y --fix-missing
+RUN sudo apt-get install -y --fix-missing \
+    libx11-xcb1 \
+    libxcb1 \
+    libxcb-util1 \
+    libxcb-image0 \
+    libxcb-keysyms1 \
+    libxcb-render0 \
+    libxcb-render-util0 \
+    libxcb-shape0 \
+    libxcb-shm0 \
+    libxcb-icccm4 \
+    libxcb-sync1 \
+    libxcb-xfixes0 \
+    libxcb-xinerama0 \
+    libxcb-randr0 \
+    libxcb-glx0 \
+    libxkbcommon-x11-0 \
+    libxrender1 \
+    libasound2
 
 USER $USERNAME
 # [Optional] Set the default user. Omit if you want to keep the default as root.
