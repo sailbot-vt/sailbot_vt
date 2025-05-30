@@ -78,11 +78,7 @@ class VESCPublisher(Node):
         self.rpm_valueSub = self.create_subscription(Float32, "vesc/rpm_value", self.rpmv_callback, 10)
         self.dutycycle_valueSub = self.create_subscription(Float32, "vesc/duty_cycle_value", self.dcv_callback, 10)
         """
-
-        # (this doesn't work with systemctl automatic startup on boot)
-        # self.csv_writer = csv.DictWriter(open("VescInfo.csv", 'w+'), fieldnames= ["time", "rpm", "duty_cycle", "v_in", "c_in", "c_motor", "temp_motor", "time_ms", "amp_hours", "amp_hours_charged","motor_wattage", "v_out"])
-        # self.csv_writer.writeheader()
-
+        
         timer_period = 0.05  # seconds
         
         self.timer = self.create_timer(timer_period, self.timer_callback)
