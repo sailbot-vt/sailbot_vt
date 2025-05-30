@@ -1,3 +1,5 @@
+# These are all of the potential parameters that we can set in the groundstation
+
 sail_lookup_table_wind_angles:    [0,    45,   90,   135,   180,   225,   270,   315,   360]
 sail_lookup_table_sail_positions: [70.0, 50.0, 30.0, 10.0,  0.0,   10.0,  30.0,  50.0,  70.0]
 
