@@ -28,7 +28,7 @@ class SailbotAutopilot:
         self.parameters = parameters
         self.logger = logger
         self.waypoints: list[Position] = None
-        self.cur_waypoint_index = 0
+        self.current_waypoint_index = 0
         
         self.current_state = SailboatStates.NORMAL
         
@@ -193,7 +193,7 @@ class SailbotAutopilot:
         
         global_true_wind_angle = true_wind_angle + heading
         
-        desired_pos = self.waypoints[self.cur_waypoint_index]
+        desired_pos = self.waypoints[self.current_waypoint_index]
         distance_to_desired_position = get_distance_between_positions(cur_position, desired_pos)
 
         
@@ -201,11 +201,11 @@ class SailbotAutopilot:
         # Has Reached The Waypoint
         if distance_to_desired_position < self.parameters['waypoint_accuracy']: 
             
-            if len(self.waypoints) <= self.cur_waypoint_index + 1:    # Has Reached The Final Waypoint
+            if len(self.waypoints) <= self.current_waypoint_index + 1:    # Has Reached The Final Waypoint
                 self.reset()
                 return None, None
             
-            self.cur_waypoint_index += 1
+            self.current_waypoint_index += 1
             
         
         

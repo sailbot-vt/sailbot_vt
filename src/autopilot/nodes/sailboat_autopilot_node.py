@@ -26,8 +26,8 @@ class SailboatAutopilotNode(Node):
     def __init__(self):
         super().__init__("sailboat_autopilot")
 
-        cur_folder_path = os.path.dirname(os.path.realpath(__file__))
-        with open(cur_folder_path + "/default_parameters.yaml", 'r') as stream:
+        current_folder_path = os.path.dirname(os.path.realpath(__file__))
+        with open(current_folder_path + "/default_parameters.yaml", 'r') as stream:
             self.parameters: dict = yaml.safe_load(stream)
             
         self.sailbot_autopilot = SailbotAutopilot(parameters=self.parameters, logger=self.get_logger())
@@ -44,13 +44,13 @@ class SailboatAutopilotNode(Node):
         
         self.autopilot_parameters_listener = self.create_subscription(String, '/autopilot_parameters', callback=self.autopilot_parameters_callback, qos_profile=10)
         
-        self.rc_listener = self.create_subscription(msg_type=RCData, topic="/rc_data", callback=self.rc_data_callback, qos_profile=sensor_qos_profile)
+        self.rc_data_listener = self.create_subscription(msg_type=RCData, topic="/rc_data", callback=self.rc_data_callback, qos_profile=sensor_qos_profile)
         
         self.autopilot_mode_publisher = self.create_publisher(String, "/autopilot_mode", qos_profile=sensor_qos_profile)
         self.autopilot_mode_listener = self.create_subscription(String, '/autopilot_mode', callback=self.autopilot_mode_callback, qos_profile=sensor_qos_profile)
     
         self.waypoints_list_listener = self.create_subscription(WaypointList, '/waypoints_list', self.waypoints_list_callback, 10)
-        self.cur_waypoint_index_publisher = self.create_publisher(Int32, '/cur_waypoint_index', 10)
+        self.current_waypoint_index_publisher = self.create_publisher(Int32, '/current_waypoint_index', 10)
         
         self.position_listener = self.create_subscription(msg_type=NavSatFix, topic="/position", callback=self.position_callback, qos_profile=sensor_qos_profile)
         self.velocity_listener = self.create_subscription(msg_type=Twist, topic="/velocity", callback=self.velocity_callback, qos_profile=sensor_qos_profile)
@@ -87,6 +87,13 @@ class SailboatAutopilotNode(Node):
         self.toggle_b = 0
         self.toggle_c = 0
         self.toggle_f = 0        
+        
+        
+        # Send default parameters to the telemetry server so that the groundstation can see what the default parameters are
+        self.autopilot_parameters_publisher = self.create_publisher(String, '/autopilot_parameters', qos_profile=10)
+        self.autopilot_parameters_publisher.publish(String(data = json.dumps(self.parameters)))
+        
+        del self.autopilot_parameters_publisher
         
         
         
@@ -183,7 +190,7 @@ class SailboatAutopilotNode(Node):
             waypoints_list.append(Position(gps_position.longitude, gps_position.latitude))
             
         self.sailbot_autopilot.waypoints = waypoints_list
-        self.sailbot_autopilot.cur_waypoint_index = 0
+        self.sailbot_autopilot.current_waypoint_index = 0
         
 
     def position_callback(self, position: NavSatFix):
@@ -251,7 +258,7 @@ class SailboatAutopilotNode(Node):
         desired_rudder_angle, desired_sail_angle = self.step()
         
         
-        self.cur_waypoint_index_publisher.publish(Int32(data=self.sailbot_autopilot.cur_waypoint_index))
+        self.current_waypoint_index_publisher.publish(Int32(data=self.sailbot_autopilot.current_waypoint_index))
         
         
         # Publish the autonomy maneuever (aka whether we are currently CW tacking, CCW tacking, or normal sailing)
@@ -270,7 +277,7 @@ class SailboatAutopilotNode(Node):
             self.desired_heading_publisher.publish(Float32(data=float(self.heading_to_hold)))
             
         elif self.autopilot_mode == SailboatAutopilotMode.Waypoint_Mission and self.sailbot_autopilot.waypoints != None:
-            current_waypoint = self.sailbot_autopilot.waypoints[self.sailbot_autopilot.cur_waypoint_index]
+            current_waypoint = self.sailbot_autopilot.waypoints[self.sailbot_autopilot.current_waypoint_index]
             
             # TODO make it so that the bearing is the actual heading the autopilot is trying to follow (this is different when tacking)
             # when tacking, the boat is not trying to head straight towards the waypoint, but rather, it is travelling on a tacking line

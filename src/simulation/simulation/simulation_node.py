@@ -219,10 +219,10 @@ class SimulationNode(Node):
 
         true_wind_angle = global_wind_angle - heading_angle.data
         
-        self.get_logger().info(f"true wind: {true_wind_angle}")
-        self.get_logger().info(f"velocity: {boat_linear_velocity_vector}")
-        self.get_logger().info(f"position: {position}")
-        self.get_logger().info("")
+        # self.get_logger().info(f"true wind: {true_wind_angle}")
+        # self.get_logger().info(f"velocity: {boat_linear_velocity_vector}")
+        # self.get_logger().info(f"position: {position}")
+        # self.get_logger().info("")
         
         self.true_wind_vector = Vector3(x= (true_wind_speed * np.cos(np.deg2rad(true_wind_angle))), y= (true_wind_speed * np.sin(np.deg2rad(true_wind_angle))))
         self.apparent_wind_vector = Vector3(x= (self.true_wind_vector.x - boat_linear_velocity_vector.x), y= (self.true_wind_vector.y - boat_linear_velocity_vector.y)) 
