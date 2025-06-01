@@ -1,3 +1,8 @@
+"""
+TODO: Make an autopilot publisher like the sailboat_autopilot_node that sends the default parameters once and then deletes the publisher
+"""
+
+
 from autopilot.autopilot import SailbotAutopilot
 from autopilot.autopilot import Discrete_PID
 from autopilot.utils import *
@@ -39,13 +44,13 @@ class MotorboatAutopilotNode(Node):
 
         self.autopilot_parameters_listener = self.create_subscription(String, '/autopilot_parameters', callback=self.autopilot_parameters_callback, qos_profile=10)
             
-        self.rc_listener = self.create_subscription(msg_type=RCData, topic="/rc_data", callback=self.rc_data_callback, qos_profile=sensor_qos_profile)
+        self.rc_data_listener = self.create_subscription(msg_type=RCData, topic="/rc_data", callback=self.rc_data_callback, qos_profile=sensor_qos_profile)
         
         self.autopilot_mode_publisher = self.create_publisher(String, "/autopilot_mode", qos_profile=sensor_qos_profile)
         self.autopilot_mode_listener = self.create_subscription(String, '/autopilot_mode', callback=self.autopilot_mode_callback, qos_profile=sensor_qos_profile)
 
         self.waypoints_list_listener = self.create_subscription(WaypointList, '/waypoints_list', self.waypoints_list_callback, 10)
-        self.cur_waypoint_index_publisher = self.create_publisher(Int32, '/cur_waypoint_index', 10)
+        self.current_waypoint_index_publisher = self.create_publisher(Int32, '/current_waypoint_index', 10)
         
         self.position_listener = self.create_subscription(msg_type=NavSatFix, topic="/position", callback=self.position_callback, qos_profile=sensor_qos_profile)
         self.velocity_listener = self.create_subscription(msg_type=Twist, topic="/velocity", callback=self.velocity_callback, qos_profile=sensor_qos_profile)
@@ -203,7 +208,7 @@ class MotorboatAutopilotNode(Node):
             waypoints_list.append(Position(gps_position.longitude, gps_position.latitude))
             
         self.sailbot_autopilot.waypoints = waypoints_list
-        self.sailbot_autopilot.cur_waypoint_index = 0
+        self.sailbot_autopilot.current_waypoint_index = 0
         
 
     def position_callback(self, position: NavSatFix):
@@ -222,7 +227,7 @@ class MotorboatAutopilotNode(Node):
         
         desired_rudder_angle = self.step()
 
-        self.cur_waypoint_index_publisher.publish(Int32(data=self.sailbot_autopilot.cur_waypoint_index))
+        self.current_waypoint_index_publisher.publish(Int32(data=self.sailbot_autopilot.current_waypoint_index))
             
         self.autopilot_mode_publisher.publish(String(data=self.autopilot_mode.name))
         if self.autopilot_mode == MotorboatAutopilotMode.Waypoint_Mission:
@@ -235,7 +240,7 @@ class MotorboatAutopilotNode(Node):
             self.desired_heading_publisher.publish(Float32(data=float(self.heading_to_hold)))
             
         elif self.autopilot_mode == MotorboatAutopilotMode.Waypoint_Mission and self.sailbot_autopilot.waypoints != None:
-            current_waypoint = self.sailbot_autopilot.waypoints[self.sailbot_autopilot.cur_waypoint_index]
+            current_waypoint = self.sailbot_autopilot.waypoints[self.sailbot_autopilot.current_waypoint_index]
             bearing_to_waypoint = get_bearing(self.position, current_waypoint) #TODO make it so that this is the actual heading the autopilot is trying to follow (this is different when tacking)
             self.desired_heading_publisher.publish(Float32(data=float(bearing_to_waypoint)))
             
