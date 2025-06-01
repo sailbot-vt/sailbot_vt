@@ -16,7 +16,8 @@ set(msg_files
   "msg/VESCControlData.msg"
   "msg/RCData.msg"
   "msg/WaypointList.msg"
-  "msg/ObjectDetectionResults.msg"
+  "msg/ObjectDetectionResult.msg"
+  "msg/ObjectDetectionResultsList.msg"
   DEPENDENCIES sensor_msgs
 )
 rosidl_generate_interfaces(${PROJECT_NAME}
