@@ -174,7 +174,7 @@ void desired_rudder_angle_received_callback(const void *msg_in) {
     if (desired_rudder_angle < MIN_RUDDER_ANGLE)
         desired_rudder_angle = MIN_RUDDER_ANGLE;
 
-    desired_rudder_motor_angle = get_motor_angle_from_rudder_angle(desired_rudder_angle);
+    desired_rudder_motor_angle = desired_rudder_angle;
 }
 
 void desired_sail_angle_received_callback(const void *msg_in) {
@@ -250,7 +250,7 @@ void application_loop() {
 
     gpio_put(25, 1); // Debug or indicator LED
 
-    float current_rudder_angle = get_rudder_angle_from_motor_angle(current_rudder_motor_angle);
+    float current_rudder_angle = current_rudder_motor_angle;
     float rudder_error = current_rudder_angle - desired_rudder_angle;
 
     int number_of_steps_rudder = 0;
@@ -262,7 +262,7 @@ void application_loop() {
         else
             drv8711_setDirection(&rudderStepperMotorDriver, CLOCKWISE);
 
-        number_of_steps_rudder = 2*(float)abs(rudder_error)/1.8;
+        number_of_steps_rudder = RUDDER_GAIN * abs(rudder_error) + RUDDER_GAIN_Q * pow(abs(rudder_error), 2);
         if (number_of_steps_rudder > 50) number_of_steps_rudder = 50;
         rudder_step_enabled = true;
     }

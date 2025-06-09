@@ -24,8 +24,8 @@
 #define RUDDER_GAIN (float)2
 #define RUDDER_GAIN_Q (float)0.5
 #else
-#define RUDDER_GAIN (float)400
-#define RUDDER_GAIN_Q (float)100
+#define RUDDER_GAIN (float)2
+#define RUDDER_GAIN_Q (float)0.5
 #endif
 
 #define WINCH_GAIN 2
