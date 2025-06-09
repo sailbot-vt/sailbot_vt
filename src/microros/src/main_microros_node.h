@@ -24,8 +24,8 @@
 #define RUDDER_GAIN (float)2
 #define RUDDER_GAIN_Q (float)0.5
 #else
-#define RUDDER_GAIN (float)2
-#define RUDDER_GAIN_Q (float)0.5
+#define RUDDER_GAIN (float)400
+#define RUDDER_GAIN_Q (float)100
 #endif
 
 #define WINCH_GAIN 2
@@ -44,7 +44,7 @@
 #define ACCEPTABLE_RUDDER_ERROR 0.1
 #define ACCEPTABLE_WINCH_ERROR 0.5
 
-#define RUDDER_ANGLE_OFFSET 36
+#define RUDDER_ANGLE_OFFSET 0
 #define WINCH_ANGLE_OFFSET 0
 
 const float MID_RUDDER_ANGLE = (MAX_RUDDER_ANGLE + MIN_RUDDER_ANGLE) / 2;
@@ -82,7 +82,7 @@ inline float get_winch_angle_from_sail_angle(float sail_angle) {
 // stepper motor's speed.  You can increase the delay to make the stepper motor
 // go slower.  If you decrease the delay, the stepper motor will go faster, but
 // there is a limit to how fast it can go before it starts missing steps.
-#define MIN_TIME_BETWEEN_MOTOR_STEPS_MICROSECONDS 2000 // microseconds
+#define MIN_TIME_BETWEEN_MOTOR_STEPS_MICROSECONDS 1000 // microseconds
 
 
 /**
