@@ -243,12 +243,14 @@ void pwm_motor_init() {
 void application_loop() {
 
     // -----------------------------------------------------
-    // RUDDER CLOSED LOOP CONTROl
+    // RUDDER CONTROL SETUP
     // -----------------------------------------------------
-    float current_rudder_motor_angle = get_motor_angle(&rudderEncoder) + RUDDER_ANGLE_OFFSET;     // motor_angle % 360
+    float current_rudder_motor_angle = get_motor_angle(&rudderEncoder) + RUDDER_ANGLE_OFFSET;
     if (current_rudder_motor_angle >= 180) {
         current_rudder_motor_angle -= 360;
     }
+
+    gpio_put(25, 1); // Debug or indicator LED
 
     float current_rudder_angle = get_rudder_angle_from_motor_angle(current_rudder_motor_angle);
     float rudder_error = current_rudder_angle - desired_rudder_angle;
@@ -257,26 +259,18 @@ void application_loop() {
     bool rudder_step_enabled = false;
 
     if (abs(rudder_error) > ACCEPTABLE_RUDDER_ERROR) {
-        rudder_step_enabled = true;
-
-        if (((int)rudder_error % 360) > 0 && ((int)rudder_error % 360) < 180) 
+        if (((int)rudder_error % 360) > 0 && ((int)rudder_error % 360) < 180)
             drv8711_setDirection(&rudderStepperMotorDriver, COUNTER_CLOCKWISE);
-    
-        else 
+        else
             drv8711_setDirection(&rudderStepperMotorDriver, CLOCKWISE);
 
-            // number_of_steps_rudder = RUDDER_GAIN * abs(rudder_error) + RUDDER_GAIN_Q * pow(abs(rudder_error), 2);
-            number_of_steps_rudder = (int)(abs(rudder_error) * RUDDER_GAIN / MAX_RUDDER_ERROR);
-
-        if (number_of_steps_rudder > RUDDER_NUMBER_OF_STEPS_TO_CLIP_AT) {
-            number_of_steps_rudder = RUDDER_NUMBER_OF_STEPS_TO_CLIP_AT;
-        }
-
+        number_of_steps_rudder = RUDDER_GAIN * abs(rudder_error) + RUDDER_GAIN_Q * pow(abs(rudder_error), 2);
+        if (number_of_steps_rudder > 50) number_of_steps_rudder = 50;
+        rudder_step_enabled = true;
     }
 
-
     // -----------------------------------------------------
-    // SAIL CLOSED LOOP CONTROl
+    // WINCH CONTROL SETUP
     // -----------------------------------------------------
     int number_of_steps_winch = 0;
     bool winch_step_enabled = false;
@@ -286,30 +280,17 @@ void application_loop() {
     float current_sail_angle = get_sail_angle_from_winch_angle(current_winch_angle);
     float winch_error = desired_winch_angle - current_winch_angle;
 
-
-    // check for absurd errors, and if there is an absurd error, do nothing
-    if (abs(winch_error) > 1000000 || winch_error != winch_error) 
-        winch_error = 0;
-
-    if (abs(winch_error) > ACCEPTABLE_WINCH_ERROR) {
-        winch_step_enabled = true;
-        
-        if (winch_error > 0) {
+    if (abs(winch_error) <= 1000000 && winch_error == winch_error && abs(winch_error) > ACCEPTABLE_WINCH_ERROR) {
+        if (winch_error > 0)
             drv8711_setDirection(&winchStepperMotorDriver, CLOCKWISE);
-        }
-        else {
+        else
             drv8711_setDirection(&winchStepperMotorDriver, COUNTER_CLOCKWISE);
-        }
 
-        // number of steps is some linear function that maps the error of the rudder to a number of steps we want to take per loop.
-        // This ends up cooresponding to the speed of the rudder. The higher the rudder_error, the higher the speed of the rudder will be
-        number_of_steps_winch = (int)(abs(winch_error) * WINCH_GAIN / MAX_WINCH_ERROR);  
-
-        if (number_of_steps_winch > WINCH_NUMBER_OF_STEPS_TO_CLIP_AT) {
-            number_of_steps_winch = WINCH_NUMBER_OF_STEPS_TO_CLIP_AT;
-        }
+        number_of_steps_winch = abs(winch_error) * WINCH_GAIN;
+        if (number_of_steps_winch > 150) number_of_steps_winch = 150;
+        winch_step_enabled = true;
     }
-    
+    #endif
 
     // -----------------------------------------------------
     // CLOSED LOOP CONTROL STEPPING
@@ -331,13 +312,10 @@ void application_loop() {
         sleep_us(MIN_TIME_BETWEEN_MOTOR_STEPS_MICROSECONDS);
     }
 
-    current_sail_angle_msg.data = current_sail_angle;
-    current_winch_angle_msg.data = current_winch_angle;
-
-    rcl_publish(&current_winch_angle_publisher, &current_winch_angle_msg, NULL);
-    rcl_publish(&current_sail_angle_publisher, &current_sail_angle_msg, NULL);
-
-    compass_angle_msg.data = cmps14_getBearing(&compass) / 10.0;
+    // -----------------------------------------------------
+    // PUBLISH SENSOR DATA
+    // -----------------------------------------------------
+    compass_angle_msg.data = cmps14_getBearing(&compass) / 10.0;;
     current_rudder_angle_msg.data = current_rudder_angle;
     current_rudder_motor_angle_msg.data = current_rudder_motor_angle;
 
@@ -345,6 +323,13 @@ void application_loop() {
     rcl_publish(&current_rudder_angle_publisher, &current_rudder_angle_msg, NULL);
     rcl_publish(&compass_angle_publisher, &compass_angle_msg, NULL);
 
+    #if BOAT_MODE == Lumpy
+    current_sail_angle_msg.data = current_sail_angle;
+    current_winch_angle_msg.data = current_winch_angle;
+
+    rcl_publish(&current_winch_angle_publisher, &current_winch_angle_msg, NULL);
+    rcl_publish(&current_sail_angle_publisher, &current_sail_angle_msg, NULL);
 
     #endif
+
 }
