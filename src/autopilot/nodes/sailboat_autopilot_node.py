@@ -6,7 +6,7 @@ import rclpy
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from rclpy.node import Node
 from sailbot_msgs.msg import WaypointList, RCData
-from std_msgs.msg import Float32, String, Int32
+from std_msgs.msg import Float32, String, Int32, Bool
 from geometry_msgs.msg import Vector3, Twist
 from sensor_msgs.msg import NavSatFix
 
@@ -63,8 +63,9 @@ class SailboatAutopilotNode(Node):
         self.desired_heading_publisher = self.create_publisher(Float32, '/desired_heading', qos_profile=10)
         self.sail_angle_publisher = self.create_publisher(msg_type=Float32, topic="/actions/sail_angle", qos_profile=sensor_qos_profile)
         self.rudder_angle_publisher = self.create_publisher(msg_type=Float32, topic="/actions/rudder_angle", qos_profile=sensor_qos_profile)
-
-
+       
+        self.zero_rudder_encoder_publisher = self.create_publisher(msg_type=Bool, topic="zero_rudder_encoder", qos_profile=10) 
+        self.zero_winch_encoder_publisher = self.create_publisher(msg_type=Bool, topic="zero_winch_encoder", qos_profile=10) 
 
         # Default values
         self.position = Position(longitude=0., latitude=0.)
@@ -76,6 +77,12 @@ class SailboatAutopilotNode(Node):
         self.sail_angle = 0.
         self.rudder_angle = 0.
         
+        self.should_zero_rudder_encoder = False
+        self.rudder_encoder_has_been_zeroed = False
+        
+        self.should_zero_winch_encoder = False
+        self.winch_encoder_has_been_zeroed = False
+        
         self.autopilot_mode = SailboatAutopilotMode.Waypoint_Mission    # Should this be by default: SailboatAutopilotMode.Full_RC
         self.heading_to_hold = 0.
      
@@ -84,9 +91,13 @@ class SailboatAutopilotNode(Node):
         self.joystick_right_x = 0.
         self.joystick_right_y = 0.
         
+        self.button_a = 0
         self.toggle_b = 0
         self.toggle_c = 0
-        self.toggle_f = 0        
+        self.button_d = 0
+        self.toggle_e = 0
+        self.toggle_f = 0
+        
         
         
         # Send default parameters to the telemetry server so that the groundstation can see what the default parameters are
@@ -101,14 +112,31 @@ class SailboatAutopilotNode(Node):
         
         if joystick_msg.toggle_f == 1 and self.toggle_f != 1:   # this means we have entered hold heading mode, so keep track of the current heading
             self.heading_to_hold = self.heading     
+        
+        if self.button_d == False and joystick_msg.button_d == True:
+            self.should_zero_rudder_encoder = True
+            self.rudder_encoder_has_been_zeroed = False
+        elif self.rudder_encoder_has_been_zeroed:
+            self.should_zero_rudder_encoder = False
+            
+        if self.button_a == False and joystick_msg.button_a == True:
+            self.should_zero_winch_encoder = True
+            self.winch_encoder_has_been_zeroed = False
+        elif self.winch_encoder_has_been_zeroed:
+            self.should_zero_winch_encoder = False
+            
+            
             
         self.joystick_left_x = joystick_msg.joystick_left_x
         self.joystick_left_y = joystick_msg.joystick_left_y
         self.joystick_right_x = joystick_msg.joystick_right_x
         self.joystick_right_y = joystick_msg.joystick_right_y
         
+        self.button_a = joystick_msg.button_a
         self.toggle_b = joystick_msg.toggle_b
         self.toggle_c = joystick_msg.toggle_c
+        self.button_d = joystick_msg.button_d
+        self.toggle_e = joystick_msg.toggle_e
         self.toggle_f = joystick_msg.toggle_f
         
         # kill switch
@@ -295,7 +323,16 @@ class SailboatAutopilotNode(Node):
             
         if desired_sail_angle != None:
             self.sail_angle_publisher.publish(Float32(data=float(desired_sail_angle)))
+            
+            
+            
+        if self.should_zero_rudder_encoder:
+            self.zero_rudder_encoder_publisher.publish(Bool(data=self.should_zero_rudder_encoder))
+            self.rudder_encoder_has_been_zeroed = True
 
+        if self.should_zero_winch_encoder:
+            self.zero_winch_encoder_publisher.publish(Bool(data=self.should_zero_winch_encoder))
+            self.winch_encoder_has_been_zeroed = True
 
 
 
