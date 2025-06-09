@@ -267,11 +267,13 @@ class SailbotAutopilot:
     def run_rc_control(self, joystick_left_y, joystick_right_x):
         # https://stackoverflow.com/questions/929103/convert-a-number-range-to-another-range-maintaining-ratio 
         
+        adjusted_joystick_right_x = -joystick_right_x
+        
         min_sail_angle, max_sail_angle = self.parameters['min_sail_angle'], self.parameters['max_sail_angle']
         sail_angle = (((joystick_left_y - -100) * (max_sail_angle - min_sail_angle)) / (100 - -100)) + min_sail_angle
         
         min_rudder_angle, max_rudder_angle = self.parameters['min_rudder_angle'], self.parameters['max_rudder_angle']
-        rudder_angle = (((joystick_right_x - -100) * (max_rudder_angle - min_rudder_angle)) / (100 - -100)) + min_rudder_angle
+        rudder_angle = (((adjusted_joystick_right_x - -100) * (max_rudder_angle - min_rudder_angle)) / (100 - -100)) + min_rudder_angle
     
         return sail_angle, rudder_angle
     
