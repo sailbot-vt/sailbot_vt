@@ -287,12 +287,13 @@ set_slp_pin(driver, slp_pin);   // Pulled low by default
 sleep_ms(1000);
 
 drv8711_clearStatus(driver);
-drv8711_setDecayMode(driver, AutoMixed);
+drv8711_setDecayMode(driver, decay_mode);
 drv8711_setCurrent(driver, max_winch_current);
-drv8711_setStepMode(driver, MicroStep4);
+drv8711_setStepMode(driver, step_mode);
 drv8711_enableDriver(driver);
 drv8711_setAwake(driver);
 
+sleep_ms(50);
 // drv8711_resetSettings(driver); // Disables DRV8711 by default
 }
 

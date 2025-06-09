@@ -1,0 +1,8 @@
+numpy
+opencv-python
+navpy
+geopy
+matplotlib
+requests
+pydantic
+pandas

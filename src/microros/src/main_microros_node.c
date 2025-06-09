@@ -101,7 +101,7 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
     // -----------------------------------------------------
     // INITIALIZE APPLICATION LOOP TIMER
     // -----------------------------------------------------    
-    RCCHECK(rclc_timer_init_default(&application_loop_timer, support, RCL_MS_TO_NS(5), application_loop));
+    RCCHECK(rclc_timer_init_default(&application_loop_timer, support, RCL_MS_TO_NS(1), application_loop));
     RCCHECK(rclc_executor_add_timer(executor, &application_loop_timer));
 
 
@@ -134,15 +134,17 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
         // https://www.st.com/resource/en/datasheet/vnh7100bas.pdf
         // https://www.st.com/resource/en/application_note/an5940-contactor-driver-using-the-vnh7100bas-stmicroelectronics.pdf
 
+
     AMT22_init(&rudderEncoder, RUDDER_ENCODER_CS_PIN, SPI_PORT);
-    drv8711_init(&rudderStepperMotorDriver, SPI_PORT, RUDDER_MOTOR_CS_PIN, RUDDER_MOTOR_SLEEP_PIN, AutoMixed, MicroStep32, MAX_RUDDER_CURRENT);
+    drv8711_init(&rudderStepperMotorDriver, SPI_PORT, RUDDER_MOTOR_CS_PIN, RUDDER_MOTOR_SLEEP_PIN, AutoMixed, RUDDER_MICROSTEP, MAX_RUDDER_CURRENT);
+
+    cmps14_init(&compass, I2C_PORT, 0x60);
 
     #if BOAT_MODE == Lumpy
     AMT22_init(&winchEncoder, WINCH_ENCODER_CS_PIN, SPI_PORT);
-    drv8711_init(&winchStepperMotorDriver, SPI_PORT, WINCH_MOTOR_CS_PIN, WINCH_MOTOR_SLEEP_PIN, AutoMixed, MicroStep4, MAX_WINCH_CURRENT);
+    drv8711_init(&winchStepperMotorDriver, SPI_PORT, WINCH_MOTOR_CS_PIN, WINCH_MOTOR_SLEEP_PIN, AutoMixed, WINCH_MICROSTEP, MAX_WINCH_CURRENT);
     #endif
 
-    cmps14_init(&compass, I2C_PORT, 0x60);
 
     #if BOAT_MODE == Theseus
     initialize_contactor_driver(CONTACTOR_DRIVER_SEL0_PIN, CONTACTOR_DRIVER_PWM_PIN, CONTACTOR_DRIVER_IN_A_PIN, CONTACTOR_DRIVER_IN_B_PIN);
@@ -259,10 +261,11 @@ void application_loop() {
         else 
             drv8711_setDirection(&rudderStepperMotorDriver, CLOCKWISE);
 
-            number_of_steps_rudder = RUDDER_GAIN * abs(rudder_error) + RUDDER_GAIN_Q * pow(abs(rudder_error), 2);
+            // number_of_steps_rudder = RUDDER_GAIN * abs(rudder_error) + RUDDER_GAIN_Q * pow(abs(rudder_error), 2);
+            number_of_steps_rudder = (int)(abs(rudder_error) * RUDDER_GAIN / MAX_RUDDER_ERROR);
 
-        if (number_of_steps_rudder > 50) {
-            number_of_steps_rudder = 50;
+        if (number_of_steps_rudder > RUDDER_NUMBER_OF_STEPS_TO_CLIP_AT) {
+            number_of_steps_rudder = RUDDER_NUMBER_OF_STEPS_TO_CLIP_AT;
         }
 
 
@@ -304,12 +307,12 @@ void application_loop() {
             drv8711_setDirection(&winchStepperMotorDriver, COUNTER_CLOCKWISE);
         }
 
-    // number of steps is some linear function that maps the error of the rudder to a number of steps we want to take per loop.
-    // This ends up cooresponding to the speed of the rudder. The higher the rudder_error, the higher the speed of the rudder will be
-        number_of_steps_winch = abs(winch_error) * WINCH_GAIN;  
+        // number of steps is some linear function that maps the error of the rudder to a number of steps we want to take per loop.
+        // This ends up cooresponding to the speed of the rudder. The higher the rudder_error, the higher the speed of the rudder will be
+        number_of_steps_winch = (int)(abs(winch_error) * WINCH_GAIN / MAX_WINCH_ERROR);  
 
-        if (number_of_steps_winch > 150) {
-            number_of_steps_winch = 150;
+        if (number_of_steps_winch > WINCH_NUMBER_OF_STEPS_TO_CLIP_AT) {
+            number_of_steps_winch = WINCH_NUMBER_OF_STEPS_TO_CLIP_AT;
         }
 
         for (int i = 0; i < number_of_steps_winch; i++) {

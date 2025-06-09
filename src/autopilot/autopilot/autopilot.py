@@ -22,13 +22,13 @@ class SailbotAutopilot:
 
         self.rudder_pid_controller = Discrete_PID(
             sample_period=(1 / parameters['autopilot_refresh_rate']), 
-            Kp=parameters['rudder_p_gain'], Ki=parameters['rudder_i_gain'], Kd=parameters['rudder_d_gain'], n=parameters['rudder_n_gain'], 
+            Kp=parameters['heading_p_gain'], Ki=parameters['heading_i_gain'], Kd=parameters['heading_d_gain'], n=parameters['heading_n_gain'], 
         )
         
         self.parameters = parameters
         self.logger = logger
         self.waypoints: list[Position] = None
-        self.cur_waypoint_index = 0
+        self.current_waypoint_index = 0
         
         self.current_state = SailboatStates.NORMAL
         
@@ -42,7 +42,7 @@ class SailbotAutopilot:
 
     def get_optimal_sail_angle(self, apparent_wind_angle: float):
         """
-        Runs a single step by using the sail lookup table. No side effects. Apparent wind angle is measured ccw from the right hand side of the boat.
+        Runs a single step by using the sail lookup table. No side effects. Apparent wind angle is measured ccw from the centerline of the boat.
         
         Doesn't return an exit code because there is no reason why this should fail and this part of the code doesn't figure out if the boat has reached the waypoint
         Returns the desired sail angle and rudder angle as a tuple given the current observations
@@ -54,9 +54,6 @@ class SailbotAutopilot:
 
         sail_positions = self.parameters['sail_lookup_table_sail_positions']
         wind_angles = self.parameters['sail_lookup_table_wind_angles']
-
-        # print(f"wind angles: {wind_angles}")
-        # print(f"apparent wind angle: {apparent_wind_angle}")
         
         left = max(filter(lambda pos: pos <= float(apparent_wind_angle), wind_angles))
         right = min(filter(lambda pos: pos >= float(apparent_wind_angle), wind_angles))
@@ -80,25 +77,15 @@ class SailbotAutopilot:
         error = get_distance_between_angles(desired_heading, heading)
         
         self.rudder_pid_controller.set_gains(
-            Kp=self.parameters['rudder_p_gain'], Ki=self.parameters['rudder_i_gain'], Kd=self.parameters['rudder_d_gain'], 
-            n=self.parameters['rudder_n_gain'], sample_period=self.parameters['autopilot_refresh_rate']
+            Kp=self.parameters['heading_p_gain'], Ki=self.parameters['heading_i_gain'], Kd=self.parameters['heading_d_gain'], 
+            n=self.parameters['heading_n_gain'], sample_period=self.parameters['autopilot_refresh_rate']
         )
         
         rudder_angle = self.rudder_pid_controller(error)
         rudder_angle = np.clip(rudder_angle, self.parameters['min_rudder_angle'], self.parameters['max_rudder_angle'])
         return rudder_angle
     
-            
-    def run_rc_control(self, joystick_left_y, joystick_right_x):
-        # https://stackoverflow.com/questions/929103/convert-a-number-range-to-another-range-maintaining-ratio 
-        
-        min_sail_angle, max_sail_angle = self.parameters['min_sail_angle'], self.parameters['max_sail_angle']
-        sail_angle = (((joystick_left_y - -100) * (max_sail_angle - min_sail_angle)) / (100 - -100)) + min_sail_angle
-        
-        min_rudder_angle, max_rudder_angle = self.parameters['min_rudder_angle'], self.parameters['max_rudder_angle']
-        rudder_angle = (((joystick_right_x - -100) * (max_rudder_angle - min_rudder_angle)) / (100 - -100)) + min_rudder_angle
     
-        return sail_angle, rudder_angle
     
     
     
@@ -138,15 +125,10 @@ class SailbotAutopilot:
             (global_true_up_wind_angle - decision_zone_size/2) % 360, # lower
             (global_true_up_wind_angle + decision_zone_size/2) % 360  # upper
         )
-        
-        print(f"no go zone bounds: {no_sail_zone_bounds}")
-        print(f"decision zone bounds: {decision_zone_bounds}")
-        print(f"desired heading: {desired_heading}")
     
     
         # If desired heading it is not in any of the zones
         if not is_angle_between_boundaries(desired_heading, no_sail_zone_bounds[0], no_sail_zone_bounds[1]): 
-            print("I AM IN ZONE NONE, SAILING NORMAL")  
             if get_maneuver_from_desired_heading(heading, desired_heading, true_wind_angle) == SailboatManeuvers.TACK:
                 return desired_heading, True
             else:
@@ -155,7 +137,6 @@ class SailbotAutopilot:
 
         # If desired heading is in zone 1
         if is_angle_between_boundaries(desired_heading, decision_zone_bounds[1], no_sail_zone_bounds[1]):
-            print("I AM IN ZONE 1")  
             if (heading - global_true_up_wind_angle) % 360 < 180:   # Starboard side of true wind
                 return no_sail_zone_bounds[1], False
                 
@@ -166,7 +147,6 @@ class SailbotAutopilot:
                                 
         # If desired heading is in zone 3
         if is_angle_between_boundaries(desired_heading, decision_zone_bounds[0], no_sail_zone_bounds[0]):
-            print("I AM IN ZONE 3")  
             if (heading - global_true_up_wind_angle) % 360 < 180:   # Starboard side of true wind
                 # port tack
                 return no_sail_zone_bounds[0], True
@@ -176,7 +156,6 @@ class SailbotAutopilot:
     
         
         # If desired heading in zone 2      
-        print("I AM IN ZONE 2")  
         distance_to_lower_no_sail_zone = abs(get_distance_between_angles(no_sail_zone_bounds[0], heading))
         distance_to_upper_no_sail_zone = abs(get_distance_between_angles(no_sail_zone_bounds[1], heading))
        
@@ -214,7 +193,7 @@ class SailbotAutopilot:
         
         global_true_wind_angle = true_wind_angle + heading
         
-        desired_pos = self.waypoints[self.cur_waypoint_index]
+        desired_pos = self.waypoints[self.current_waypoint_index]
         distance_to_desired_position = get_distance_between_positions(cur_position, desired_pos)
 
         
@@ -222,11 +201,11 @@ class SailbotAutopilot:
         # Has Reached The Waypoint
         if distance_to_desired_position < self.parameters['waypoint_accuracy']: 
             
-            if len(self.waypoints) <= self.cur_waypoint_index + 1:    # Has Reached The Final Waypoint
+            if len(self.waypoints) <= self.current_waypoint_index + 1:    # Has Reached The Final Waypoint
                 self.reset()
                 return None, None
             
-            self.cur_waypoint_index += 1
+            self.current_waypoint_index += 1
             
         
         
@@ -235,8 +214,6 @@ class SailbotAutopilot:
             desired_heading = get_bearing(current_pos=cur_position, destination_pos=desired_pos)
 
             desired_heading, should_tack1 = self.apply_decision_zone_tacking_logic(heading, desired_heading, true_wind_angle, apparent_wind_angle, distance_to_desired_position)
-            
-            print()
             
             global_true_up_wind_angle = (180 + global_true_wind_angle) % 360
             should_tack2 = is_angle_between_boundaries(global_true_up_wind_angle, heading, desired_heading)
@@ -282,3 +259,21 @@ class SailbotAutopilot:
         
         
         return sail_angle, rudder_angle
+    
+    
+    
+    
+    
+    def run_rc_control(self, joystick_left_y, joystick_right_x):
+        # https://stackoverflow.com/questions/929103/convert-a-number-range-to-another-range-maintaining-ratio 
+        
+        adjusted_joystick_right_x = -joystick_right_x
+        
+        min_sail_angle, max_sail_angle = self.parameters['min_sail_angle'], self.parameters['max_sail_angle']
+        sail_angle = (((joystick_left_y - -100) * (max_sail_angle - min_sail_angle)) / (100 - -100)) + min_sail_angle
+        
+        min_rudder_angle, max_rudder_angle = self.parameters['min_rudder_angle'], self.parameters['max_rudder_angle']
+        rudder_angle = (((adjusted_joystick_right_x - -100) * (max_rudder_angle - min_rudder_angle)) / (100 - -100)) + min_rudder_angle
+    
+        return sail_angle, rudder_angle
+    

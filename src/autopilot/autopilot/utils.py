@@ -31,6 +31,11 @@ class SailboatManeuvers(Enum):
     TACK = 2
     JIBE = 3
 
+
+
+
+
+
 class MotorboatAutopilotMode(Enum):
     Disabled = 0
     Full_RC = 1
