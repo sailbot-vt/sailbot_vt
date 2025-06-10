@@ -22,6 +22,9 @@
 // Configuration files
 #include "config.h"
 
+// Misc libraries
+#include <math.h>
+
 
 // Checks whether the ros client (rclc) functions throw an error and if they do then turn on the light on the pico
 #define RCCHECK(fn) {                   \
