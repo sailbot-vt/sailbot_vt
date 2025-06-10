@@ -26,8 +26,8 @@
 #define RUDDER_NUMBER_OF_STEPS_TO_CLIP_AT 50
 #define RUDDER_MICROSTEP MicroStep32
 #else
-#define RUDDER_GAIN (float)2
-#define RUDDER_GAIN_Q (float)0.5
+#define RUDDER_GAIN (float)400
+#define RUDDER_GAIN_Q (float)150
 #define RUDDER_NUMBER_OF_STEPS_TO_CLIP_AT 50
 #define RUDDER_MICROSTEP MicroStep4
 #endif
@@ -50,8 +50,9 @@
 #define ACCEPTABLE_RUDDER_ERROR 0.1
 #define ACCEPTABLE_WINCH_ERROR 0.5
 
-#define RUDDER_ANGLE_OFFSET 36
+#define RUDDER_ANGLE_OFFSET 0
 #define WINCH_ANGLE_OFFSET 0
+#define COMPASS_OFFSET 46.3
 
 const float MID_RUDDER_ANGLE = (MAX_RUDDER_ANGLE + MIN_RUDDER_ANGLE) / 2;
 const float MID_WINCH_MOTOR_ANGLE = (MAX_WINCH_ANGLE + MIN_WINCH_ANGLE) / 2;
@@ -67,11 +68,23 @@ const int MAX_SAIL_ERROR = (float)(MAX_SAIL_ANGLE - MIN_SAIL_ANGLE);
 // -----------------------------------------------------
 
 inline float get_rudder_angle_from_motor_angle(float motor_angle) {
+    #if BOAT_MODE == Theseus
     return -0.00002094 * pow(motor_angle, 3) + 0.001259 * pow(motor_angle, 2) + 0.4159 * motor_angle - 8.373;
+    #endif
+
+    #if BOAT_MODE == Lumpy
+    return motor_angle;
+    #endif
 }
 
 inline float get_motor_angle_from_rudder_angle(float rudder_angle) {
+    #if BOAT_MODE == Theseus
     return 0.001345 * pow(rudder_angle, 3) + 0.003741 * pow(rudder_angle, 2) + 2.142 * rudder_angle + 19.71;
+    #endif
+
+    #if BOAT_MODE == Lumpy
+    return rudder_angle;
+    #endif
 }
 
 inline float get_sail_angle_from_winch_angle(float winch_motor_angle) {
