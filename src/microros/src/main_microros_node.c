@@ -14,6 +14,7 @@ rcl_publisher_t    current_rudder_motor_angle_publisher;
 rcl_publisher_t    current_sail_angle_publisher;
 rcl_publisher_t    current_winch_angle_publisher;
 rcl_publisher_t    compass_angle_publisher;
+rcl_publisher_t    test_publisher;
 rcl_timer_t        application_loop_timer;
 
 std_msgs__msg__Bool           is_propeller_motor_enabled_msg;  
@@ -29,6 +30,7 @@ std_msgs__msg__Float32        desired_winch_angle_msg;
 std_msgs__msg__Float32        pwm_motor_msg;
 std_srvs__srv__Empty_Request  empty_request_msg;
 std_srvs__srv__Empty_Response empty_response_msg;
+std_msgs__msg__Float32        test_msg;
 
 static drv8711 rudderStepperMotorDriver;
 static drv8711 winchStepperMotorDriver;
@@ -50,6 +52,7 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
     // -----------------------------------------------------
     RCCHECK(rclc_node_init_default(&microros_node, "microros", "", support));
 
+    RCCHECK(rclc_publisher_init_default(&current_rudder_motor_angle_publisher, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "/test_publisher"));
 
     // -----------------------------------------------------
     // INITIALIZE ZEROING THE RUDDER AND WINCH ENCODERS SUBSCRIBERS
@@ -342,6 +345,9 @@ void application_loop() {
     current_rudder_angle_msg.data = current_rudder_angle;
     current_rudder_motor_angle_msg.data = current_rudder_motor_angle;
 
+    test_msg.data = max_steps;
+    
+    rcl_publish(&test_publisher, &test_msg, NULL);
     rcl_publish(&current_rudder_motor_angle_publisher, &current_rudder_motor_angle_msg, NULL);
     rcl_publish(&current_rudder_angle_publisher, &current_rudder_angle_msg, NULL);
     rcl_publish(&compass_angle_publisher, &compass_angle_msg, NULL);
