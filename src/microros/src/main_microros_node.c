@@ -336,8 +336,9 @@ void application_loop() {
 
     rcl_publish(&current_winch_angle_publisher, &current_winch_angle_msg, NULL);
     rcl_publish(&current_sail_angle_publisher, &current_sail_angle_msg, NULL);
-
-    compass_angle_msg.data = fmod((cmps14_getBearing(&compass) / 10.0 + COMPASS_OFFSET), 360.0);
+    
+    // counter clockwise from true east
+    compass_angle_msg.data = fmod((-cmps14_getBearing(&compass) / 10.0 + COMPASS_OFFSET), 360.0);
     current_rudder_angle_msg.data = current_rudder_angle;
     current_rudder_motor_angle_msg.data = current_rudder_motor_angle;
 
