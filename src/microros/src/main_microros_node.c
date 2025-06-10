@@ -52,7 +52,7 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
     // -----------------------------------------------------
     RCCHECK(rclc_node_init_default(&microros_node, "microros", "", support));
 
-    RCCHECK(rclc_publisher_init_default(&current_rudder_motor_angle_publisher, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "/test_publisher"));
+    RCCHECK(rclc_publisher_init_default(&test_publisher, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "/test_publisher"));
 
     // -----------------------------------------------------
     // INITIALIZE ZEROING THE RUDDER AND WINCH ENCODERS SUBSCRIBERS
@@ -346,7 +346,7 @@ void application_loop() {
     current_rudder_motor_angle_msg.data = current_rudder_motor_angle;
 
     test_msg.data = max_steps;
-    
+
     rcl_publish(&test_publisher, &test_msg, NULL);
     rcl_publish(&current_rudder_motor_angle_publisher, &current_rudder_motor_angle_msg, NULL);
     rcl_publish(&current_rudder_angle_publisher, &current_rudder_angle_msg, NULL);
