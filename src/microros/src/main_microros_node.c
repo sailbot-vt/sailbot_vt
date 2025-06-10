@@ -345,7 +345,7 @@ void application_loop() {
     current_rudder_angle_msg.data = current_rudder_angle;
     current_rudder_motor_angle_msg.data = current_rudder_motor_angle;
 
-    test_msg.data = max_steps;
+    test_msg.data = rudder_error;
 
     rcl_publish(&test_publisher, &test_msg, NULL);
     rcl_publish(&current_rudder_motor_angle_publisher, &current_rudder_motor_angle_msg, NULL);
