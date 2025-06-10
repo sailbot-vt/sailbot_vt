@@ -50,7 +50,7 @@ class RCPublisher(Node):
     def __init__(self):
         super().__init__("rc_publisher")
         
-        self.create_timer(0.025, self.timer_callback)
+        self.create_timer(0.3, self.timer_callback)
         
         serial_port = getPort(RC_VID, RC_PID, RC_SERIAL_NUMBER)
         self.sensor_serial = serial.Serial(serial_port, BAUD_RATE)
