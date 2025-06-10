@@ -64,8 +64,8 @@ class SailboatAutopilotNode(Node):
         self.sail_angle_publisher = self.create_publisher(msg_type=Float32, topic="/actions/sail_angle", qos_profile=sensor_qos_profile)
         self.rudder_angle_publisher = self.create_publisher(msg_type=Float32, topic="/actions/rudder_angle", qos_profile=sensor_qos_profile)
        
-        self.zero_rudder_encoder_publisher = self.create_publisher(msg_type=Bool, topic="zero_rudder_encoder", qos_profile=10) 
-        self.zero_winch_encoder_publisher = self.create_publisher(msg_type=Bool, topic="zero_winch_encoder", qos_profile=10) 
+        self.zero_rudder_encoder_publisher = self.create_publisher(msg_type=Bool, topic="/zero_rudder_encoder", qos_profile=10) 
+        self.zero_winch_encoder_publisher = self.create_publisher(msg_type=Bool, topic="/zero_winch_encoder", qos_profile=10) 
 
         # Default values
         self.position = Position(longitude=0., latitude=0.)
