@@ -193,6 +193,10 @@ class RCPublisher(Node):
         
         if toggle_b == -1 or toggle_c == -1 or toggle_e == -1 or toggle_f == -1: return None
         
+        self.get_logger().info(f"joystick right x: {joystick_right_x}")
+        self.get_logger().info(f"joystick_left_y: {joystick_left_y}")
+        
+        
         return RCData(
             joystick_left_x=joystick_left_x, joystick_left_y=joystick_left_y,
             joystick_right_x=joystick_right_x, joystick_right_y=joystick_right_y,

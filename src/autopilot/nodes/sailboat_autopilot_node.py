@@ -110,7 +110,7 @@ class SailboatAutopilotNode(Node):
         
     def rc_data_callback(self, joystick_msg: RCData):
         
-        self.get_logger().info(f"got to rc data callback")
+        # self.get_logger().info(f"got to rc data callback")
         if joystick_msg.toggle_f == 1 and self.toggle_f != 1:   # this means we have entered hold heading mode, so keep track of the current heading
             self.heading_to_hold = self.heading     
         
@@ -168,7 +168,7 @@ class SailboatAutopilotNode(Node):
         else:
             print("WARNING: INCORRECT COMBINATION OF RC SWITCHES USED")
             
-        self.get_logger().info(f"finished rc data callback")
+        # self.get_logger().info(f"finished rc data callback")
 
 
     def autopilot_mode_callback(self, mode: String):
@@ -287,9 +287,9 @@ class SailboatAutopilotNode(Node):
         Each call to this function takes around 2 milliseconds as of 5/26/2025 (aka this is not a super important place to find optimizations since it doesn't take that much time from a cpu core)
         """        
         
-        self.get_logger().info(f"got to update ros topics")
+        # self.get_logger().info(f"got to update ros topics")
         desired_rudder_angle, desired_sail_angle = self.step()
-        self.get_logger().info(f"finished step")
+        # self.get_logger().info(f"finished step")
         
         self.current_waypoint_index_publisher.publish(Int32(data=self.sailbot_autopilot.current_waypoint_index))
         
@@ -324,9 +324,11 @@ class SailboatAutopilotNode(Node):
             
         # Finally, ensure that we tell the motor driver what we want the rudder angle and the sail angle to do through ros
         if desired_rudder_angle != None:
+            self.get_logger().info(f"desired rudder angle: {desired_rudder_angle}")
             self.rudder_angle_publisher.publish(Float32(data=float(desired_rudder_angle)))
             
         if desired_sail_angle != None:
+            self.get_logger().info(f"desired sail angle: {desired_rudder_angle}")
             self.sail_angle_publisher.publish(Float32(data=float(desired_sail_angle)))
             
             
@@ -339,7 +341,7 @@ class SailboatAutopilotNode(Node):
             self.zero_winch_encoder_publisher.publish(Bool(data=self.should_zero_winch_encoder))
             self.winch_encoder_has_been_zeroed = True
 
-        self.get_logger().info(f"finished publishing")
+        # self.get_logger().info(f"finished publishing")
 
 
 
