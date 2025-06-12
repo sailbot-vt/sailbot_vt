@@ -236,6 +236,11 @@ void pwm_motor_init() {
     pwm_set_enabled(slice_num, true);
 }
 
+void set_asleep_everything() {
+    drv8711_setAsleep(&rudderStepperMotorDriver);
+    drv8711_setAsleep(&winchStepperMotorDriver);
+}
+
 
 
 

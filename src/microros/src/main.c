@@ -46,6 +46,9 @@ int main()
         
             rclc_executor_spin_some(&executor_core, RCL_MS_TO_NS(100));
         }
+
+        set_asleep_everything();
+        sleep_ms(10000);
         
         rclc_executor_fini(&executor_core);
         rclc_support_fini(&support_core);
