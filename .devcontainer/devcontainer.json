@@ -1,14 +1,9 @@
 {
     "name": "ROS 2 Development Container",
+    "image": "aanimated/sailbot_docker_dev_image",
     "privileged": true,
     "remoteUser": "",
     "containerUser": "",
-    "build": {
-        "dockerfile": "Dockerfile",
-        "args": {
-            "USERNAME": "sailbot_user"
-        }
-    },
     "workspaceFolder": "/home/ws",
     "workspaceMount": "source=${localWorkspaceFolder},target=/home/ws/,type=bind",
     "customizations": {
