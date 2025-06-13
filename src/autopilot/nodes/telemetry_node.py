@@ -65,7 +65,7 @@ class TelemetryNode(Node):
             self.autopilot_parameters_dictionary: dict = yaml.safe_load(stream)
 
 
-        self.create_timer(0.2, self.update_boat_status)
+        self.create_timer(0.01, self.update_boat_status)
         self.create_timer(0.5, self.update_waypoints_from_telemetry)
         self.create_timer(0.5, self.update_autopilot_parameters_from_telemetry)
 
