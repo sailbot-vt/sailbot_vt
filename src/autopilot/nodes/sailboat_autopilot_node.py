@@ -325,10 +325,10 @@ class SailboatAutopilotNode(Node):
         # Finally, ensure that we tell the motor driver what we want the rudder angle and the sail angle to do through ros
         if desired_rudder_angle != None:
             self.get_logger().info(f"desired rudder angle: {desired_rudder_angle}")
-            self.rudder_angle_publisher.publish(Float32(data=float(-desired_rudder_angle))) # the negative is a correction for how to actually turn the boat
+            self.rudder_angle_publisher.publish(Float32(data=float(desired_rudder_angle))) # the negative is a correction for how to actually turn the boat
             
         if desired_sail_angle != None:
-            self.get_logger().info(f"desired sail angle: {desired_rudder_angle}")
+            self.get_logger().info(f"desired sail angle: {desired_sail_angle}")
             self.sail_angle_publisher.publish(Float32(data=float(desired_sail_angle)))
             
             
