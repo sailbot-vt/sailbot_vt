@@ -69,6 +69,9 @@ RUN sudo apt-get install -y --fix-missing \
     libxrender1 \
     libasound2
 
+RUN sudo apt install docker && sudo apt install docker.io
+
+
 USER $USERNAME
 # [Optional] Set the default user. Omit if you want to keep the default as root.
 CMD ["/bin/bash"]

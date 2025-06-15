@@ -68,7 +68,7 @@ class SimResetInfo(TypedDict):
 
 class LSASim(metaclass=ProfilingMeta):
     DEFAULT_PORT = 5555  # set in Dockerfile
-    DOCKER_IMAGE_NAME = 'lucasmrdt/sailboat-sim-lsa-gym:mss1-ode'
+    DOCKER_IMAGE_NAME = 'aanimated/sailbot_simulation:latest'
 
     def __init__(self, name='default') -> None:
         self.name = re.sub(r'[^a-zA-Z0-9]', '-', name)
