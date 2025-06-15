@@ -21,9 +21,9 @@ pip install -r requirements.txt
 cd /home/ws
 
 
-#cd ground_station_25 
-#pip install -r requirements.txt
-#cd /home/ws
+cd ground_station_25 
+pip install -r requirements.txt
+cd /home/ws
 
 
 
