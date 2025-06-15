@@ -34,6 +34,16 @@ requests
 mkdocs
 mkdocs-material
 
+# ground station
+urllib3
+QtAwesome
+python-dateutil
+PyQtWebEngine
+PyQt5
+packaging
+idna
+charset-normalizer
+
 
 # Misc
 numpy
