@@ -1,5 +1,5 @@
 {
-    "name": "ROS 2 Development Container",
+    "name": "VT SailBOT Development Container",
     "image": "aanimated/sailbot_docker_dev_image",
     "privileged": true,
     "remoteUser": "",
