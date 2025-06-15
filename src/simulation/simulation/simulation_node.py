@@ -110,6 +110,7 @@ class SimulationNode(Node):
         
         self.termination_listener = self.create_subscription(msg_type=Bool, topic="/should_terminate", callback=self.should_terminate_callback, qos_profile=10)
         
+        self.get_logger().info(f"Creating simulation docker container. If this is your first time running the simulation, this may take a while because it needs to download the docker image. Please wait...")
         self.env = gym.make('SailboatLSAEnv-v0',
             renderer=CV2DRenderer(),
             wind_generator_fn=generate_wind_real_life_data, 
@@ -117,6 +118,8 @@ class SimulationNode(Node):
             map_scale=0.1,
             keep_sim_alive=True
         )
+        self.get_logger().info(f"Finished creating the simulation docker container!")
+        
         self.env.NB_STEPS_PER_SECONDS = 1000
         
         self.episode_length = self.env.NB_STEPS_PER_SECONDS * 60 * 400000000

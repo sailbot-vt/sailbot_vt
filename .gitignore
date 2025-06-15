@@ -15,6 +15,3 @@ src/object_detection/object_detection/weights/**.pt
 **.png
 **.jpg
 src/microros/dependencies/**
-.devcontainer/devcontainer.json
-ground_station_25
-ground_station_25/**
