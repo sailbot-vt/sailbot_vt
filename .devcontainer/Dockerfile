@@ -75,7 +75,10 @@ RUN sudo apt-get install -y --fix-missing \
     libxrender1 \
     libasound2
 
-RUN sudo apt install docker && sudo apt install docker.io
+
+# installations to allow the user to pull docker images from inside of this docker image
+RUN sudo apt install docker -y
+RUN sudo apt install docker.io -y
 
 
 USER $USERNAME
