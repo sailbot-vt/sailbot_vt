@@ -6,7 +6,7 @@ import geopy.distance
 import pyproj
 import math
 
-from .position import Position
+from autopilot_library.position import Position
 
 
 

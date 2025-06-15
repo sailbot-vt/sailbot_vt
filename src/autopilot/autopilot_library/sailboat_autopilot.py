@@ -1,9 +1,9 @@
-from .discrete_pid import Discrete_PID
-from .utils import *
+from autopilot_library.discrete_pid import Discrete_PID
+from autopilot_library.utils import *
 from rclpy.impl.rcutils_logger import RcutilsLogger
 
 
-class SailbotAutopilot:
+class SailboatAutopilot:
     """
     Controls the boat based on a hard coded policy.
     This class contains all of the code to control a sailboat given an observation.
@@ -38,7 +38,10 @@ class SailbotAutopilot:
     def reset(self): 
         self.__init__(parameters=self.parameters, logger=self.logger)
     
-            
+    def update_waypoints_list(self, waypoints_list: list[Position]):
+        self.waypoints = waypoints_list
+        self.current_waypoint_index = 0
+        
 
     def get_optimal_sail_angle(self, apparent_wind_angle: float):
         """

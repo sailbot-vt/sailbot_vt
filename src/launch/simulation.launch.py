@@ -33,6 +33,8 @@ def generate_launch_description():
 
             respawn=True, 
             respawn_delay=2.0,
-            output="log"
+            
+            output="screen",
+            emulate_tty=True
         )
     ])

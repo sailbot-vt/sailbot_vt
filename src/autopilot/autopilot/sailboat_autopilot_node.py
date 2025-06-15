@@ -1,5 +1,5 @@
-from autopilot.autopilot import SailbotAutopilot
-from autopilot.utils import *
+from autopilot_library.sailboat_autopilot import SailboatAutopilot
+from autopilot_library.utils import *
 
 
 import rclpy
@@ -30,7 +30,7 @@ class SailboatAutopilotNode(Node):
         with open(current_folder_path + "/default_parameters.yaml", 'r') as stream:
             self.parameters: dict = yaml.safe_load(stream)
             
-        self.sailbot_autopilot = SailbotAutopilot(parameters=self.parameters, logger=self.get_logger())
+        self.sailboat_autopilot = SailboatAutopilot(parameters=self.parameters, logger=self.get_logger())
 
 
         # Initialize ros2 subscriptions, publishers, and timers
@@ -205,23 +205,25 @@ class SailboatAutopilotNode(Node):
         
         
         
-    def waypoints_list_callback(self, waypoints: WaypointList):
+    def waypoints_list_callback(self, waypoint_list: WaypointList):
         """
         Convert the list of Nav Sat Fix objects (ros2) to a list of Position objects, which are a custom datatype that has some useful helper methods.
         The Position object should be simpler to do calculations with, so we would rather deal with them. There are many helper functios in utils.py for using Position objects
         """
-        if len(waypoints.waypoints) == 0: return
+        # NavSatFix message documentation: https://docs.ros2.org/foxy/api/sensor_msgs/msg/NavSatFix.html
         
-        self.sailbot_autopilot.reset()
+        if len(waypoint_list.waypoints) == 0: return
         
-        gps_positions: list[NavSatFix] = waypoints.waypoints
-        waypoints_list = []
+        self.sailboat_autopilot.reset()
         
-        for gps_position in gps_positions:
-            waypoints_list.append(Position(gps_position.longitude, gps_position.latitude))
-            
-        self.sailbot_autopilot.waypoints = waypoints_list
-        self.sailbot_autopilot.current_waypoint_index = 0
+        waypoint_navsatfixes_list: list[NavSatFix] = waypoint_list.waypoints
+        waypoint_positions_list: list[Position] = []
+        
+        for navsatfix in waypoint_navsatfixes_list:
+            waypoint_positions_list.append(Position(navsatfix.longitude, navsatfix.latitude))
+        
+        self.sailboat_autopilot.waypoints = waypoint_positions_list
+        self.sailboat_autopilot.current_waypoint_index = 0
         
 
     def position_callback(self, position: NavSatFix):
@@ -252,23 +254,23 @@ class SailboatAutopilotNode(Node):
         """
 
         
-        if self.autopilot_mode == SailboatAutopilotMode.Waypoint_Mission and self.sailbot_autopilot.waypoints != None:
-            sail_angle, rudder_angle = self.sailbot_autopilot.run_waypoint_mission_step(self.position, self.velocity, self.heading, self.apparent_wind_vector)
+        if self.autopilot_mode == SailboatAutopilotMode.Waypoint_Mission and self.sailboat_autopilot.waypoints != None:
+            sail_angle, rudder_angle = self.sailboat_autopilot.run_waypoint_mission_step(self.position, self.velocity, self.heading, self.apparent_wind_vector)
         
         elif self.autopilot_mode == SailboatAutopilotMode.Hold_Best_Sail:
-            sail_angle = self.sailbot_autopilot.get_optimal_sail_angle(self.apparent_wind_angle)
-            _, rudder_angle = self.sailbot_autopilot.run_rc_control(self.joystick_left_y, self.joystick_right_x)
+            sail_angle = self.sailboat_autopilot.get_optimal_sail_angle(self.apparent_wind_angle)
+            _, rudder_angle = self.sailboat_autopilot.run_rc_control(self.joystick_left_y, self.joystick_right_x)
             
         elif self.autopilot_mode == SailboatAutopilotMode.Hold_Heading:
-            rudder_angle = self.sailbot_autopilot.get_optimal_rudder_angle(self.heading, self.heading_to_hold)
-            sail_angle, _ = self.sailbot_autopilot.run_rc_control(self.joystick_left_y, self.joystick_right_x)
+            rudder_angle = self.sailboat_autopilot.get_optimal_rudder_angle(self.heading, self.heading_to_hold)
+            sail_angle, _ = self.sailboat_autopilot.run_rc_control(self.joystick_left_y, self.joystick_right_x)
             
         elif self.autopilot_mode == SailboatAutopilotMode.Hold_Heading_And_Best_Sail:
-            rudder_angle = self.sailbot_autopilot.get_optimal_rudder_angle(self.heading, self.heading_to_hold)
-            sail_angle = self.sailbot_autopilot.get_optimal_sail_angle(self.apparent_wind_angle)
+            rudder_angle = self.sailboat_autopilot.get_optimal_rudder_angle(self.heading, self.heading_to_hold)
+            sail_angle = self.sailboat_autopilot.get_optimal_sail_angle(self.apparent_wind_angle)
             
         elif self.autopilot_mode == SailboatAutopilotMode.Full_RC:
-            sail_angle, rudder_angle = self.sailbot_autopilot.run_rc_control(self.joystick_left_y, self.joystick_right_x)
+            sail_angle, rudder_angle = self.sailboat_autopilot.run_rc_control(self.joystick_left_y, self.joystick_right_x)
             
         else: 
             return None, None
@@ -291,13 +293,13 @@ class SailboatAutopilotNode(Node):
         desired_rudder_angle, desired_sail_angle = self.step()
         # self.get_logger().info(f"finished step")
         
-        self.current_waypoint_index_publisher.publish(Int32(data=self.sailbot_autopilot.current_waypoint_index))
+        self.current_waypoint_index_publisher.publish(Int32(data=self.sailboat_autopilot.current_waypoint_index))
         
         
         # Publish the autonomy maneuever (aka whether we are currently CW tacking, CCW tacking, or normal sailing)
         self.autopilot_mode_publisher.publish(String(data=self.autopilot_mode.name))
         if self.autopilot_mode == SailboatAutopilotMode.Waypoint_Mission:
-            self.full_autonomy_maneuver_publisher.publish(String(data=self.sailbot_autopilot.current_state.name))
+            self.full_autonomy_maneuver_publisher.publish(String(data=self.sailboat_autopilot.current_state.name))
             
         else:
             self.full_autonomy_maneuver_publisher.publish(String(data="N/A"))
@@ -309,8 +311,8 @@ class SailboatAutopilotNode(Node):
         if self.autopilot_mode == SailboatAutopilotMode.Hold_Heading or self.autopilot_mode == SailboatAutopilotMode.Hold_Heading_And_Best_Sail:
             self.desired_heading_publisher.publish(Float32(data=float(self.heading_to_hold)))
             
-        elif self.autopilot_mode == SailboatAutopilotMode.Waypoint_Mission and self.sailbot_autopilot.waypoints != None:
-            current_waypoint = self.sailbot_autopilot.waypoints[self.sailbot_autopilot.current_waypoint_index]
+        elif self.autopilot_mode == SailboatAutopilotMode.Waypoint_Mission and self.sailboat_autopilot.waypoints != None:
+            current_waypoint = self.sailboat_autopilot.waypoints[self.sailboat_autopilot.current_waypoint_index]
             
             # TODO make it so that the bearing is the actual heading the autopilot is trying to follow (this is different when tacking)
             # when tacking, the boat is not trying to head straight towards the waypoint, but rather, it is travelling on a tacking line

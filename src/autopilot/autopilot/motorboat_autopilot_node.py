@@ -2,10 +2,9 @@
 TODO: Make an autopilot publisher like the sailboat_autopilot_node that sends the default parameters once and then deletes the publisher
 """
 
-
-from autopilot.autopilot import SailbotAutopilot
-from autopilot.autopilot import Discrete_PID
-from autopilot.utils import *
+from autopilot_library.sailboat_autopilot import SailboatAutopilot
+from autopilot_library.discrete_pid import Discrete_PID
+from autopilot_library.utils import *
 
 
 import rclpy
@@ -30,7 +29,7 @@ class MotorboatAutopilotNode(Node):
         with open(cur_folder_path + "/default_parameters.yaml", 'r') as stream:
             self.parameters: dict = yaml.safe_load(stream)
             
-        self.sailbot_autopilot = SailbotAutopilot(parameters=self.parameters, logger=self.get_logger())
+        self.sailboat_autopilot = SailboatAutopilot(parameters=self.parameters, logger=self.get_logger())
 
 
         # Initialize ros2 subscriptions, publishers, and timers
@@ -192,23 +191,26 @@ class MotorboatAutopilotNode(Node):
             self.destroy_timer(self.autopilot_refresh_timer)
             self.autopilot_refresh_timer = self.create_timer(1 / self.parameters['autopilot_refresh_rate'], self.update_ros_topics)
 
-    def waypoints_list_callback(self, waypoints: WaypointList):
+
+
+    def waypoints_list_callback(self, waypoint_list: WaypointList):
         """
         convert the list of Nav Sat Fix objects (ros2) to a list of Position objects, which are a custom datatype that has some useful helper methods.
         The Position object should be simpler to do calculations with
         """
-        if len(waypoints.waypoints) == 0: return
+        if len(waypoint_list.waypoints) == 0: return
         
-        self.sailbot_autopilot.reset()
+        self.sailboat_autopilot.reset()
         
-        gps_positions: list[NavSatFix] = waypoints.waypoints
-        waypoints_list = []
+        waypoint_navsatfixes: list[NavSatFix] = waypoint_list.waypoints
+        waypoint_positions: list[Position] = []
         
-        for gps_position in gps_positions:
-            waypoints_list.append(Position(gps_position.longitude, gps_position.latitude))
-            
-        self.sailbot_autopilot.waypoints = waypoints_list
-        self.sailbot_autopilot.current_waypoint_index = 0
+        for navsatfix in waypoint_navsatfixes:
+            waypoint_positions.append(Position(navsatfix.longitude, navsatfix.latitude))
+        
+        self.sailboat_autopilot.update_waypoints_list(waypoint_positions)
+        
+        
         
 
     def position_callback(self, position: NavSatFix):
@@ -227,11 +229,11 @@ class MotorboatAutopilotNode(Node):
         
         desired_rudder_angle = self.step()
 
-        self.current_waypoint_index_publisher.publish(Int32(data=self.sailbot_autopilot.current_waypoint_index))
+        self.current_waypoint_index_publisher.publish(Int32(data=self.sailboat_autopilot.current_waypoint_index))
             
         self.autopilot_mode_publisher.publish(String(data=self.autopilot_mode.name))
         if self.autopilot_mode == MotorboatAutopilotMode.Waypoint_Mission:
-            self.full_autonomy_maneuver_publisher.publish(String(data=self.sailbot_autopilot.current_state.name))
+            self.full_autonomy_maneuver_publisher.publish(String(data=self.sailboat_autopilot.current_state.name))
         else:
             self.full_autonomy_maneuver_publisher.publish(String(data="N/A"))
 
@@ -239,8 +241,8 @@ class MotorboatAutopilotNode(Node):
         if self.autopilot_mode == MotorboatAutopilotMode.Hold_Heading:
             self.desired_heading_publisher.publish(Float32(data=float(self.heading_to_hold)))
             
-        elif self.autopilot_mode == MotorboatAutopilotMode.Waypoint_Mission and self.sailbot_autopilot.waypoints != None:
-            current_waypoint = self.sailbot_autopilot.waypoints[self.sailbot_autopilot.current_waypoint_index]
+        elif self.autopilot_mode == MotorboatAutopilotMode.Waypoint_Mission and self.sailboat_autopilot.waypoints != None:
+            current_waypoint = self.sailboat_autopilot.waypoints[self.sailboat_autopilot.current_waypoint_index]
             bearing_to_waypoint = get_bearing(self.position, current_waypoint) #TODO make it so that this is the actual heading the autopilot is trying to follow (this is different when tacking)
             self.desired_heading_publisher.publish(Float32(data=float(bearing_to_waypoint)))
             
@@ -346,15 +348,15 @@ class MotorboatAutopilotNode(Node):
             sail angle or rudder angle are None if the autopilot doesn't have authority over them 
         """
 
-        if self.autopilot_mode == MotorboatAutopilotMode.Waypoint_Mission and self.sailbot_autopilot.waypoints != None:
+        if self.autopilot_mode == MotorboatAutopilotMode.Waypoint_Mission and self.sailboat_autopilot.waypoints != None:
             pass
-            # _, rudder_angle = self.sailbot_autopilot.run_waypoint_mission_step(self.position, self.velocity, self.heading, self.apparent_wind_angle)
+            # _, rudder_angle = self.sailboat_autopilot.run_waypoint_mission_step(self.position, self.velocity, self.heading, self.apparent_wind_angle)
             
         elif self.autopilot_mode == MotorboatAutopilotMode.Hold_Heading:
             rudder_angle = self.get_optimal_rudder_angle(self.heading, self.heading_to_hold)
             
         elif self.autopilot_mode == MotorboatAutopilotMode.Full_RC:
-            _, rudder_angle = self.sailbot_autopilot.run_rc_control(self.joystick_left_y, self.joystick_right_x)
+            _, rudder_angle = self.sailboat_autopilot.run_rc_control(self.joystick_left_y, self.joystick_right_x)
             
         else: 
             return None

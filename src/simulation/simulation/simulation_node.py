@@ -136,8 +136,6 @@ class SimulationNode(Node):
         self.desired_rudder_angle, self.desired_sail_angle = None, None
         self.apparent_wind_vector = Vector3(x=1.)
         self.true_wind_vector = Vector3(x=1.)
-        self.route = None
-
 
 
     def __del__(self):
@@ -145,11 +143,6 @@ class SimulationNode(Node):
         rclpy.shutdown()
 
 
-
-    def desired_route_callback(self, waypoint_list: WaypointList):
-        self.route = [(waypoint.longitude, waypoint.latitude) for waypoint in waypoint_list.waypoints]
-        
-        
     def rudder_angle_callback(self, msg: Float32):
         self.desired_rudder_angle = np.array(msg.data)
 
