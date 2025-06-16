@@ -12,6 +12,4 @@ src/object_detection/object_detection/
 src/object_detection/
 src/object_detection/object_detection/weights/**.pt
 **.pt
-**.png
-**.jpg
 src/microros/dependencies/**
