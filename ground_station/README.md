@@ -13,26 +13,13 @@ Ensure that you have the following software installed on your system:
 
 ### Installation
 
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/sailbot-vt/ground_station_25.git
-   cd ground_station_25
-   ```
-
-2. Install the Python dependencies:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Give the start script executable permissions:
+1. Give the start script executable permissions:
 
    ```bash
    chmod +x run.sh
    ```
 
-4. Run the program
+2. Run the program
 
    ```bash
    ./run.sh
