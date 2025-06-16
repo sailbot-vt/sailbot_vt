@@ -42,7 +42,7 @@ TELEMETRY_SERVER_ENDPOINTS = {
 WAYPOINTS_SERVER_URL = "http://localhost:3001/waypoints"
 
 try:
-    # should be the path to wherever `ground_station_25` is located
+    # should be the path to wherever `ground_station` is located
     TOP_LEVEL_DIR = PurePath(os.getcwd())
 
     SRC_DIR = PurePath(TOP_LEVEL_DIR / "src")

@@ -1,11 +1,11 @@
+.DS_Store
+.python-version
+**/__pycache__/**
 build
 install
 log
 src/object_detection/object_detection/datasets
 output
-ground_station/telemetry_log.txt
-ground_station/pid_data.csv
-ground_station/__pycache__
 src/object_detection/object_detection/weights/**.pt
 src/object_detection
 src/object_detection/object_detection/
