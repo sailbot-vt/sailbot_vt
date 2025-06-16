@@ -57,7 +57,7 @@ class MotorboatAutopilotNode(Node):
 
         self.full_autonomy_maneuver_publisher = self.create_publisher(msg_type=String, topic='/full_autonomy_maneuver', qos_profile=sensor_qos_profile)
         self.desired_heading_publisher = self.create_publisher(Float32, '/desired_heading', qos_profile=10)
-        self.rudder_angle_publisher = self.create_publisher(msg_type=Float32, topic="/actions/rudder_angle", qos_profile=sensor_qos_profile)
+        self.rudder_angle_publisher = self.create_publisher(msg_type=Float32, topic="/desired_rudder_angle", qos_profile=sensor_qos_profile)
         self.is_propeller_motor_enabled_publisher = self.create_publisher(Bool, "/is_propeller_motor_enabled", qos_profile=10)
         self.zero_encoder_publisher = self.create_publisher(msg_type=Bool, topic="zero_rudder_encoder", qos_profile=10)
 

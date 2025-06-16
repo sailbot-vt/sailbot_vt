@@ -97,16 +97,14 @@ class SimulationNode(Node):
             depth=1
         )
 
-        # NOTE: All units are in standard SI units and angle is measured in degrees
-        self.desired_route_listener = self.create_subscription(WaypointList, '/desired_route', self.desired_route_callback, 10)
-        
+        # NOTE: All units are in standard SI units and angle is measured in degrees        
         self.position_publisher = self.create_publisher(msg_type=NavSatFix, topic="/position", qos_profile=sensor_qos_profile)
         self.velocity_publisher = self.create_publisher(msg_type=Twist, topic="/velocity", qos_profile=sensor_qos_profile)
         self.heading_publisher = self.create_publisher(msg_type=Float32, topic="/heading", qos_profile=sensor_qos_profile)
         self.apparent_wind_vector_publisher = self.create_publisher(msg_type=Vector3, topic="/apparent_wind_vector", qos_profile=sensor_qos_profile)
         
-        self.rudder_angle_listener = self.create_subscription(msg_type=Float32, topic="/actions/rudder_angle", callback=self.rudder_angle_callback, qos_profile=sensor_qos_profile)
-        self.sail_angle_listener = self.create_subscription(msg_type=Float32, topic="/actions/sail_angle", callback=self.sail_angle_callback, qos_profile=sensor_qos_profile)
+        self.rudder_angle_listener = self.create_subscription(msg_type=Float32, topic="/desired_rudder_angle", callback=self.desired_rudder_angle_callback, qos_profile=sensor_qos_profile)
+        self.sail_angle_listener = self.create_subscription(msg_type=Float32, topic="/desired_sail_angle", callback=self.desired_sail_angle_callback, qos_profile=sensor_qos_profile)
         
         self.termination_listener = self.create_subscription(msg_type=Bool, topic="/should_terminate", callback=self.should_terminate_callback, qos_profile=10)
         
@@ -118,7 +116,7 @@ class SimulationNode(Node):
             map_scale=0.1,
             keep_sim_alive=True
         )
-        self.get_logger().info(f"Finished creating the simulation docker container!")
+        self.get_logger().info(f"Finished creating the simulation docker container! Please launch the groundstation to interact with the simulation")
         
         self.env.NB_STEPS_PER_SECONDS = 1000
         
@@ -143,26 +141,27 @@ class SimulationNode(Node):
         rclpy.shutdown()
 
 
-    def rudder_angle_callback(self, msg: Float32):
-        self.desired_rudder_angle = np.array(msg.data)
+    def desired_rudder_angle_callback(self, desired_rudder_angle_message: Float32):
+        self.desired_rudder_angle = np.array(desired_rudder_angle_message.data)
 
         if self.desired_sail_angle != None:
             self.step_simulation()
             self.desired_rudder_angle, self.desired_sail_angle = None, None
 
-    def sail_angle_callback(self, msg: Float32):
-        
+
+    def desired_sail_angle_callback(self, desired_sail_angle_message: Float32):
         _, true_wind_angle = self.cartesian_vector_to_polar(self.true_wind_vector.x, self.true_wind_vector.y)
-        sail_dir_fix = -1 if 0 < true_wind_angle < 180 else 1
-        self.desired_sail_angle = np.array(sail_dir_fix * msg.data)
+        sail_direction_fix = -1 if 0 < true_wind_angle < 180 else 1
+        self.desired_sail_angle = np.array(sail_direction_fix * desired_sail_angle_message.data)
 
         if self.desired_rudder_angle != None:
             self.step_simulation()
             self.desired_rudder_angle, self.desired_sail_angle = None, None
             
             
-    def should_terminate_callback(self, msg: Bool):
-        if msg.data == False: return
+            
+    def should_terminate_callback(self, should_terminate_callback_message: Bool):
+        if should_terminate_callback_message.data == False: return
         
         self.env.close()
         rclpy.shutdown()

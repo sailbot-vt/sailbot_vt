@@ -1,4 +1,7 @@
 #!usr/bin/python3
+
+# TODO: ADD TRACKING OF THE ACTUAL SAIL AND RUDDER ANGLES TO THE TELEMETRY DATA
+
 from autopilot_library.utils import *
 
 import rclpy
@@ -95,8 +98,8 @@ class TelemetryNode(Node):
         self.apparent_wind_vector_listener = self.create_subscription(msg_type=Vector3, topic="/apparent_wind_vector", callback=self.apparent_wind_vector_callback, qos_profile=sensor_qos_profile)
         self.camera_rgb_image_listener = self.create_subscription(msg_type=Image, topic="/camera/camera/color/image_raw", callback=self.camera_rgb_image_callback, qos_profile=sensor_qos_profile)
         
-        self.sail_angle_listener = self.create_subscription(msg_type=Float32, topic="/actions/sail_angle", callback=self.sail_angle_callback, qos_profile=sensor_qos_profile)
-        self.rudder_angle_listener = self.create_subscription(msg_type=Float32, topic="/actions/rudder_angle", callback=self.rudder_angle_callback, qos_profile=sensor_qos_profile)
+        self.desired_sail_angle_listener = self.create_subscription(msg_type=Float32, topic="/desired_sail_angle", callback=self.desired_sail_angle_callback, qos_profile=sensor_qos_profile)
+        self.desired_rudder_angle_listener = self.create_subscription(msg_type=Float32, topic="/desired_rudder_angle", callback=self.desired_rudder_angle_callback, qos_profile=sensor_qos_profile)
 
         # Default values in case these are never sent through ROS
         # If these values aren't changing then the ros node thats supposed to be sending these values may not be working correctly
@@ -118,8 +121,8 @@ class TelemetryNode(Node):
         
         self.base64_encoded_current_rgb_image = None
 
-        self.sail_angle = 0.
-        self.rudder_angle = 0.
+        self.desired_sail_angle = 0.
+        self.desired_rudder_angle = 0.
                 
         self.vesc_data_rpm = 0
         self.vesc_data_duty_cycle = 0
@@ -194,11 +197,11 @@ class TelemetryNode(Node):
 
 
     
-    def sail_angle_callback(self, sail_angle: Float32):
-        self.sail_angle = sail_angle.data
+    def desired_sail_angle_callback(self, desired_sail_angle: Float32):
+        self.desired_sail_angle = desired_sail_angle.data
 
-    def rudder_angle_callback(self, rudder_angle: Float32):
-        self.rudder_angle = rudder_angle.data
+    def desired_rudder_angle_callback(self, desired_rudder_angle: Float32):
+        self.desired_rudder_angle = desired_rudder_angle.data
 
         
     def should_terminate_callback(self, msg: Bool):
@@ -230,7 +233,7 @@ class TelemetryNode(Node):
         #     "bearing": self.desired_heading, "heading": self.heading,
         #     "true_wind_speed": self.true_wind_speed, "true_wind_angle": self.true_wind_angle,
         #     "apparent_wind_speed": self.apparent_wind_speed, "apparent_wind_angle": self.apparent_wind_angle,
-        #     "sail_angle": self.sail_angle, "rudder_angle": self.rudder_angle,
+        #     "sail_angle": self.desired_sail_angle, "rudder_angle": self.desired_rudder_angle,
         #     "current_waypoint_index": self.current_waypoint_index,
         #     "parameters": self.autopilot_parameters_dict,
         #     "current_camera_image": self.base64_encoded_current_rgb_image,
@@ -262,7 +265,7 @@ class TelemetryNode(Node):
             "bearing": self.desired_heading, "heading": self.heading,
             "true_wind_speed": self.true_wind_speed, "true_wind_angle": self.true_wind_angle,
             "apparent_wind_speed": self.apparent_wind_speed, "apparent_wind_angle": self.apparent_wind_angle,
-            "sail_angle": self.sail_angle, "rudder_angle": self.rudder_angle,
+            "sail_angle": self.desired_sail_angle, "rudder_angle": self.desired_rudder_angle,
             "current_waypoint_index": self.current_waypoint_index,
             "distance_to_next_waypoint": get_distance_to_waypoint([self.position.latitude, self.position.longitude], self.current_waypoint)
         }
