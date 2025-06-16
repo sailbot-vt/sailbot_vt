@@ -16,6 +16,15 @@ git clone https://github.com/LiamBindle/PyVESC .
 pip install .
 cd /home/ws
 
+# NEW PYVESC INSTALLATION TO GET RID OF THE TESTING FOLDER
+# cd /home/ws/src/vesc
+# mkdir pyvesc
+# cd pyvesc
+# git clone https://github.com/LiamBindle/PyVESC .
+# pip install -e .
+# touch __init__.py
+# cd /home/ws
+
 cd ground_station_old 
 pip install -r requirements.txt
 cd /home/ws
