@@ -63,7 +63,7 @@ try:
         os.makedirs(DATA_DIR / "boat_data")
 
     if "boat_data_bounds" not in os.listdir(DATA_DIR):
-        os.makedirs(DATA_DIR / "boat_data")
+        os.makedirs(DATA_DIR / "boat_data_bounds")
 
     if "buoy_data" not in os.listdir(DATA_DIR):
         os.makedirs(DATA_DIR / "buoy_data")
