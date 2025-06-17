@@ -17,6 +17,10 @@ cd /home/ws/src/vesc/pyvesc
 pip install -e .
 cd /home/ws
 
+cd /home/ws/src/simulation/sailboat_gym
+pip install -e .
+cd /home/ws
+
 
 cd ground_station_old 
 pip install -r requirements.txt

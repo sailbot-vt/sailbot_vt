@@ -103,7 +103,7 @@ class TelemetryNode(Node):
 
         # Default values in case these are never sent through ROS
         # If these values aren't changing then the ros node thats supposed to be sending these values may not be working correctly
-        self.current_waypoint: list[float, float] = [0., 0.]
+        self.current_waypoints_list: list[tuple[float, float]] = [(0., 0.),]
         self.current_waypoint_index = 0
         self.position = NavSatFix(latitude=0., longitude=0.)
         
@@ -267,7 +267,7 @@ class TelemetryNode(Node):
             "apparent_wind_speed": self.apparent_wind_speed, "apparent_wind_angle": self.apparent_wind_angle,
             "sail_angle": self.desired_sail_angle, "rudder_angle": self.desired_rudder_angle,
             "current_waypoint_index": self.current_waypoint_index,
-            "distance_to_next_waypoint": get_distance_to_waypoint([self.position.latitude, self.position.longitude], self.current_waypoint)
+            "distance_to_next_waypoint": get_distance_to_waypoint([self.position.latitude, self.position.longitude], self.current_waypoints_list[self.current_waypoint_index])
         }
         
         # self.get_logger().info(f"{pympler.asizeof.asizeof(list(boat_status_dictionary.values()))}")
@@ -294,7 +294,7 @@ class TelemetryNode(Node):
             
             waypoints_nav_sat_fix_list.append(NavSatFix(latitude=float(lat), longitude=float(lon)))
         
-        self.current_waypoint = new_waypoints_list[self.current_waypoint_index]
+        self.current_waypoints_list = new_waypoints_list
         self.waypoints_list_publisher.publish(WaypointList(waypoints=waypoints_nav_sat_fix_list))
         
         
