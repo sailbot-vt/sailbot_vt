@@ -236,14 +236,15 @@ class SimulationNode(Node):
         assert self.desired_sail_angle != None
         
         action = {"theta_rudder": np.deg2rad(self.desired_rudder_angle), "theta_sail": np.deg2rad(self.desired_sail_angle)}
+        self.get_logger().info(f"started stepping simulation")
         obs, reward, terminated, truncated, info = self.env.step(action)
-
+        self.get_logger().info(f"finished stepping simulation")
+        
         sim_time += 1
         
         # self.display_image(self.env.render())
 
         self.publish_observation_data(obs)
-
 
 
 

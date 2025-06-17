@@ -13,7 +13,6 @@ crsf-parser
 spidev
 
 # Simulation/ RL
-sailboat-gym
 gymnasium==0.28.1
 moviepy
 msgpack-python==0.5.6

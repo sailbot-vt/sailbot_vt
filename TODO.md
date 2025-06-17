@@ -1,0 +1,1 @@
+Add a section in the documentation that explains that in order to add a library (like pyvesc or sailboat_gym) that you may want to take out the __init__.py file. If __init__.py is there, colcon will pick up on it and then put it in the install folder, and if it is not there, then colcon will not touch it.
