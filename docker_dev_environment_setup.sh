@@ -11,19 +11,11 @@ echo 'alias python="python3"' >> /home/sailbot_user/.bashrc
 
 pip install -r requirements.txt
 
-cd /home/ws/testing/pyvesc
-git clone https://github.com/LiamBindle/PyVESC .
-pip install .
+# NEW PYVESC INSTALLATION
+cd /home/ws/src/vesc/pyvesc
+pip install -e .
 cd /home/ws
 
-# NEW PYVESC INSTALLATION TO GET RID OF THE TESTING FOLDER
-# cd /home/ws/src/vesc
-# mkdir pyvesc
-# cd pyvesc
-# git clone https://github.com/LiamBindle/PyVESC .
-# pip install -e .
-# touch __init__.py
-# cd /home/ws
 
 cd ground_station_old 
 pip install -r requirements.txt
