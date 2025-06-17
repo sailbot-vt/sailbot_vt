@@ -28,8 +28,6 @@ class VESC(object):
         if has_sensor:
             self.serial_port.write(encode(SetRotorPositionMode(SetRotorPositionMode.DISP_POS_OFF)))
 
-        self.alive_msg = [encode(Alive())]
-
         self.heart_beat_thread = threading.Thread(target=self._heartbeat_cmd_func)
         self._stop_heartbeat = threading.Event()
 
@@ -37,9 +35,9 @@ class VESC(object):
             self.start_heartbeat()
 
         # check firmware version and set GetValue fields to old values if pre version 3.xx
-        version = self.get_firmware_version()
-        if int(version.split('.')[0]) < 3:
-            GetValues.fields = pre_v3_33_fields
+        # version = self.get_firmware_version()
+        # if int(version.split('.')[0]) < 3:
+        #     GetValues.fields = pre_v3_33_fields
 
         # store message info for getting values so it doesn't need to calculate it every time
         msg = GetValues()
@@ -59,30 +57,23 @@ class VESC(object):
         """
         Continuous function calling that keeps the motor alive
         """
-        while not self._stop_heartbeat.is_set():
+        while not self._stop_heartbeat.isSet():
             time.sleep(0.1)
-            for i in self.alive_msg:
-                self.write(i)
+            self.write(alive_msg)
 
-    def start_heartbeat(self, can_id=None):
+    def start_heartbeat(self):
         """
         Starts a repetitive calling of the last set cmd to keep the motor alive.
-
-        Args:
-            can_id: Optional, used to specify the CAN ID to add to the existing heartbeat messaged
         """
-        if can_id is not None:
-            self.alive_msg.append(encode(Alive(can_id=can_id)))
-        else:
-            self.heart_beat_thread.start()
+        self.heart_beat_thread.start()
 
     def stop_heartbeat(self):
         """
         Stops the heartbeat thread and resets the last cmd function. THIS MUST BE CALLED BEFORE THE OBJECT GOES OUT OF
         SCOPE UNLESS WRAPPING IN A WITH STATEMENT (Assuming the heartbeat was started).
         """
-        self._stop_heartbeat.set()
         if self.heart_beat_thread.is_alive():
+            self._stop_heartbeat.set()
             self.heart_beat_thread.join()
 
     def write(self, data, num_read_bytes=None):
@@ -95,35 +86,38 @@ class VESC(object):
         """
         self.serial_port.write(data)
         if num_read_bytes is not None:
+            start_time = time.time()
             while self.serial_port.in_waiting <= num_read_bytes:
                 time.sleep(0.000001)  # add some delay just to help the CPU
+                if time.time() - start_time >= 10:
+                    raise Exception("failed to read motor measurements")
             response, consumed = decode(self.serial_port.read(self.serial_port.in_waiting))
             return response
 
-    def set_rpm(self, new_rpm, **kwargs):
+    def set_rpm(self, new_rpm):
         """
         Set the electronic RPM value (a.k.a. the RPM value of the stator)
         :param new_rpm: new rpm value
         """
-        self.write(encode(SetRPM(new_rpm, **kwargs)))
+        self.write(encode(SetRPM(new_rpm)))
 
-    def set_current(self, new_current, **kwargs):
+    def set_current(self, new_current):
         """
         :param new_current: new current in milli-amps for the motor
         """
-        self.write(encode(SetCurrent(new_current, **kwargs)))
+        self.write(encode(SetCurrent(new_current)))
 
-    def set_duty_cycle(self, new_duty_cycle, **kwargs):
+    def set_duty_cycle(self, new_duty_cycle):
         """
         :param new_duty_cycle: Value of duty cycle to be set (range [-1e5, 1e5]).
         """
-        self.write(encode(SetDutyCycle(new_duty_cycle, **kwargs)))
+        self.write(encode(SetDutyCycle(new_duty_cycle)))
 
-    def set_servo(self, new_servo_pos, **kwargs):
+    def set_servo(self, new_servo_pos):
         """
         :param new_servo_pos: New servo position. valid range [0, 1]
         """
-        self.write(encode(SetServoPosition(new_servo_pos, **kwargs)))
+        self.write(encode(SetServoPosition(new_servo_pos)))
 
     def get_measurements(self):
         """
@@ -164,7 +158,3 @@ class VESC(object):
         :return: Current incoming current
         """
         return self.get_measurements().current_in
-
-
-
-
