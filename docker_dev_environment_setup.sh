@@ -11,6 +11,7 @@ echo 'alias python="python3"' >> /home/sailbot_user/.bashrc
 
 pip install -r requirements.txt
 
+
 # NEW PYVESC INSTALLATION
 cd /home/ws/src/vesc/pyvesc
 pip install -e .
