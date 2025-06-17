@@ -1,0 +1,13 @@
+
+certifi
+charset-normalizer
+idna
+numpy
+packaging
+PyQt5
+PyQtWebEngine
+python-dateutil
+QtAwesome
+requests
+urllib3
+geopy
