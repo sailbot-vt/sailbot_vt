@@ -80,7 +80,7 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
     // -----------------------------------------------------
     RCCHECK(rclc_publisher_init_default(&current_rudder_angle_publisher, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "/current_rudder_angle"));
     RCCHECK(rclc_publisher_init_default(&current_rudder_motor_angle_publisher, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "/current_rudder_motor_angle"));
-    RCCHECK(rclc_subscription_init_best_effort(&desired_rudder_angle_subscriber, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "/actions/rudder_angle"));       
+    RCCHECK(rclc_subscription_init_best_effort(&desired_rudder_angle_subscriber, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "/desired_rudder_angle"));       
     RCCHECK(rclc_executor_add_subscription(executor, &desired_rudder_angle_subscriber, &desired_rudder_angle_msg, &desired_rudder_angle_received_callback, ON_NEW_DATA));
 
 
@@ -90,7 +90,7 @@ void application_init(rcl_allocator_t *allocator, rclc_support_t *support, rclc_
     #if BOAT_MODE == Lumpy
     RCCHECK(rclc_publisher_init_default(&current_sail_angle_publisher, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "/current_sail_angle"));
     RCCHECK(rclc_publisher_init_default(&current_winch_angle_publisher,&microros_node,ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32),"/current_winch_angle"));
-    RCCHECK(rclc_subscription_init_best_effort(&desired_winch_angle_subscriber, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "/actions/sail_angle"));
+    RCCHECK(rclc_subscription_init_best_effort(&desired_winch_angle_subscriber, &microros_node, ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float32), "/desired_sail_angle"));
     RCCHECK(rclc_executor_add_subscription(executor, &desired_winch_angle_subscriber, &desired_winch_angle_msg, &desired_sail_angle_received_callback, ON_NEW_DATA));
     #endif
 
