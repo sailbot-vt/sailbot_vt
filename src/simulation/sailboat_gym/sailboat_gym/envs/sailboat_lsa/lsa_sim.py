@@ -256,9 +256,9 @@ class LSASim(metaclass=ProfilingMeta):
                     name=name,
                     detach=True,
                     auto_remove=True,
-                    device_requests=[
-                        DeviceRequest(device_ids=["0"], capabilities=[['gpu']])
-                    ],
+                    # device_requests=[
+                    #     DeviceRequest(device_ids=["0"], capabilities=[['gpu']])
+                    # ],
                     ports={
                         f'{self.DEFAULT_PORT}/tcp': port,
                         '22/tcp': None,
