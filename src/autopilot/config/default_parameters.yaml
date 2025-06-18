@@ -24,7 +24,7 @@ heading_n_gain: 0
 
 rudder_hard_over: 25
 no_sail_zone_size: 100
-autopilot_refresh_rate: 100
+autopilot_refresh_rate: 50
 
 jibe_tolerance: 3   # how close to jibe angle to stop steering around and start sailing along the jibe line
 tack_tolerance: 3   # how close to tacking angle to stop steering around and start sailing along the tack line

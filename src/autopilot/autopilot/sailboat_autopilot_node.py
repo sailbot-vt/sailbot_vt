@@ -289,9 +289,9 @@ class SailboatAutopilotNode(Node):
         Each call to this function takes around 2 milliseconds as of 5/26/2025 (aka this is not a super important place to find optimizations since it doesn't take that much time from a cpu core)
         """        
         
-        # self.get_logger().info(f"got to update ros topics")
+        # print(f"{time.time()} got to update ros topics")
         desired_rudder_angle, desired_sail_angle = self.step()
-        # self.get_logger().info(f"finished step")
+        # print(f"{time.time()} finished step")
         
         self.current_waypoint_index_publisher.publish(Int32(data=self.sailboat_autopilot.current_waypoint_index))
         
@@ -343,7 +343,7 @@ class SailboatAutopilotNode(Node):
             self.zero_winch_encoder_publisher.publish(Bool(data=self.should_zero_winch_encoder))
             self.winch_encoder_has_been_zeroed = True
 
-        # self.get_logger().info(f"finished publishing")
+        # print(f"{time.time()} finished publishing")
 
 
 

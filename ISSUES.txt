@@ -11,3 +11,14 @@ echo 'xhost +' >> ~/.bashrc
 echo 'export QT_XCB_GL_INTEGRATION=none' >> ~/.bashrc
 echo 'export XDG_SESSION_TYPE=x11' >> ~/.bashrc
 echo 'export QT_QPA_PLATFORM=xcb' >> ~/.bashrc
+
+
+
+
+
+
+
+
+
+
+If the simulation is periodically pausing for like a minute and then unpausing, the issue is likely that your system clock isn't synced properly (often due to a dual boot) 

@@ -221,6 +221,7 @@ class TelemetryNode(Node):
     
         
     def update_boat_status(self):
+        # self.get_logger().info("update boat status")
         true_wind_vector = self.apparent_wind_vector + self.velocity_vector
         self.true_wind_speed, self.true_wind_angle = cartesian_vector_to_polar(true_wind_vector[0], true_wind_vector[1])
 

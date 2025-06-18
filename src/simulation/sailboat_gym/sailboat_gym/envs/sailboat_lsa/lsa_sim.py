@@ -105,6 +105,8 @@ class LSASim(metaclass=ProfilingMeta):
     def step(self, wind: np.ndarray[2], water: np.ndarray[2], action: Action):
         if is_debugging():
             print(f'[LSASim] Sending action {action}')
+        
+        # print("sending message to sim")
         self.__send_msg({
             'action': {
                 'theta_rudder': action['theta_rudder'].item(),
@@ -113,7 +115,9 @@ class LSASim(metaclass=ProfilingMeta):
                 'water': {'x': water[0], 'y': water[1]},
             }
         })
+        # print("receiving message from sim")
         msg = self.__recv_msg()
+        # print("sim comms done")
         obs = self.__parse_sim_obs(msg['obs'])
         done = msg['done']
         return obs, done, msg['info']
@@ -304,6 +308,7 @@ class LSASim(metaclass=ProfilingMeta):
     def __recv_msg(self):
         with self.auto_pause_if_inactive:
             msg = msgpack.unpackb(self.socket.recv(), raw=False)
+            print(msg)
             if 'error' in msg:
                 raise RuntimeError(msg['error'])
             return msg
