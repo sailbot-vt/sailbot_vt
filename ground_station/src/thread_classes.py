@@ -125,12 +125,20 @@ class ImageFetcher(QThread):
                 timeout=5,
             ).json()
             base64_encoded_image = image_data.get("current_camera_image")
+            if base64_encoded_image is None:
+                raise ValueError("Image data is None")
 
         except requests.exceptions.RequestException:
             base64_encoded_image = open(
                 constants.ASSETS_DIR / "cool-guy-base64.txt"
             ).read()
             print("Warning: Failed to fetch image. Using cool guy image.")
+
+        except ValueError as e:
+            print(f"Warning: {e}")
+            base64_encoded_image = open(
+                constants.ASSETS_DIR / "cool-guy-base64.txt"
+            ).read()
 
         self.image_fetched.emit(base64_encoded_image)
 
