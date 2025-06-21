@@ -4,8 +4,6 @@ import time
 import base64
 import requests
 import json
-import geopy
-import geopy.distance
 
 import constants
 import thread_classes
@@ -1046,8 +1044,8 @@ class GroundStationWidget(QWidget):
         self,
         boat_data: dict[
             str, Union[float, str, tuple[float, float], list[tuple[float, float]]]
-        ]
-) -> None:
+        ],
+    ) -> None:
         """
         Update telemetry display with boat data.
 
@@ -1107,12 +1105,11 @@ class GroundStationWidget(QWidget):
             return ms * 1000
 
         try:
-            distance_to_next_waypoint = boat_data.get("distance_to_next_waypoint", 0.)
-            
+            distance_to_next_waypoint = boat_data.get("distance_to_next_waypoint", 0.0)
+
         except Exception as e:
             print(e)
             distance_to_next_waypoint = 0.0
-            
 
             telemetry_text = f"""Boat Info:
 Position: {boat_data.get("position", [-69.420, -69.420])[0]:.8f}, {boat_data.get("position", [-69.420, -69.420])[1]:.8f}
@@ -1141,7 +1138,6 @@ Time Since VESC Startup: {convert_to_seconds(boat_data.get("vesc_data_time_since
 Motor Temperature: {fix_formatting(boat_data.get("vesc_data_motor_temperature"))}°C
 """
         else:
-            
             for key in self.boat_data_averages.keys():
                 # self.boat_data = data from one iteration in the past
                 # boat_data = data from the current iteration
