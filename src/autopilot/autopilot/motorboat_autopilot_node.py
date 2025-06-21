@@ -26,7 +26,7 @@ class MotorboatAutopilotNode(Node):
         super().__init__("motorboat_autopilot")
 
         cur_folder_path = os.path.dirname(os.path.realpath(__file__))
-        with open(cur_folder_path + "/default_parameters.yaml", 'r') as stream:
+        with open(cur_folder_path + "/motorboat_default_parameters.yaml", 'r') as stream:
             self.parameters: dict = yaml.safe_load(stream)
             
         self.sailboat_autopilot = SailboatAutopilot(parameters=self.parameters, logger=self.get_logger())
