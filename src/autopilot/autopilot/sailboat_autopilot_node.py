@@ -108,7 +108,7 @@ class SailboatAutopilotNode(Node):
         
     def rc_data_callback(self, joystick_msg: RCData):
         
-        # this means we have entered hold heading mode, so keep track of the current heading
+        # This means we have entered hold heading mode, so keep track of the current heading since this is the target heading
         if joystick_msg.toggle_f == 1 and self.toggle_f != 1:
             self.heading_to_hold = self.heading     
         

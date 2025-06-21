@@ -104,9 +104,12 @@ class MotorboatAutopilotNode(Node):
     def rc_data_callback(self, joystick_msg: RCData):
         self.last_rc_data_time = time.time()
         
-        if joystick_msg.toggle_f == 1 and self.toggle_f != 1:   # this means we have entered hold heading mode, so keep track of the current heading
+        # This means we have entered hold heading mode, so keep track of the current heading since this is the target heading
+        if joystick_msg.toggle_f == 1 and self.toggle_f != 1:
             self.heading_to_hold = self.heading     
         
+        
+        # Are we trying to zero the rudder?
         if self.button_d == False and joystick_msg.button_d == True:
             self.should_zero_encoder = True
             self.encoder_has_been_zeroed = False
