@@ -10,7 +10,7 @@ from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from std_msgs.msg import Float32, Bool, String, Int32
 from geometry_msgs.msg import Vector3, Twist
 from sensor_msgs.msg import NavSatFix, Image
-from sailbot_msgs.msg import WaypointList, VESCData
+from sailbot_msgs.msg import WaypointList, VESCTelemetryData
 from cv_bridge import CvBridge
 
 import numpy as np
@@ -83,7 +83,7 @@ class TelemetryNode(Node):
         self.autopilot_parameters_publisher = self.create_publisher(msg_type=String, topic='/autopilot_parameters', qos_profile=10)
         self.sensors_parameters_publisher = self.create_publisher(msg_type=String, topic='/sensors_parameters', qos_profile=10)
         
-        self.vesc_data_listener = self.create_subscription(VESCData, '/vesc_data', self.vesc_data_callback, sensor_qos_profile)
+        self.vesc_telemetry_data_listener = self.create_subscription(VESCTelemetryData, '/vesc_telemetry_data', self.vesc_telemetry_data_callback, sensor_qos_profile)
 
         self.desired_heading_listener = self.create_subscription(Float32, '/desired_heading', self.desired_heading_callback, 10)
         self.waypoints_list_publisher = self.create_publisher(WaypointList, '/waypoints_list', qos_profile=10)
@@ -124,17 +124,17 @@ class TelemetryNode(Node):
         self.desired_sail_angle = 0.
         self.desired_rudder_angle = 0.
                 
-        self.vesc_data_rpm = 0
-        self.vesc_data_duty_cycle = 0
-        self.vesc_data_amp_hours = 0
-        self.vesc_data_amp_hours_charged = 0
-        self.vesc_data_current_to_vesc = 0
-        self.vesc_data_voltage_to_motor = 0
-        self.vesc_data_voltage_to_vesc = 0
-        self.vesc_data_wattage_to_motor = 0
-        self.vesc_data_time_since_vesc_startup_in_ms = 0
-        self.vesc_data_motor_temperature = 0
-        self.vesc_data_vesc_temperature = 0
+        self.vesc_telemetry_data_rpm = 0
+        self.vesc_telemetry_data_duty_cycle = 0
+        self.vesc_telemetry_data_amp_hours = 0
+        self.vesc_telemetry_data_amp_hours_charged = 0
+        self.vesc_telemetry_data_current_to_vesc = 0
+        self.vesc_telemetry_data_voltage_to_motor = 0
+        self.vesc_telemetry_data_voltage_to_vesc = 0
+        self.vesc_telemetry_data_wattage_to_motor = 0
+        self.vesc_telemetry_data_time_since_vesc_startup_in_ms = 0
+        self.vesc_telemetry_data_motor_temperature = 0
+        self.vesc_telemetry_data_vesc_temperature = 0
 
     
     
@@ -142,18 +142,18 @@ class TelemetryNode(Node):
         self.desired_heading = desired_heading.data
     
     
-    def vesc_data_callback(self, vesc_data: VESCData):
-        self.vesc_data_rpm = vesc_data.rpm
-        self.vesc_data_duty_cycle = vesc_data.duty_cycle
-        self.vesc_data_amp_hours = vesc_data.amp_hours
-        self.vesc_data_amp_hours_charged = vesc_data.amp_hours_charged
-        self.vesc_data_current_to_vesc = vesc_data.current_to_vesc
-        self.vesc_data_voltage_to_motor = vesc_data.voltage_to_motor
-        self.vesc_data_voltage_to_vesc = vesc_data.voltage_to_vesc
-        self.vesc_data_wattage_to_motor = vesc_data.wattage_to_motor
-        self.vesc_data_time_since_vesc_startup_in_ms = vesc_data.time_since_vesc_startup_in_ms
-        self.vesc_data_motor_temperature = vesc_data.motor_temperature
-        self.vesc_data_vesc_temperature = vesc_data.vesc_temperature
+    def vesc_telemetry_data_callback(self, vesc_telemetry_data: VESCTelemetryData):
+        self.vesc_telemetry_data_rpm = vesc_telemetry_data.rpm
+        self.vesc_telemetry_data_duty_cycle = vesc_telemetry_data.duty_cycle
+        self.vesc_telemetry_data_amp_hours = vesc_telemetry_data.amp_hours
+        self.vesc_telemetry_data_amp_hours_charged = vesc_telemetry_data.amp_hours_charged
+        self.vesc_telemetry_data_current_to_vesc = vesc_telemetry_data.current_to_vesc
+        self.vesc_telemetry_data_voltage_to_motor = vesc_telemetry_data.voltage_to_motor
+        self.vesc_telemetry_data_voltage_to_vesc = vesc_telemetry_data.voltage_to_vesc
+        self.vesc_telemetry_data_wattage_to_motor = vesc_telemetry_data.wattage_to_motor
+        self.vesc_telemetry_data_time_since_vesc_startup_in_ms = vesc_telemetry_data.time_since_vesc_startup_in_ms
+        self.vesc_telemetry_data_motor_temperature = vesc_telemetry_data.motor_temperature
+        self.vesc_telemetry_data_vesc_temperature = vesc_telemetry_data.vesc_temperature
 
     def current_waypoint_index_callback(self, current_waypoint_index: Int32):
         self.current_waypoint_index = current_waypoint_index.data
@@ -239,17 +239,17 @@ class TelemetryNode(Node):
         #     "parameters": self.autopilot_parameters_dict,
         #     "current_camera_image": self.base64_encoded_current_rgb_image,
 
-        #     "vesc_data_rpm": self.vesc_data_rpm,
-        #     "vesc_data_duty_cycle": self.vesc_data_duty_cycle,
-        #     "vesc_data_amp_hours": self.vesc_data_amp_hours,
-        #     "vesc_data_amp_hours_charged": self.vesc_data_amp_hours_charged,
-        #     "vesc_data_current_to_vesc": self.vesc_data_current_to_vesc,
-        #     "vesc_data_voltage_to_motor": self.vesc_data_voltage_to_motor,
-        #     "vesc_data_voltage_to_vesc": self.vesc_data_voltage_to_vesc, 
-        #     "vesc_data_wattage_to_motor": self.vesc_data_wattage_to_motor,
-        #     "vesc_data_time_since_vesc_startup_in_ms": self.vesc_data_time_since_vesc_startup_in_ms,
-        #     "vesc_data_motor_temperature": self.vesc_data_motor_temperature,
-        #     "vesc_data_vesc_temperature": self.vesc_data_vesc_temperature
+        #     "vesc_telemetry_data_rpm": self.vesc_telemetry_data_rpm,
+        #     "vesc_telemetry_data_duty_cycle": self.vesc_telemetry_data_duty_cycle,
+        #     "vesc_telemetry_data_amp_hours": self.vesc_telemetry_data_amp_hours,
+        #     "vesc_telemetry_data_amp_hours_charged": self.vesc_telemetry_data_amp_hours_charged,
+        #     "vesc_telemetry_data_current_to_vesc": self.vesc_telemetry_data_current_to_vesc,
+        #     "vesc_telemetry_data_voltage_to_motor": self.vesc_telemetry_data_voltage_to_motor,
+        #     "vesc_telemetry_data_voltage_to_vesc": self.vesc_telemetry_data_voltage_to_vesc, 
+        #     "vesc_telemetry_data_wattage_to_motor": self.vesc_telemetry_data_wattage_to_motor,
+        #     "vesc_telemetry_data_time_since_vesc_startup_in_ms": self.vesc_telemetry_data_time_since_vesc_startup_in_ms,
+        #     "vesc_telemetry_data_motor_temperature": self.vesc_telemetry_data_motor_temperature,
+        #     "vesc_telemetry_data_vesc_temperature": self.vesc_telemetry_data_vesc_temperature
         # }
         
         

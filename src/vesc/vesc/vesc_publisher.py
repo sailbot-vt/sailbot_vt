@@ -15,7 +15,7 @@ from rclpy.node import Node
 
 from std_msgs.msg import String, Float32
 
-from sailbot_msgs.msg import VESCData, VESCControlData
+from sailbot_msgs.msg import VESCTelemetryData, VESCControlData
 
 motorPolePairs = 7
 
@@ -27,6 +27,16 @@ VESC_VID = 0x0483
 VESC_PID = 0x5740
 
 # VESC_SERIAL_NUMBER = "AB7IMXEU"
+
+def getPort(vid, pid) -> str:
+    device_list = list_ports.comports()
+    for device in device_list:
+        if device.vid == vid and device.pid == pid:
+            return device.device
+    raise OSError('Device not found')
+
+
+
 
 class VESCPublisher(Node):
 
@@ -53,31 +63,11 @@ class VESCPublisher(Node):
             history=QoSHistoryPolicy.KEEP_LAST,
             depth=1
         )
-        self.vesc_data_publisher = self.create_publisher(VESCData, "/vesc_data", sensor_qos_profile)
-
         
+        self.controlTypeSub = self.create_subscription(msg_type= VESCControlData, topic='/propeller_motor_control_struct', callback=self.receive_control_data_callback, qos_profile=sensor_qos_profile)
         
-        """
-        self.rpmPub = self.create_publisher(Float32, 'vesc/rpm_data', 10)
-        self.vInPub = self.create_publisher(Float32, "vesc/v_in", 10)
-        self.vOutPub = self.create_publisher(Float32, "vesc/v_out", 10)
-        self.motorCurrentPub = self.create_publisher(Float32, "vesc/current_to_motor", 10)
-        self.motorWattagePub = self.create_publisher(Float32, "vesc/wattage_to_motor", 10)
-        self.dutyCyclePub = self.create_publisher(Float32, "vesc/duty_cycle", 10)
-        self.timeMsPub = self.create_publisher(Float32, "vesc/time_ms", 10)
-        self.amp_hoursPub = self.create_publisher(Float32, "vesc/amp_hours", 10)
-        self.amp_hoursChargedPub = self.create_publisher(Float32, "vesc/amp_hours_charged", 10)
-        self.temp_motorPub = self.create_publisher(Float32, "vesc/temp_motor", 10)
-        self.c_inPub = self.create_publisher(Float32, "vesc/c_in", 10)
-        """
+        self.vesc_telemetry_data_publisher = self.create_publisher(VESCTelemetryData, "/vesc_telemetry_data", sensor_qos_profile)
         
-        self.controlTypeSub = self.create_subscription(msg_type= VESCControlData, topic='/motor_control_struct', callback=self.receive_control_data_callback, qos_profile=sensor_qos_profile)
-        """
-        self.controlTypeSub = self.create_subscription(String, "vesc/control_type", self.ct_callback, 10)
-        self.current_valueSub = self.create_subscription(Float32, "vesc/current_value", self.cv_callback, 10)
-        self.rpm_valueSub = self.create_subscription(Float32, "vesc/rpm_value", self.rpmv_callback, 10)
-        self.dutycycle_valueSub = self.create_subscription(Float32, "vesc/duty_cycle_value", self.dcv_callback, 10)
-        """
         
         timer_period = 0.05  # seconds
         
@@ -177,8 +167,8 @@ class VESCPublisher(Node):
         # self.csv_writer.writerow(motorData)
         
         #publish vesc data to topic
-        self.vesc_data_publisher.publish(
-            VESCData(
+        self.vesc_telemetry_data_publisher.publish(
+            VESCTelemetryData(
                 rpm= motorData["rpm"], duty_cycle= motorData["duty_cycle"], 
                 voltage_to_vesc= motorData["v_in"], current_to_vesc= motorData["c_in"],
                 voltage_to_motor = motorData["v_out"], avg_current_to_motor = motorData["c_motor"],
@@ -188,25 +178,11 @@ class VESCPublisher(Node):
             )
         )
     
-    # def get_motor_measurements(self):
-    #     data = self.motor._get_values_msg
-    #     num_read_bytes = self.motor._get_values_msg_expected_length
-        
-    #     self.motor.serial_port.write(data)
-    #     if num_read_bytes is not None:
-    #         num_times_read_failed = 0
-    #         while self.motor.serial_port.in_waiting <= num_read_bytes:
-    #             time.sleep(0.000001)  # add some delay just to help the CPU
-    #             num_times_read_failed += 1
-    #             if num_times_read_failed >= 50000:
-    #                 raise Exception("failed to read motor measurements")
-                    
-    #         response, consumed = decode(self.motor.serial_port.read(self.motor.serial_port.in_waiting))
-    #     return response
 
     def __del__(self):
         if hasattr(self, "motor"):
             self.motor.stop_heartbeat()
+
 
 
 def main(args=None):
@@ -215,14 +191,6 @@ def main(args=None):
     
     rclpy.spin(vesc_publisher)
     rclpy.shutdown()
-
-def getPort(vid, pid) -> str:
-    device_list = list_ports.comports()
-    for device in device_list:
-        if device.vid == vid and device.pid == pid:
-            return device.device
-    raise OSError('Device not found')
-
 
 if __name__ == '__main__':
     main()

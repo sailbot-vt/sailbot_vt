@@ -27,7 +27,7 @@ class SailboatAutopilotNode(Node):
         super().__init__("sailboat_autopilot")
 
         current_folder_path = os.path.dirname(os.path.realpath(__file__))
-        with open(current_folder_path + "/default_parameters.yaml", 'r') as stream:
+        with open(current_folder_path + "/sailboat_default_parameters.yaml", 'r') as stream:
             self.parameters: dict = yaml.safe_load(stream)
             
         self.sailboat_autopilot = SailboatAutopilot(parameters=self.parameters, logger=self.get_logger())
@@ -43,29 +43,27 @@ class SailboatAutopilotNode(Node):
         )
         
         self.autopilot_parameters_listener = self.create_subscription(String, '/autopilot_parameters', callback=self.autopilot_parameters_callback, qos_profile=10)
-        
-        self.rc_data_listener = self.create_subscription(msg_type=RCData, topic="/rc_data", callback=self.rc_data_callback, qos_profile=sensor_qos_profile)
-        
-        self.autopilot_mode_publisher = self.create_publisher(String, "/autopilot_mode", qos_profile=sensor_qos_profile)
-        self.autopilot_mode_listener = self.create_subscription(String, '/autopilot_mode', callback=self.autopilot_mode_callback, qos_profile=sensor_qos_profile)
-    
         self.waypoints_list_listener = self.create_subscription(WaypointList, '/waypoints_list', self.waypoints_list_callback, 10)
-        self.current_waypoint_index_publisher = self.create_publisher(Int32, '/current_waypoint_index', 10)
-        
+                
         self.position_listener = self.create_subscription(msg_type=NavSatFix, topic="/position", callback=self.position_callback, qos_profile=sensor_qos_profile)
         self.velocity_listener = self.create_subscription(msg_type=Twist, topic="/velocity", callback=self.velocity_callback, qos_profile=sensor_qos_profile)
         self.heading_listener = self.create_subscription(msg_type=Float32, topic="/heading", callback=self.heading_callback, qos_profile=sensor_qos_profile)
-
         self.apparent_wind_vector_listener = self.create_subscription(msg_type=Vector3, topic="/apparent_wind_vector", callback=self.apparent_wind_vector_callback, qos_profile=sensor_qos_profile)
+        self.rc_data_listener = self.create_subscription(msg_type=RCData, topic="/rc_data", callback=self.rc_data_callback, qos_profile=sensor_qos_profile)
         
         
+        self.current_waypoint_index_publisher = self.create_publisher(Int32, '/current_waypoint_index', 10)
+        self.autopilot_mode_publisher = self.create_publisher(String, "/autopilot_mode", qos_profile=sensor_qos_profile)
         self.full_autonomy_maneuver_publisher = self.create_publisher(msg_type=String, topic='/full_autonomy_maneuver', qos_profile=sensor_qos_profile)
         self.desired_heading_publisher = self.create_publisher(Float32, '/desired_heading', qos_profile=10)
-        self.sail_angle_publisher = self.create_publisher(msg_type=Float32, topic="/desired_sail_angle", qos_profile=sensor_qos_profile)
-        self.rudder_angle_publisher = self.create_publisher(msg_type=Float32, topic="/desired_rudder_angle", qos_profile=sensor_qos_profile)
-       
+        
+        self.desired_sail_angle_publisher = self.create_publisher(msg_type=Float32, topic="/desired_sail_angle", qos_profile=sensor_qos_profile)
+        self.desired_rudder_angle_publisher = self.create_publisher(msg_type=Float32, topic="/desired_rudder_angle", qos_profile=sensor_qos_profile)
+        
         self.zero_rudder_encoder_publisher = self.create_publisher(msg_type=Bool, topic="/zero_rudder_encoder", qos_profile=10) 
         self.zero_winch_encoder_publisher = self.create_publisher(msg_type=Bool, topic="/zero_winch_encoder", qos_profile=10) 
+
+
 
         # Default values
         self.position = Position(longitude=0., latitude=0.)
@@ -110,19 +108,24 @@ class SailboatAutopilotNode(Node):
         
     def rc_data_callback(self, joystick_msg: RCData):
         
-        # self.get_logger().info(f"got to rc data callback")
-        if joystick_msg.toggle_f == 1 and self.toggle_f != 1:   # this means we have entered hold heading mode, so keep track of the current heading
+        # this means we have entered hold heading mode, so keep track of the current heading
+        if joystick_msg.toggle_f == 1 and self.toggle_f != 1:
             self.heading_to_hold = self.heading     
         
+        # Are we trying to zero the rudder?
         if self.button_d == False and joystick_msg.button_d == True:
             self.should_zero_rudder_encoder = True
             self.rudder_encoder_has_been_zeroed = False
+            
         elif self.rudder_encoder_has_been_zeroed:
             self.should_zero_rudder_encoder = False
             
+            
+        # Are we trying to zero the winch?
         if self.button_a == False and joystick_msg.button_a == True:
             self.should_zero_winch_encoder = True
             self.winch_encoder_has_been_zeroed = False
+            
         elif self.winch_encoder_has_been_zeroed:
             self.should_zero_winch_encoder = False
             
@@ -168,19 +171,6 @@ class SailboatAutopilotNode(Node):
         else:
             print("WARNING: INCORRECT COMBINATION OF RC SWITCHES USED")
             
-        # self.get_logger().info(f"finished rc data callback")
-
-
-    def autopilot_mode_callback(self, mode: String):
-        if SailboatAutopilotMode[mode.data] == SailboatAutopilotMode.Hold_Heading and self.autopilot_mode != SailboatAutopilotMode.Hold_Heading:
-            self.heading_to_hold = self.heading
-            
-        if SailboatAutopilotMode[mode.data] == SailboatAutopilotMode.Hold_Heading_And_Best_Sail and self.autopilot_mode != SailboatAutopilotMode.Hold_Heading_And_Best_Sail:
-            self.heading_to_hold = self.heading
-        
-        self.autopilot_mode = SailboatAutopilotMode[mode.data]
-        
-
         
         
     def autopilot_parameters_callback(self, new_parameters: String):
@@ -289,9 +279,7 @@ class SailboatAutopilotNode(Node):
         Each call to this function takes around 2 milliseconds as of 5/26/2025 (aka this is not a super important place to find optimizations since it doesn't take that much time from a cpu core)
         """        
         
-        # print(f"{time.time()} got to update ros topics")
         desired_rudder_angle, desired_sail_angle = self.step()
-        # print(f"{time.time()} finished step")
         
         self.current_waypoint_index_publisher.publish(Int32(data=self.sailboat_autopilot.current_waypoint_index))
         
@@ -327,11 +315,11 @@ class SailboatAutopilotNode(Node):
         # Finally, ensure that we tell the motor driver what we want the rudder angle and the sail angle to do through ros
         if desired_rudder_angle != None:
             self.get_logger().info(f"desired rudder angle: {desired_rudder_angle}")
-            self.rudder_angle_publisher.publish(Float32(data=float(desired_rudder_angle))) # the negative is a correction for how to actually turn the boat
+            self.desired_rudder_angle_publisher.publish(Float32(data=float(desired_rudder_angle))) # the negative is a correction for how to actually turn the boat
             
         if desired_sail_angle != None:
             self.get_logger().info(f"desired sail angle: {desired_sail_angle}")
-            self.sail_angle_publisher.publish(Float32(data=float(desired_sail_angle)))
+            self.desired_sail_angle_publisher.publish(Float32(data=float(desired_sail_angle)))
             
             
             
@@ -342,8 +330,6 @@ class SailboatAutopilotNode(Node):
         if self.should_zero_winch_encoder:
             self.zero_winch_encoder_publisher.publish(Bool(data=self.should_zero_winch_encoder))
             self.winch_encoder_has_been_zeroed = True
-
-        # print(f"{time.time()} finished publishing")
 
 
 
