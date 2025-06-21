@@ -138,8 +138,24 @@ class TelemetryNode(Node):
 
     
     
+    def position_callback(self, position: NavSatFix):
+        self.position = position
+        
+    def velocity_callback(self, velocity_vector: Twist):
+        self.velocity_vector = np.array([velocity_vector.linear.x, velocity_vector.linear.y])
+        self.speed = np.sqrt(velocity_vector.linear.x**2 + velocity_vector.linear.y**2)
+
+    def heading_callback(self, heading: Float32):
+        self.heading = heading.data
+
+    def apparent_wind_vector_callback(self, apparent_wind_vector: Vector3):
+        self.apparent_wind_vector = np.array([apparent_wind_vector.x, apparent_wind_vector.y])
+
+        self.apparent_wind_speed, self.apparent_wind_angle = cartesian_vector_to_polar(apparent_wind_vector.x, apparent_wind_vector.y)
+        
     def desired_heading_callback(self, desired_heading: Float32):
         self.desired_heading = desired_heading.data
+    
     
     
     def vesc_telemetry_data_callback(self, vesc_telemetry_data: VESCTelemetryData):
@@ -164,21 +180,8 @@ class TelemetryNode(Node):
     def autopilot_mode_callback(self, autopilot_mode: String):
         self.autopilot_mode = autopilot_mode.data
         
-    def position_callback(self, position: NavSatFix):
-        self.position = position
+    
 
-    def velocity_callback(self, velocity_vector: Twist):
-        self.velocity_vector = np.array([velocity_vector.linear.x, velocity_vector.linear.y])
-        self.speed = np.sqrt(velocity_vector.linear.x**2 + velocity_vector.linear.y**2)
-
-    def heading_callback(self, heading: Float32):
-        self.heading = heading.data
-
-    def apparent_wind_vector_callback(self, apparent_wind_vector: Vector3):
-        self.apparent_wind_vector = np.array([apparent_wind_vector.x, apparent_wind_vector.y])
-
-        self.apparent_wind_speed, self.apparent_wind_angle = cartesian_vector_to_polar(apparent_wind_vector.x, apparent_wind_vector.y)
-        
     def camera_rgb_image_callback(self, camera_rgb_image: Image):
         """refer to this stack overflow post: https://stackoverflow.com/questions/40928205/python-opencv-image-to-byte-string-for-json-transfer"""
         rgb_image_cv = self.cv_bridge.imgmsg_to_cv2(camera_rgb_image, "rgb8")
@@ -203,6 +206,8 @@ class TelemetryNode(Node):
     def desired_rudder_angle_callback(self, desired_rudder_angle: Float32):
         self.desired_rudder_angle = desired_rudder_angle.data
 
+    
+    
         
     def should_terminate_callback(self, msg: Bool):
         if msg.data == False: return
