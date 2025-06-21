@@ -123,15 +123,11 @@ void desired_rudder_angle_received_callback(const void *msg_in);
 
 void desired_sail_angle_received_callback(const void *msg_in);
 
-void is_propeller_motor_enabled_callback(const void *msg_in);
+void should_propeller_motor_be_powered_callback(const void *msg_in);
 
 void zero_rudder_encoder_callback(const void *msg_in);
 
 void zero_winch_encoder_callback(const void *msg_in);
-
-void pwm_motor_init(); 
-
-void pwm_motor_callback(const void *msg_in);
 
 
 #endif

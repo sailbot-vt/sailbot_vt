@@ -56,7 +56,7 @@ class MotorboatAutopilotNode(Node):
         self.desired_heading_publisher = self.create_publisher(Float32, '/desired_heading', qos_profile=10)
         
         
-        self.is_propeller_motor_enabled_publisher = self.create_publisher(Bool, "/is_propeller_motor_enabled", qos_profile=10)
+        self.should_propeller_motor_be_powered_publisher = self.create_publisher(Bool, "/should_propeller_motor_be_powered", qos_profile=10)
         self.propeller_motor_control_struct_publisher = self.create_publisher(msg_type= VESCControlData, topic="/propeller_motor_control_struct", qos_profile=sensor_qos_profile)
         self.desired_rudder_angle_publisher = self.create_publisher(msg_type=Float32, topic="/desired_rudder_angle", qos_profile=sensor_qos_profile)
         
@@ -79,7 +79,7 @@ class MotorboatAutopilotNode(Node):
         self.rudder_angle = 0.
         
         self.autopilot_mode = MotorboatAutopilotMode.Hold_Heading
-        self.is_propeller_motor_enabled = False
+        self.should_propeller_motor_be_powered = False
         self.should_zero_encoder = False
         self.encoder_has_been_zeroed = False
         self.heading_to_hold = 0.
@@ -128,9 +128,9 @@ class MotorboatAutopilotNode(Node):
         
         # kill switch
         if self.toggle_b == 0:
-            self.is_propeller_motor_enabled = True
+            self.should_propeller_motor_be_powered = True
         elif self.toggle_b == 1:
-            self.is_propeller_motor_enabled = False
+            self.should_propeller_motor_be_powered = False
             
         if self.toggle_b == 2:
             self.autopilot_mode = MotorboatAutopilotMode.Disabled
@@ -305,7 +305,7 @@ class MotorboatAutopilotNode(Node):
                     )
                 )            
         
-        self.is_propeller_motor_enabled_publisher.publish(Bool(data=self.is_propeller_motor_enabled))
+        self.should_propeller_motor_be_powered_publisher.publish(Bool(data=self.should_propeller_motor_be_powered))
 
 
 
