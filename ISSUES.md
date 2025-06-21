@@ -11,3 +11,11 @@ echo 'xhost +' >> ~/.bashrc
 echo 'export QT_XCB_GL_INTEGRATION=none' >> ~/.bashrc
 echo 'export XDG_SESSION_TYPE=x11' >> ~/.bashrc
 echo 'export QT_QPA_PLATFORM=xcb' >> ~/.bashrc
+
+
+
+
+
+
+Maybe also add mount /usr/bin/docker `-v "/usr/bin/docker:/usr/bin/docker"` onto the dev container. 
+The main problem is that apparently on mac the place where the docker binary is is actually /usr/local/bin/docker so we would have to make a special case for mac at build time
