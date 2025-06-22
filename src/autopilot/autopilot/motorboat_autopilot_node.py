@@ -216,7 +216,50 @@ class MotorboatAutopilotNode(Node):
 
     def heading_callback(self, heading: Float32):
         self.heading = heading.data
+
+
+
+    def get_optimal_rudder_angle(self, heading, desired_heading):
+        error = get_distance_between_angles(desired_heading, heading)
+
+        # ensure that the gains are updated properly and if we get a new gain from the telemetry server, it gets properly updated
+        self.heading_pid_controller.set_gains(
+            Kp=self.parameters['heading_p_gain'], Ki=self.parameters['heading_i_gain'], Kd=self.parameters['heading_d_gain'], 
+            n=self.parameters['heading_n_gain'], sample_period=self.parameters['autopilot_refresh_rate']
+        )
         
+        rudder_angle = self.heading_pid_controller(error)
+        rudder_angle = np.clip(rudder_angle, self.parameters['min_rudder_angle'], self.parameters['max_rudder_angle'])
+        return rudder_angle
+    
+    
+
+    def step(self):
+        """
+        Computes the best sail and rudder angles for the given mode and state
+        
+        Returns (tuple): (sail_angle, rudder_angle)
+            sail angle or rudder angle are None if the autopilot doesn't have authority over them 
+        """
+
+        if self.autopilot_mode == MotorboatAutopilotMode.Waypoint_Mission and self.sailboat_autopilot.waypoints != None:
+            pass
+            # _, rudder_angle = self.sailboat_autopilot.run_waypoint_mission_step(self.position, self.velocity, self.heading, self.apparent_wind_angle)
+            
+        elif self.autopilot_mode == MotorboatAutopilotMode.Hold_Heading:
+            rudder_angle = self.get_optimal_rudder_angle(self.heading, self.heading_to_hold)
+            
+        elif self.autopilot_mode == MotorboatAutopilotMode.Full_RC:
+            _, rudder_angle = self.sailboat_autopilot.run_rc_control(self.joystick_left_y, self.joystick_right_x)
+            
+        else: 
+            return None
+        
+            
+        return rudder_angle
+
+
+
 
 
     def update_ros_topics(self):
@@ -249,13 +292,6 @@ class MotorboatAutopilotNode(Node):
 
 
 
-        self.get_logger().info(f"heading P gain : {self.parameters['heading_p_gain']}")
-        self.get_logger().info(f"heading I gain : {self.parameters['heading_i_gain']}")
-        self.get_logger().info(f"heading D gain : {self.parameters['heading_d_gain']}")
-        self.get_logger().info(f"heading N gain : {self.parameters['heading_n_gain']}")
-        self.get_logger().info(f"distance between angles:   {self.heading - self.heading_to_hold}")
-
-
 
         # Manually check whether the RC has disconnected if we have not received data from the remote control for 3 second
         has_rc_disconnected = False
@@ -273,8 +309,7 @@ class MotorboatAutopilotNode(Node):
         
         # Now it is time to apply the RC control, check the control type, and then tell the VESC node to turn
         if self.autopilot_mode == MotorboatAutopilotMode.Full_RC and not has_rc_disconnected:
-            
-            
+             
             if self.propeller_motor_control_mode == MotorboatControls.RPM:
                 rpm_value = 100.0 * self.joystick_left_y  #min -1e5 max 1e5
 
@@ -308,6 +343,8 @@ class MotorboatAutopilotNode(Node):
                     )
                 )            
         
+        
+        
         self.should_propeller_motor_be_powered_publisher.publish(Bool(data=self.should_propeller_motor_be_powered))
 
 
@@ -316,47 +353,7 @@ class MotorboatAutopilotNode(Node):
             self.zero_rudder_encoder_publisher.publish(Bool(data=self.should_zero_encoder))
             self.encoder_has_been_zeroed = True
 
-
-    def get_optimal_rudder_angle(self, heading, desired_heading):
-        error = get_distance_between_angles(desired_heading, heading)
-
-        # ensure that the gains are updated properly and if we get a new gain from the telemetry server, it gets properly updated
-        self.heading_pid_controller.set_gains(
-            Kp=self.parameters['heading_p_gain'], Ki=self.parameters['heading_i_gain'], Kd=self.parameters['heading_d_gain'], 
-            n=self.parameters['heading_n_gain'], sample_period=self.parameters['autopilot_refresh_rate']
-        )
-        
-        rudder_angle = self.heading_pid_controller(error)
-        rudder_angle = np.clip(rudder_angle, self.parameters['min_rudder_angle'], self.parameters['max_rudder_angle'])
-        return rudder_angle
     
-
-
-
-
-    def step(self):
-        """
-        Computes the best sail and rudder angles for the given mode and state
-        
-        Returns (tuple): (sail_angle, rudder_angle)
-            sail angle or rudder angle are None if the autopilot doesn't have authority over them 
-        """
-
-        if self.autopilot_mode == MotorboatAutopilotMode.Waypoint_Mission and self.sailboat_autopilot.waypoints != None:
-            pass
-            # _, rudder_angle = self.sailboat_autopilot.run_waypoint_mission_step(self.position, self.velocity, self.heading, self.apparent_wind_angle)
-            
-        elif self.autopilot_mode == MotorboatAutopilotMode.Hold_Heading:
-            rudder_angle = self.get_optimal_rudder_angle(self.heading, self.heading_to_hold)
-            
-        elif self.autopilot_mode == MotorboatAutopilotMode.Full_RC:
-            _, rudder_angle = self.sailboat_autopilot.run_rc_control(self.joystick_left_y, self.joystick_right_x)
-            
-        else: 
-            return None
-        
-            
-        return rudder_angle
 
 
 

@@ -20,8 +20,6 @@ import yaml
 import os
 import base64
 import geopy.distance
-# import pympler
-# import pympler.asizeof
 
 
 TELEMETRY_SERVER_URL = 'http://18.191.164.84:8080/'
