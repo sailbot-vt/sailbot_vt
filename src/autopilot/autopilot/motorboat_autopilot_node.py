@@ -1,7 +1,3 @@
-"""
-TODO: Make an autopilot publisher like the sailboat_autopilot_node that sends the default parameters once and then deletes the publisher
-"""
-
 from autopilot_library.sailboat_autopilot import SailboatAutopilot
 from autopilot_library.discrete_pid import Discrete_PID
 from autopilot_library.utils import *

@@ -12,3 +12,4 @@ Make the telemetry data usage better by compressing data
 motorboat simulation
 
 
+make it so that the telemetry server node knows what the default parameters are
