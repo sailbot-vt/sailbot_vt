@@ -80,11 +80,9 @@ class TelemetryNode(Node):
         
         self.autopilot_parameters_publisher = self.create_publisher(msg_type=String, topic='/autopilot_parameters', qos_profile=10)
         self.sensors_parameters_publisher = self.create_publisher(msg_type=String, topic='/sensors_parameters', qos_profile=10)
-        
-        self.vesc_telemetry_data_listener = self.create_subscription(VESCTelemetryData, '/vesc_telemetry_data', self.vesc_telemetry_data_callback, sensor_qos_profile)
-
-        self.desired_heading_listener = self.create_subscription(Float32, '/desired_heading', self.desired_heading_callback, 10)
         self.waypoints_list_publisher = self.create_publisher(WaypointList, '/waypoints_list', qos_profile=10)
+        
+        self.desired_heading_listener = self.create_subscription(Float32, '/desired_heading', self.desired_heading_callback, 10)
         self.current_waypoint_index_listener = self.create_subscription(Int32, '/current_waypoint_index', self.current_waypoint_index_callback, 10)
         
         self.full_autonomy_maneuver_listener = self.create_subscription(msg_type=String, topic="/full_autonomy_maneuver", callback=self.full_autonomy_maneuver_callback, qos_profile=sensor_qos_profile)
@@ -95,6 +93,8 @@ class TelemetryNode(Node):
         self.heading_listener = self.create_subscription(msg_type=Float32, topic="/heading", callback=self.heading_callback, qos_profile=sensor_qos_profile)
         self.apparent_wind_vector_listener = self.create_subscription(msg_type=Vector3, topic="/apparent_wind_vector", callback=self.apparent_wind_vector_callback, qos_profile=sensor_qos_profile)
         self.camera_rgb_image_listener = self.create_subscription(msg_type=Image, topic="/camera/camera/color/image_raw", callback=self.camera_rgb_image_callback, qos_profile=sensor_qos_profile)
+        self.vesc_telemetry_data_listener = self.create_subscription(VESCTelemetryData, '/vesc_telemetry_data', self.vesc_telemetry_data_callback, sensor_qos_profile)
+
         
         self.desired_sail_angle_listener = self.create_subscription(msg_type=Float32, topic="/desired_sail_angle", callback=self.desired_sail_angle_callback, qos_profile=sensor_qos_profile)
         self.desired_rudder_angle_listener = self.create_subscription(msg_type=Float32, topic="/desired_rudder_angle", callback=self.desired_rudder_angle_callback, qos_profile=sensor_qos_profile)
