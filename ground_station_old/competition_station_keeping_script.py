@@ -1,5 +1,5 @@
 import json, requests, time
-TELEMETRY_SERVER_URL = "http://18.191.164.84:8080/"
+TELEMETRY_SERVER_URL = "http://54.165.159.151:8080/"
 
 start_time = time.time()
 while True:
