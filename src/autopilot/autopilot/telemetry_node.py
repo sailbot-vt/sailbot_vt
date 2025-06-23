@@ -22,7 +22,7 @@ import base64
 import geopy.distance
 
 
-TELEMETRY_SERVER_URL = 'http://18.191.164.84:8080/'
+TELEMETRY_SERVER_URL = 'http://3.134.118.153:8080/'
 
 
 def get_distance_to_waypoint(

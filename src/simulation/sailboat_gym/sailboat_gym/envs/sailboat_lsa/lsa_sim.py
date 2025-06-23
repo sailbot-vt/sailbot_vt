@@ -256,6 +256,7 @@ class LSASim(metaclass=ProfilingMeta):
                     name=name,
                     detach=True,
                     auto_remove=True,
+                    # environment= {"DISPLAY": "unix:0"},
                     # device_requests=[
                     #     DeviceRequest(device_ids=["0"], capabilities=[['gpu']])
                     # ],
