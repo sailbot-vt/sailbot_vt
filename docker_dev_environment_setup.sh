@@ -11,11 +11,6 @@ echo 'alias python="python3"' >> /home/sailbot_user/.bashrc
 
 pip install -r requirements.txt
 
-cd ground_station_old 
-pip install -r requirements.txt
-cd /home/ws
-
-
 cd ground_station
 pip install -r requirements.txt
 cd /home/ws
