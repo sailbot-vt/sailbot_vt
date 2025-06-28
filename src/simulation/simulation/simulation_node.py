@@ -29,7 +29,7 @@ sim_time = 0
 
 # get the real life data for the real life wind generation function
 cur_folder_path = os.path.dirname(os.path.realpath(__file__))
-wind_df = pd.read_csv(cur_folder_path + "/wind_data_claytor1.csv")
+wind_df = pd.read_csv(cur_folder_path + "/wind_data/wind_data_claytor1.csv")
 wind_data = []
 for index, row in wind_df.iterrows():
     wind_data.append((row["wind_speed_m/s"], row["wind_direction_degrees_ccw_east"]))

@@ -71,7 +71,7 @@ class RCPublisher(Node):
 
 
 
-    def save_frame(self, frame: crsf_frame, status: PacketValidationStatus) -> crsf_frame:
+    def save_frame(self, frame: crsf_frame, status: PacketValidationStatus):
         """
         this frame will come back as a crsf frame with the following declaration:
         

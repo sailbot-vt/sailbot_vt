@@ -6,29 +6,29 @@ echo sudo chmod -R 777 /etc/udev/ >> "/home/sailbot_user/.bashrc"
 sudo chmod -R 777 /etc/udev/
 
 
-# Install all python packages
+# Make sure that you can just type python and you don't have to type python3 because people will get confused
 echo 'alias python="python3"' >> /home/sailbot_user/.bashrc
 
+
+# Install all python packages
 pip install -r requirements.txt
-
-cd ground_station
-pip install -r requirements.txt
-cd /home/ws
+pip install -r ground_station/requirements.txt
 
 
+# Install all of the pip packages
+pip install -e /home/ws/src/vesc/pyvesc/
+pip install -e /home/ws/src/simulation/sailboat_gym/
 
 
-# Build the ros2 workspace for the first time (sometimes this takes two colon builds to clear all of the warnings/ errors)
+
+# Build the ros2 workspace for the first time
 source /opt/ros/humble/setup.bash
 echo source /opt/ros/humble/setup.bash >> "/home/sailbot_user/.bashrc"
 source /home/sailbot_user/.bashrc
+colcon build --symlink-install
 
-colcon build
+echo source install/setup.bash >> "/home/sailbot_user/.bashrc"
 
-echo source /home/ws/install/setup.bash >> "/home/sailbot_user/.bashrc"
-source /home/sailbot_user/.bashrc
-
-colcon build
 
 
 

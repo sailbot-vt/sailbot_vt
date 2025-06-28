@@ -1,6 +1,6 @@
-from autopilot_library.sailboat_autopilot import SailboatAutopilot
-from autopilot_library.discrete_pid import Discrete_PID
-from autopilot_library.utils import *
+from .autopilot_library.sailboat_autopilot import SailboatAutopilot
+from .autopilot_library.discrete_pid import Discrete_PID
+from .autopilot_library.utils import *
 
 
 import rclpy
@@ -22,7 +22,7 @@ class MotorboatAutopilotNode(Node):
         super().__init__("motorboat_autopilot")
 
         cur_folder_path = os.path.dirname(os.path.realpath(__file__))
-        with open(cur_folder_path + "/motorboat_default_parameters.yaml", 'r') as stream:
+        with open(cur_folder_path + "/config/motorboat_default_parameters.yaml", 'r') as stream:
             self.parameters: dict = yaml.safe_load(stream)
         
         # this is temporarily using the sailboat autopilot object for now since we still need to implement the motorboat autopilot object

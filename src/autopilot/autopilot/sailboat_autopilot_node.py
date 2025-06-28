@@ -1,5 +1,5 @@
-from autopilot_library.sailboat_autopilot import SailboatAutopilot
-from autopilot_library.utils import *
+from .autopilot_library.sailboat_autopilot import SailboatAutopilot
+from .autopilot_library.utils import *
 
 
 import rclpy
@@ -27,7 +27,7 @@ class SailboatAutopilotNode(Node):
         super().__init__("sailboat_autopilot")
 
         current_folder_path = os.path.dirname(os.path.realpath(__file__))
-        with open(current_folder_path + "/sailboat_default_parameters.yaml", 'r') as stream:
+        with open(current_folder_path + "/config/sailboat_default_parameters.yaml", 'r') as stream:
             self.parameters: dict = yaml.safe_load(stream)
             
         self.sailboat_autopilot = SailboatAutopilot(parameters=self.parameters, logger=self.get_logger())
