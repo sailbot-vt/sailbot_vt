@@ -10,5 +10,5 @@ env_by_name = {
 for name, env in env_by_name.items():
     register(
         id=name,
-        entry_point=f'sailboat_gym.envs:{env.__name__}',
+        entry_point=f'sailboat_gym.sailboat_gym.envs:{env.__name__}',
     )
