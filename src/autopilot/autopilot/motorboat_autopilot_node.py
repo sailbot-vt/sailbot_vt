@@ -240,7 +240,7 @@ class MotorboatAutopilotNode(Node):
         """
 
         if self.autopilot_mode == MotorboatAutopilotMode.Waypoint_Mission and self.motorboat_autopilot.waypoints != None:
-            pass # this is unimplemented for now
+            return 0.0 # this is unimplemented for now
             # _, rudder_angle = self.motorboat_autopilot.run_waypoint_mission_step(self.position, self.velocity, self.heading, self.apparent_wind_angle)
             
         elif self.autopilot_mode == MotorboatAutopilotMode.Hold_Heading:
