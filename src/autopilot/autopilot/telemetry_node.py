@@ -62,7 +62,7 @@ class TelemetryNode(Node):
         super().__init__("telemetry")
 
         current_folder_path = os.path.dirname(os.path.realpath(__file__))
-        with open(current_folder_path + "/default_parameters.yaml", 'r') as stream:
+        with open(current_folder_path + "/sailboat_default_parameters.yaml", 'r') as stream:
             self.autopilot_parameters_dictionary: dict = yaml.safe_load(stream)
 
 

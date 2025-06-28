@@ -14,8 +14,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-
-        ('lib/' + package_name, glob('config/*'))
+        
+        ('lib/python3.10/site-packages/' + package_name, glob('config/*'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -26,9 +26,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'sailboat_autopilot = sailboat_autopilot_node:main',
-            'motorboat_autopilot = motorboat_autopilot_node:main',
-            'telemetry = telemetry_node:main'
+            'sailboat_autopilot = autopilot.sailboat_autopilot_node:main',
+            'motorboat_autopilot = autopilot.motorboat_autopilot_node:main',
+            'telemetry = autopilot.telemetry_node:main'
         ],
     },
 )
