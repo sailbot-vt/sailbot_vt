@@ -167,10 +167,10 @@ class SimulationNode(Node):
         rclpy.shutdown()
         
         
-    def publish_observation_data(self, obs: Observation):
+    def publish_observation_data(self, observation: Observation):
 
         # converts the position from local ned to longitude, latitude, altitude
-        position = Vector3(x=obs["p_boat"][0].item(), y=obs["p_boat"][1].item(), z=-obs["p_boat"][2].item())
+        position = Vector3(x=observation["p_boat"][0].item(), y=observation["p_boat"][1].item(), z=-observation["p_boat"][2].item())
         gps_position = NavSatFix()
         
         if position.x == 0. and position.y == 0.:
@@ -184,15 +184,15 @@ class SimulationNode(Node):
     
     
         # saves the current velocity vector
-        if np.isnan(obs["dt_p_boat"][0]) or np.isnan(obs["dt_p_boat"][1]) or np.isnan(obs["dt_p_boat"][2]):
+        if np.isnan(observation["dt_p_boat"][0]) or np.isnan(observation["dt_p_boat"][1]) or np.isnan(observation["dt_p_boat"][2]):
             print("WARNING: VELOCITY IS NAN")
             boat_linear_velocity_vector = Vector3()
         else:
-            boat_linear_velocity_vector = Vector3(x=obs["dt_p_boat"][0].item(), y=obs["dt_p_boat"][1].item(), z=obs["dt_p_boat"][2].item())
+            boat_linear_velocity_vector = Vector3(x=observation["dt_p_boat"][0].item(), y=observation["dt_p_boat"][1].item(), z=observation["dt_p_boat"][2].item())
             
         boat_velocity = Twist(linear=boat_linear_velocity_vector)
         
-        roll, pitch, yaw = obs["theta_boat"]
+        roll, pitch, yaw = observation["theta_boat"]
         
         
         # standard heading calculations from pitch, yaw, and roll
@@ -210,14 +210,10 @@ class SimulationNode(Node):
         # always remember that true wind and apparent wind are measured ccw from the centerline of the boat, 
         # while the global true wind is measured ccw from true east
 
-        true_wind_speed, global_wind_angle = self.cartesian_vector_to_polar(obs["wind"][0].item(), obs["wind"][1].item())
+        true_wind_speed, global_wind_angle = self.cartesian_vector_to_polar(observation["wind"][0].item(), observation["wind"][1].item())
 
         true_wind_angle = global_wind_angle - heading_angle.data
         
-        # self.get_logger().info(f"true wind: {true_wind_angle}")
-        # self.get_logger().info(f"velocity: {boat_linear_velocity_vector}")
-        # self.get_logger().info(f"position: {position}")
-        # self.get_logger().info("")
         
         self.true_wind_vector = Vector3(x= (true_wind_speed * np.cos(np.deg2rad(true_wind_angle))), y= (true_wind_speed * np.sin(np.deg2rad(true_wind_angle))))
         self.apparent_wind_vector = Vector3(x= (self.true_wind_vector.x - boat_linear_velocity_vector.x), y= (self.true_wind_vector.y - boat_linear_velocity_vector.y)) 
@@ -236,15 +232,13 @@ class SimulationNode(Node):
         assert self.desired_sail_angle != None
         
         action = {"theta_rudder": np.deg2rad(self.desired_rudder_angle), "theta_sail": np.deg2rad(self.desired_sail_angle)}
-        self.get_logger().info(f"started stepping simulation")
-        obs, reward, terminated, truncated, info = self.env.step(action)
-        self.get_logger().info(f"finished stepping simulation")
+        observation, reward, terminated, truncated, info = self.env.step(action)
         
         sim_time += 1
         
         # self.display_image(self.env.render())
 
-        self.publish_observation_data(obs)
+        self.publish_observation_data(observation)
 
 
 

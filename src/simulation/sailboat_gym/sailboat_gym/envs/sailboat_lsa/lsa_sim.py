@@ -115,9 +115,7 @@ class LSASim(metaclass=ProfilingMeta):
                 'water': {'x': water[0], 'y': water[1]},
             }
         })
-        # print("receiving message from sim")
         msg = self.__recv_msg()
-        # print("sim comms done")
         obs = self.__parse_sim_obs(msg['obs'])
         done = msg['done']
         return obs, done, msg['info']
@@ -218,7 +216,7 @@ class LSASim(metaclass=ProfilingMeta):
                 sys.stdout.write(f'\r{status}: {progress}')
                 sys.stdout.flush()
 
-        print()
+
 
     def __launch_or_get_container(self, name):
         with DurationProgress(total=7, desc='Launching docker container'):
@@ -309,7 +307,6 @@ class LSASim(metaclass=ProfilingMeta):
     def __recv_msg(self):
         with self.auto_pause_if_inactive:
             msg = msgpack.unpackb(self.socket.recv(), raw=False)
-            print(msg)
             if 'error' in msg:
                 raise RuntimeError(msg['error'])
             return msg
