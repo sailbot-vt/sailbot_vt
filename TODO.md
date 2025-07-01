@@ -14,3 +14,7 @@ EXTREMELY HIGH PRIORITY: figure out how to handle the default parameters on the 
 
 
 https://github.com/Gabo-Tor/gym-sailing <- make this into its own simulation node
+
+
+
+HIGH PRIORITY: Make sure that the gps, pico, rc, and wind sensor usbs work with the udev rules and test them
