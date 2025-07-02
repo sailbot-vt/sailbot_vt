@@ -11,6 +11,7 @@ BLUE = QColor("#78dce8")
 WHITE = QColor("#f8f8f2")
 RED = QColor("#f76c7c")
 GREY = QColor("#82878b")
+GREEN = QColor("#9CD57B")
 
 # window dimensions
 WINDOW_BOX = QRect(100, 100, 800, 600)

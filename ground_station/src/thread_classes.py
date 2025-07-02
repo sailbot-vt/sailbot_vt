@@ -14,7 +14,7 @@ class TelemetryUpdater(QThread):
 
     Attributes
     ----------
-    boat_data_fetched : `pyqtSignal`
+    boat_data_fetched: `pyqtSignal`
         Signal to send boat data to the main thread. Emits a dictionary containing telemetry data.
     """
 
@@ -75,7 +75,7 @@ class WaypointFetcher(QThread):
 
     Attributes
     ----------
-    waypoints_fetched : `pyqtSignal`
+    waypoints_fetched: `pyqtSignal`
         Signal to send waypoints to the main thread. Emits a list of lists containing
         waypoints, where each waypoint is a list of `[latitude, longitude]`.
     """
@@ -109,7 +109,7 @@ class ImageFetcher(QThread):
 
     Attributes
     ----------
-    image_fetched : `pyqtSignal`
+    image_fetched: `pyqtSignal`
         Signal to send image to the main thread. Emits a base64 encoded string of the image.
     """
 

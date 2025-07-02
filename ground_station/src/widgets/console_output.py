@@ -16,7 +16,7 @@ class EmittingStream(QtCore.QObject):
 
     Attributes
     ----------
-    textWritten : pyqtSignal
+    textWritten: `pyqtSignal`
         Signal emitted when text is written to the stream.
     """
 
@@ -25,9 +25,10 @@ class EmittingStream(QtCore.QObject):
     def write(self, text) -> None:
         """
         Write text to the stream and emit a signal with the text.
+
         Parameters
         ----------
-        text : str
+        text
             The text to write to the stream.
         """
 
@@ -51,8 +52,8 @@ class ConsoleOutputWidget(QWidget):
     `QWidget`
     """
 
-    def __init__(self, parent=None) -> None:
-        super().__init__(parent)
+    def __init__(self) -> None:
+        super().__init__()
 
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
@@ -77,7 +78,14 @@ class ConsoleOutputWidget(QWidget):
         self.stderr_stream.textWritten.connect(self.append_text)
 
     def append_text(self, text: str) -> None:
-        """Append text to the console output widget only."""
+        """
+        Append text to the console output widget only.
+
+        Parameters
+        ----------
+        text
+            The text to append to the console output.
+        """
 
         cursor = self.console_output.textCursor()
         cursor.movePosition(QtGui.QTextCursor.End)
@@ -86,7 +94,14 @@ class ConsoleOutputWidget(QWidget):
         self.console_output.ensureCursorVisible()
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
-        """Restore original streams when widget is closed."""
+        """
+        Restore original streams when widget is closed.
+
+        Parameters
+        ----------
+        event
+            The close event that triggered this method.
+        """
 
         sys.stdout = self.original_stdout
         sys.stderr = self.original_stderr

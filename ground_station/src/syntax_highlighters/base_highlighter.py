@@ -3,14 +3,14 @@ from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QFont, QColor
 
 class BaseHighlighter(QSyntaxHighlighter):
     """
-    Abstract base class for syntax highlighters using `QSyntaxHighlighter`.
+    Base class for syntax highlighters.
 
     Inherits
     --------
-    QSyntaxHighlighter
+    `QSyntaxHighlighter`
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None) -> None:
         super().__init__(parent)
 
     @staticmethod
@@ -42,13 +42,12 @@ class BaseHighlighter(QSyntaxHighlighter):
 
         Parameters
         ----------
-        text : str
+        text
             The text block to highlight.
 
         Raises
         -------
         NotImplementedError
-            This method must be implemented by subclasses.
         """
 
         raise NotImplementedError("Subclasses must implement highlightBlock()")

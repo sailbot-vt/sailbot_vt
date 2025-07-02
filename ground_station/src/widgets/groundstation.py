@@ -457,8 +457,9 @@ class GroundStationWidget(QWidget):
                 js_code = "map.change_color_waypoints('red')"
                 self.browser.page().runJavaScript(js_code)
             except requests.exceptions.RequestException as e:
-                print(f"Warning: Failed to send waypoints: {e}")
-                print(f"Waypoints: {self.waypoints}")
+                print(
+                    f"Error: Failed to send waypoints: {e}\nWaypoints: {self.waypoints}"
+                )
         else:
             try:
                 requests.post(
@@ -466,8 +467,9 @@ class GroundStationWidget(QWidget):
                     json={"value": self.waypoints},
                 )
             except requests.exceptions.RequestException as e:
-                print(f"Warning: Failed to send waypoints: {e}")
-                print(f"Waypoints: {self.waypoints}")
+                print(
+                    f"Error: Failed to send waypoints: {e}\nWaypoints: {self.waypoints}"
+                )
 
     def pull_waypoints(self) -> None:
         """Pull waypoints from the telemetry server and add them to the map."""
@@ -489,14 +491,14 @@ class GroundStationWidget(QWidget):
                         f"map.add_waypoint({waypoint[0]}, {waypoint[1]})"
                     )
             else:
-                print("No waypoints found on the server.")
+                print("Warning: No waypoints found on the server.")
             self.can_pull_waypoints = False
             self.pull_waypoints_button.setDisabled(not self.can_pull_waypoints)
 
         except KeyError:
-            print("No waypoints found in the response from the server.")
+            print("Error: No waypoints found in the response from the server.")
         except requests.exceptions.RequestException as e:
-            print(f"Warning: Failed to pull waypoints: {e}")
+            print(f"Error: Failed to pull waypoints: {e}")
 
     def get_autopilot_parameters(self) -> None:
         """Get autopilot parameters from the server."""
@@ -507,7 +509,7 @@ class GroundStationWidget(QWidget):
             ).json()
 
             if remote_params == {}:
-                print("Connection successful but no parameters found.")
+                print("Warning: Connection successful but no parameters found.")
 
             else:
                 self.autopilot_parameters = remote_params
@@ -528,10 +530,12 @@ class GroundStationWidget(QWidget):
                 )
 
         except KeyError:
-            print("No autopilot parameters found in the response from the server.")
+            print(
+                "Error: No autopilot parameters found in the response from the server."
+            )
 
         except requests.exceptions.RequestException as e:
-            print(f"Warning: Failed to pull autopilot parameters: {e}")
+            print(f"Error: Failed to pull autopilot parameters: {e}")
 
     def send_parameters(self) -> None:
         """Send all autopilot parameters to the server."""
@@ -553,11 +557,12 @@ class GroundStationWidget(QWidget):
             )
 
         except ValueError as e:
-            print(f"Failed with getting autopilot parameters: {e}")
+            print(f"Error: Failed with getting autopilot parameters: {e}")
 
         except requests.exceptions.RequestException as e:
-            print(f"Warning: Failed to send autopilot parameters: {e}")
-            print(f"Parameters: {self.autopilot_parameters}")
+            print(
+                f"Error: Failed to send autopilot parameters: {e}\nParameters: {self.autopilot_parameters}"
+            )
 
     def send_individual_parameter(self, parameter: str) -> None:
         """
@@ -576,7 +581,7 @@ class GroundStationWidget(QWidget):
 
             if existing_params == {}:
                 print(
-                    "Connection successful but no parameters found. Not sending anything since there is nothing to replace."
+                    "Warning: Connection successful but no parameters found. Not sending anything since there is nothing to replace."
                 )
 
             else:
@@ -587,11 +592,10 @@ class GroundStationWidget(QWidget):
                 )
 
         except KeyError:
-            print(f"Parameter '{parameter}' not found in autopilot parameters.")
+            print(f"Error: Parameter '{parameter}' not found in autopilot parameters.")
 
         except requests.exceptions.RequestException as e:
-            print(f"Warning: Failed to connect: {e}")
-            print(f"Inputed parameter: {parameter}")
+            print(f"Error: Failed to connect: {e}\nInputed parameter: {parameter}")
 
     def reset_individual_parameter(self, parameter: str) -> None:
         """
@@ -632,11 +636,10 @@ class GroundStationWidget(QWidget):
                 )
 
         except KeyError:
-            print(f"Parameter '{parameter}' not found in autopilot parameters.")
+            print(f"Error: Parameter '{parameter}' not found in autopilot parameters.")
 
         except requests.exceptions.RequestException as e:
-            print(f"Warning: Failed to connect: {e}")
-            print(f"Inputed parameter: {parameter}")
+            print(f"Error: Failed to connect: {e}\nInputed parameter: '{parameter}'")
 
     def save_parameters(self) -> None:
         """
@@ -664,8 +667,9 @@ class GroundStationWidget(QWidget):
                 json.dump(self.autopilot_parameters, f, indent=4)
 
         except Exception as e:
-            print(f"Error: {e}")
-            print(f"Parameters: {self.autopilot_parameters}")
+            print(
+                f"Error: Failed to save parameters: {e}\nParameters: {self.autopilot_parameters}"
+            )
 
     def load_parameters(self) -> None:
         """
@@ -677,7 +681,7 @@ class GroundStationWidget(QWidget):
         try:
             param_files = os.listdir(constants.AUTO_PILOT_PARAMS_DIR)
             if not param_files:
-                print("No parameter files found.")
+                print("Warning: No parameter files found.")
 
             else:
                 chosen_file = QFileDialog.getOpenFileName(
@@ -711,8 +715,9 @@ class GroundStationWidget(QWidget):
                     )
 
         except Exception as e:
-            print(f"Error: {e}")
-            print(f"Parameters: {self.autopilot_parameters}")
+            print(
+                f"Error: Failed to load parameters: {e}\nParameters: {self.autopilot_parameters}"
+            )
 
     def send_image(self) -> None:
         """
@@ -734,9 +739,9 @@ class GroundStationWidget(QWidget):
                 json={"value": autopilot_parameters},
             ).json()
         except requests.exceptions.RequestException as e:
-            print(f"Connection error: {e}")
+            print(f"Error: Failed to send image: {e}")
         except FileNotFoundError as e:
-            print(f"File not found: {e}")
+            print(f"Error: Image file not found: {e}")
 
     def reset_parameters(self) -> None:
         """Reset all parameters to values from the server."""
@@ -759,7 +764,7 @@ class GroundStationWidget(QWidget):
                 json.dump(self.boat_data, f, indent=4)
 
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error: Failed to save boat data: {e}")
 
     def edit_boat_data_limits(self) -> None:
         """
@@ -782,7 +787,7 @@ class GroundStationWidget(QWidget):
             self.text_edit_window.show()
 
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error: Failed to open boat data limits edit window: {e}")
 
     def edit_boat_data_limits_callback(self, text: str) -> None:
         """
@@ -802,7 +807,7 @@ class GroundStationWidget(QWidget):
             self.telemetry_data_limits = json.loads(edited_config)
 
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error: Failed to edit boat data limits: {e}")
 
     def load_boat_data_limits(self) -> None:
         """
@@ -827,7 +832,7 @@ class GroundStationWidget(QWidget):
                 self.telemetry_data_limits = json.load(f)
 
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error: Failed to load boat data limits: {e}")
 
     def save_boat_data_limits(self) -> None:
         """
@@ -846,7 +851,7 @@ class GroundStationWidget(QWidget):
                 json.dump(self.telemetry_data_limits, f, indent=4)
 
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error: Failed to save boat data limits: {e}")
 
     def edit_buoy_data(self) -> None:
         """
@@ -869,7 +874,7 @@ class GroundStationWidget(QWidget):
             self.text_edit_window.show()
 
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error: Failed to open buoy data edit window: {e}")
 
     def edit_buoy_data_callback(self, text: str) -> None:
         """
@@ -891,7 +896,7 @@ class GroundStationWidget(QWidget):
                 self.update_buoy_table()
 
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error: Failed to edit buoy data: {e}")
 
     def update_buoy_table(self) -> None:
         self.right_tab2_table.clear()
@@ -933,7 +938,7 @@ class GroundStationWidget(QWidget):
                 json.dump(self.buoys, f, indent=4)
 
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error: Failed to save buoy data: {e}")
 
     def load_buoy_data(self) -> None:
         """
@@ -946,7 +951,7 @@ class GroundStationWidget(QWidget):
         try:
             buoy_files = os.listdir(constants.BUOY_DATA_DIR)
             if not buoy_files:
-                print("No buoy data files found.")
+                print("Warning: No buoy data files found.")
 
             else:
                 chosen_file = QFileDialog.getOpenFileName(
@@ -964,7 +969,7 @@ class GroundStationWidget(QWidget):
                 self.update_buoy_table()
 
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error: Failed to load buoy data: {e}")
 
     def clear_waypoints(self) -> None:
         """Clear waypoints from the table."""
@@ -1279,7 +1284,7 @@ Motor Temperature: {fix_formatting(self.boat_data_averages.get("vesc_data_motor_
         Returns
         -------
         float or Literal[0]
-            The converted float value, or 0 if conversion fails.
+            The converted float value, or `0` if conversion fails.
         """
 
         try:
