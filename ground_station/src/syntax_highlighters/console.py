@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QRegularExpression
 from PyQt5.QtGui import QFont
-from constants import WHITE, YELLOW, PURPLE, BLUE, RED
+from constants import YELLOW, RED, GREEN
 from syntax_highlighters.base_highlighter import BaseHighlighter
 
 
@@ -19,17 +19,13 @@ class ConsoleHighlighter(BaseHighlighter):
         self.pattern = QRegularExpression(
             r"(?P<error>Error:.*)|"
             r"(?P<warning>Warning:.*)|"
-            r"(?P<info>Info:.*)|"
-            r"(?P<debug>Debug:.*)|"
-            r"(?P<output>.*)"
+            r"(?P<info>Info:.*)"
         )
 
         self.formats = {
             "error": self.create_format(RED, QFont.Bold),
             "warning": self.create_format(YELLOW, QFont.Normal),
-            "info": self.create_format(PURPLE, QFont.Normal),
-            "debug": self.create_format(BLUE, QFont.Normal),
-            "output": self.create_format(WHITE, QFont.Normal),
+            "info": self.create_format(GREEN, QFont.Normal),
         }
 
     def highlightBlock(self, text: str) -> None:
@@ -38,7 +34,7 @@ class ConsoleHighlighter(BaseHighlighter):
 
         Parameters
         ----------
-        text : str
+        text
             The text block to highlight.
         """
 

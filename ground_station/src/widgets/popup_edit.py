@@ -20,23 +20,23 @@ class TextEditWindow(QWidget):
 
     Parameters
     ----------
-    highlighter : `Optional[QSyntaxHighlighter]`
+    highlighter: `Optional[QSyntaxHighlighter]`
         An optional syntax highlighter to apply to the text edit area.
         If not provided, no syntax highlighting will be applied.
 
-    initial_text : `str`
+    initial_text: `str`
         The initial text to display in the text edit area.
         Default is an empty string.
 
-    tab_width : `int`
+    tab_width: `int`
         The width of a tab character in spaces. Default is 4.
 
-    font_size : `int`
+    font_size: `int`
         The font size for the text editor. Default is 14.
 
     Attributes
     -------
-    user_text_emitter : `pyqtSignal`
+    user_text_emitter: `pyqtSignal`
         Signal emitted when the window is closed, carrying the entered text.
     """
 
