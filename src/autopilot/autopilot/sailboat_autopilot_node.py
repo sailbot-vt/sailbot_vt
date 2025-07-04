@@ -67,7 +67,7 @@ class SailboatAutopilotNode(Node):
 
         # Default values
         self.position = Position(longitude=0., latitude=0.)
-        self.velocity = np.array([0., 0.])
+        self.global_velocity = np.array([0., 0.])
         self.speed = 0.
         self.heading = 0.
         self.apparent_wind_vector = np.array([0., 0.])
@@ -219,9 +219,9 @@ class SailboatAutopilotNode(Node):
     def position_callback(self, position: NavSatFix):
         self.position = Position(longitude=position.longitude, latitude=position.latitude)
 
-    def velocity_callback(self, velocity: Twist):
-        self.velocity = np.array([velocity.linear.x, velocity.linear.y])
-        self.speed = np.sqrt(velocity.linear.x**2 + velocity.linear.y**2)
+    def velocity_callback(self, global_velocity: Twist):
+        self.global_velocity = np.array([global_velocity.linear.x, global_velocity.linear.y])
+        self.speed = np.sqrt(global_velocity.linear.x**2 + global_velocity.linear.y**2)
 
     def heading_callback(self, heading: Float32):
         self.heading = heading.data
@@ -245,7 +245,7 @@ class SailboatAutopilotNode(Node):
 
         
         if self.autopilot_mode == SailboatAutopilotMode.Waypoint_Mission and self.sailboat_autopilot.waypoints != None:
-            sail_angle, rudder_angle = self.sailboat_autopilot.run_waypoint_mission_step(self.position, self.velocity, self.heading, self.apparent_wind_vector)
+            sail_angle, rudder_angle = self.sailboat_autopilot.run_waypoint_mission_step(self.position, self.global_velocity, self.heading, self.apparent_wind_vector)
         
         elif self.autopilot_mode == SailboatAutopilotMode.Hold_Best_Sail:
             sail_angle = self.sailboat_autopilot.get_optimal_sail_angle(self.apparent_wind_angle)

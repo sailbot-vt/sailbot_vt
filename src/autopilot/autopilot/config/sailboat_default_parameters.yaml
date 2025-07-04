@@ -3,7 +3,7 @@
 sail_lookup_table_wind_angles:    [0,    45,   90,   135,   180,   225,   270,   315,   360]
 sail_lookup_table_sail_positions: [70.0, 50.0, 30.0, 10.0,  0.0,   10.0,  30.0,  50.0,  70.0]
 
-perform_forced_jibe_instead_of_tack: True,
+perform_forced_jibe_instead_of_tack: False
 waypoint_accuracy: 5    # meters
 tack_distance: 100 # rough distance to sail before changing tacks based on dynamic tacking system. Ask Chris for more info
 
@@ -22,7 +22,6 @@ heading_n_gain: 0
 # heading_d_gain: 0.2
 # heading_n_gain: 1
 
-rudder_hard_over: 25
 no_sail_zone_size: 100
 autopilot_refresh_rate: 50
 
@@ -34,3 +33,4 @@ max_sail_angle: 90
 
 min_rudder_angle: -25
 max_rudder_angle: 25
+rudder_hard_over: 25

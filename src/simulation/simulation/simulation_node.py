@@ -186,11 +186,11 @@ class SimulationNode(Node):
         # saves the current velocity vector
         if np.isnan(observation["dt_p_boat"][0]) or np.isnan(observation["dt_p_boat"][1]) or np.isnan(observation["dt_p_boat"][2]):
             print("WARNING: VELOCITY IS NAN")
-            boat_linear_velocity_vector = Vector3()
+            global_velocity_vector = Vector3()
         else:
-            boat_linear_velocity_vector = Vector3(x=observation["dt_p_boat"][0].item(), y=observation["dt_p_boat"][1].item(), z=observation["dt_p_boat"][2].item())
+            global_velocity_vector = Vector3(x=observation["dt_p_boat"][0].item(), y=observation["dt_p_boat"][1].item(), z=observation["dt_p_boat"][2].item())
             
-        boat_velocity = Twist(linear=boat_linear_velocity_vector)
+        global_velocity_twist = Twist(linear=global_velocity_vector)
         
         roll, pitch, yaw = observation["theta_boat"]
         
@@ -210,16 +210,20 @@ class SimulationNode(Node):
         # always remember that true wind and apparent wind are measured ccw from the centerline of the boat, 
         # while the global true wind is measured ccw from true east
 
-        true_wind_speed, global_wind_angle = self.cartesian_vector_to_polar(observation["wind"][0].item(), observation["wind"][1].item())
+        true_wind_speed, global_true_wind_angle = self.cartesian_vector_to_polar(observation["wind"][0].item(), observation["wind"][1].item())
 
-        true_wind_angle = global_wind_angle - heading_angle.data
+        self.get_logger().info(f"simulation: {global_true_wind_angle}")
         
-        
+        true_wind_angle = global_true_wind_angle - heading_angle.data
         self.true_wind_vector = Vector3(x= (true_wind_speed * np.cos(np.deg2rad(true_wind_angle))), y= (true_wind_speed * np.sin(np.deg2rad(true_wind_angle))))
-        self.apparent_wind_vector = Vector3(x= (self.true_wind_vector.x - boat_linear_velocity_vector.x), y= (self.true_wind_vector.y - boat_linear_velocity_vector.y)) 
+        
+        boat_speed, global_velocity_angle = self.cartesian_vector_to_polar(global_velocity_vector.x, global_velocity_vector.y)
+        local_velocity_angle = global_velocity_angle - heading_angle.data
+        local_velocity_vector = boat_speed * np.array([np.cos(np.deg2rad(local_velocity_angle)), np.sin(np.deg2rad(local_velocity_angle))])
+        self.apparent_wind_vector = Vector3(x= (self.true_wind_vector.x - local_velocity_vector[0]), y= (self.true_wind_vector.y - local_velocity_vector[1])) 
         
         self.position_publisher.publish(gps_position)
-        self.velocity_publisher.publish(boat_velocity)
+        self.velocity_publisher.publish(global_velocity_twist)
         self.heading_publisher.publish(heading_angle)
         self.apparent_wind_vector_publisher.publish(self.apparent_wind_vector)
 

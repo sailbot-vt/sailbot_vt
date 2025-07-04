@@ -170,13 +170,13 @@ class SailboatAutopilot:
 
         
         
-    def run_waypoint_mission_step(self, cur_position: Position, velocity_vector: np.ndarray, heading_: float, apparent_wind_vector_: np.ndarray):
+    def run_waypoint_mission_step(self, cur_position: Position, global_velocity_vector: np.ndarray, heading: float, apparent_wind_vector: np.ndarray):
         """
         Assumes that there are waypoints inputted in the autopilot.
         
         takes in the following:
         - position as a Position object (from position.py)
-        - velocity as a numpy array with 2 elements (x, y) in meters/ second
+        - global velocity as a numpy array with 2 elements (x, y) in meters/ second
         - heading as a float in degrees measured ccw from true east
         - apparent wind vector as a numpy array with 2 elements (x, y) in meters/ second. This captures data about AWA and AWS
         
@@ -185,16 +185,21 @@ class SailboatAutopilot:
         
         if not self.waypoints: raise Exception("Expected route to be inputted into the autopilot. Field self.waypoints was not filled")
 
-        boat_speed = np.sqrt(velocity_vector[0]**2 + velocity_vector[1]**2)
-        heading = heading_
+        boat_speed = np.sqrt(global_velocity_vector[0]**2 + global_velocity_vector[1]**2)
 
+        boat_speed, global_velocity_angle = cartesian_vector_to_polar(global_velocity_vector[0], global_velocity_vector[1])
+        local_velocity_angle = global_velocity_angle - heading
+        local_velocity_vector = boat_speed * np.array([np.cos(np.deg2rad(local_velocity_angle)), np.sin(np.deg2rad(local_velocity_angle))])
+        
         # https://en.wikipedia.org/wiki/Apparent_wind#/media/File:DiagramApparentWind.png
-        true_wind_vector = apparent_wind_vector_ + velocity_vector
+        true_wind_vector = apparent_wind_vector + local_velocity_vector
         
         true_wind_speed, true_wind_angle = cartesian_vector_to_polar(true_wind_vector[0], true_wind_vector[1])
-        apparent_wind_speed, apparent_wind_angle = cartesian_vector_to_polar(apparent_wind_vector_[0], apparent_wind_vector_[1])
+        apparent_wind_speed, apparent_wind_angle = cartesian_vector_to_polar(apparent_wind_vector[0], apparent_wind_vector[1])
         
         global_true_wind_angle = true_wind_angle + heading
+        
+        self.logger.info(f"autopilot: {global_true_wind_angle}")
         
         desired_pos = self.waypoints[self.current_waypoint_index]
         distance_to_desired_position = get_distance_between_positions(cur_position, desired_pos)

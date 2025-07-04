@@ -58,6 +58,7 @@ def check_float_equivalence(float1, float2):
 def cartesian_vector_to_polar(x, y):
     """
         Converts a cartesian vector (x and y coordinates) to polar form (magnitude and direction).
+        Output direction is in degrees from 0 to 360 degrees
         Outputs a tuple of magnitude and direction of the inputted vector
     """
     # arctan2 doesn't like when we pass 2 zeros into it so we should cover that case

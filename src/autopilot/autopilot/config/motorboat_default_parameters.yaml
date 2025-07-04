@@ -3,7 +3,7 @@
 sail_lookup_table_wind_angles:    [0,    45,   90,   135,   180,   225,   270,   315,   360]
 sail_lookup_table_sail_positions: [70.0, 50.0, 30.0, 10.0,  0.0,   10.0,  30.0,  50.0,  70.0]
 
-perform_forced_jibe_instead_of_tack: True,
+perform_forced_jibe_instead_of_tack: True
 waypoint_accuracy: 5    # meters
 tack_distance: 100 # rough distance to sail before changing tacks based on dynamic tacking system. Ask Chris for more info
 
