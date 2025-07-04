@@ -2,7 +2,97 @@ import os
 import sys
 from pathlib import PurePath
 from PyQt5.QtCore import QRect, QTimer
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QIcon
+from PyQt5.QtWidgets import QPushButton
+import qtawesome as qta
+from types import SimpleNamespace
+from typing import Optional
+
+
+def __get_icons() -> SimpleNamespace:
+    """
+    Load and return a set of icons for the application.
+
+    Returns
+    -------
+    SimpleNamespace
+        A namespace object containing the loaded icons.
+        Each icon can be accessed as an attribute of the namespace.
+
+        Example: `icons.upload` = `icons["upload"]`
+
+    Raises
+    -------
+    TypeError
+        If an icon fails to load or is not a QIcon.
+        This indicates that the icon name is not valid or the icon could not be found.
+    """
+
+    icons = {
+        "upload": qta.icon("mdi.upload"),
+        "download": qta.icon("mdi.download"),
+        "delete": qta.icon("mdi.trash-can"),
+        "save": qta.icon("mdi.content-save"),
+        "cog": qta.icon("mdi.cog"),
+        "pencil": qta.icon("ei.pencil"),
+        "refresh": qta.icon("mdi.refresh"),
+        "hard_drive": qta.icon("fa6.hard-drive"),
+        "boat": qta.icon("mdi.sail-boat"),
+        "image_upload": qta.icon("mdi.image-move"),
+    }
+
+    for icon_name, icon in icons.items():
+        if not isinstance(icon, QIcon):
+            print(f"Warning: Failed to load icon '{icon_name}'.")
+
+    return SimpleNamespace(**icons)
+
+
+def pushbutton_maker(
+    button_text: str,
+    icon: QIcon,
+    function: callable,
+    max_width: Optional[int] = None,
+    min_height: Optional[int] = None,
+    is_clickable: bool = True,
+) -> QPushButton:
+    """
+    Create a `QPushButton` with the specified features.
+
+    Parameters
+    ----------
+    button_text
+        The text to display on the button.
+    icon
+        The icon to display on the button.
+    function
+        The function to connect to the button's clicked signal.
+    max_width
+        The maximum width of the button. If not specified, not used.
+    min_height
+        The minimum height of the button. If not specified, not used.
+    is_clickable
+        Whether the button should be clickable. Defaults to `True`.
+
+    Returns
+    -------
+    QPushButton
+        The created button.
+    """
+
+    button = QPushButton(button_text)
+    button.setIcon(icon)
+    if max_width is not None:
+        button.setMaximumWidth(max_width)
+    if min_height is not None:
+        button.setMinimumHeight(min_height)
+    button.clicked.connect(function)
+    button.setDisabled(not is_clickable)
+    return button
+
+
+# see main.py for where this is set
+ICONS = None
 
 # colors (monokai pro color scheme)
 YELLOW = QColor("#ffd866")
@@ -59,6 +149,13 @@ try:
 
     if "autopilot_params" not in os.listdir(DATA_DIR):
         os.makedirs(DATA_DIR / "autopilot_params")
+
+    __autopilot_param_editor_dir = PurePath(
+        SRC_DIR / "widgets" / "autopilot_param_editor"
+    )
+    if "params_temp.json" not in os.listdir(__autopilot_param_editor_dir):
+        with open(__autopilot_param_editor_dir / "params_temp.json", "w") as f:
+            pass
 
     if "boat_data" not in os.listdir(DATA_DIR):
         os.makedirs(DATA_DIR / "boat_data")

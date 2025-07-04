@@ -58,7 +58,7 @@ bin/server &
 GO_PID=$!
 
 # Start Python script in the background
-$local_python src/main.py &
+$local_python -X faulthandler src/main.py &
 PYTHON_PID=$!
 
 # Trap Ctrl+C and kill both processes
@@ -67,3 +67,8 @@ trap "kill $GO_PID $PYTHON_PID" SIGINT
 # Wait for both processes to finish
 wait $GO_PID
 wait $PYTHON_PID
+
+# Cleanup
+if [ -f "src/widgets/autopilot_param_editor/params_temp.json" ]; then
+    rm src/widgets/autopilot_param_editor/params_temp.json
+fi

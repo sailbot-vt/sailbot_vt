@@ -1,8 +1,9 @@
 import sys
+import os
 from widgets.groundstation import GroundStationWidget
 from widgets.camera_widget.camera import CameraWidget
 from widgets.console_output import ConsoleOutputWidget
-from icons import get_icons
+from widgets.autopilot_param_editor.editor import AutopilotParamEditor
 import constants
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget
@@ -27,6 +28,7 @@ class MainWindow(QMainWindow):
         self.main_widget.addTab(GroundStationWidget(), "Ground Station")
         self.main_widget.addTab(CameraWidget(), "Camera Feed")
         self.main_widget.addTab(ConsoleOutputWidget(), "Console Output")
+        self.main_widget.addTab(AutopilotParamEditor(), "Autopilot Parameters")
         self.main_widget.setCurrentIndex(0)
 
 
@@ -34,7 +36,8 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setApplicationName("SailBussy Ground Station")
     app.setStyle("Fusion")
-    app_icon: QIcon = get_icons().boat
+    constants.ICONS = constants.__get_icons()
+    app_icon: QIcon = constants.ICONS.boat
     app.setWindowIcon(app_icon)
     window = MainWindow()
     window.show()
