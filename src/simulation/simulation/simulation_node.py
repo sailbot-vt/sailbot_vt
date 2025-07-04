@@ -19,7 +19,6 @@ from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from std_msgs.msg import Float32, Bool
 from geometry_msgs.msg import Vector3, Twist
 from sensor_msgs.msg import NavSatFix
-from sailbot_msgs.msg import WaypointList
 
 
 
