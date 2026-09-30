@@ -63,7 +63,8 @@ class DeepStreamEngine:
       image_callback:Callable[[bytes], None],
       info_callback:Callable[[str], None],
       warn_callback:Callable[[str], None],
-      error_callback:Callable[[str], None]
+      error_callback:Callable[[str], None],
+      close_callback:Callable[[], None]
     ) -> None:
         self.parameters = {
             "model_name": "", # model name without .onnx. Ex. yolo11m.onnx -> yolo11m
@@ -75,6 +76,7 @@ class DeepStreamEngine:
         self.info_callback = info_callback
         self.warn_callback = warn_callback
         self.error_callback = error_callback
+        self.close_callback = close_callback
 
         self.cam_list = self._read_camera_config()
         if CAMERA:
@@ -110,6 +112,8 @@ class DeepStreamEngine:
 
         streammux = Gst.ElementFactory.make("nvstreammux", "muxer")
         streammux.set_property('batch-size', 2)
+        streammux.set_property("sync-inputs", True)
+        streammux.set_property("batched-push-timeout", 33_333_333)
         
         # v4l2-ctl --list-devices
         # v4l2-ctl --device /dev/video0 --list-formats-ext
@@ -165,6 +169,8 @@ class DeepStreamEngine:
 
         src_tee = Gst.ElementFactory.make("tee", "src-tee")
 
+        queue_left = Gst.ElementFactory.make('queue', 'queue-left')
+
         nvvidconv_left = Gst.ElementFactory.make('nvvideoconvert', 'nvconverter-left')
         nvvidconv_left.set_property('nvbuf-memory-type', MEMORY_TYPE)
         nvvidconv_left.set_property('compute-hw', COMPUTE_HW)
@@ -179,6 +185,8 @@ class DeepStreamEngine:
                 f"height={self.cam_list[0]['height']}"
             )
         )
+
+        queue_right = Gst.ElementFactory.make('queue', 'queue-right')
 
         nvvidconv_right = Gst.ElementFactory.make('nvvideoconvert', 'nvconverter-right')
         nvvidconv_right.set_property('nvbuf-memory-type', MEMORY_TYPE)
@@ -241,8 +249,10 @@ class DeepStreamEngine:
         self.pipeline.add(caps_nvvidconvsrc0)
         self.pipeline.add(src_tee)
         self.pipeline.add(nvvidconv_left)
+        self.pipeline.add(queue_left)
         self.pipeline.add(caps_nvvidconv_left)
         self.pipeline.add(nvvidconv_right)
+        self.pipeline.add(queue_right)
         self.pipeline.add(caps_nvvidconv_right)
         self.pipeline.add(streammux)
         if INFERENCE:
@@ -264,13 +274,15 @@ class DeepStreamEngine:
         caps_nvvidconvsrc0.link(src_tee)
 
         srcpad_left = src_tee.request_pad_simple('src_0')
-        sinkpad_left = nvvidconv_left.get_static_pad('sink')
+        sinkpad_left = queue_left.get_static_pad('sink')
         srcpad_left.link(sinkpad_left)
+        queue_left.link(nvvidconv_left)
         nvvidconv_left.link(caps_nvvidconv_left)
 
         srcpad_right = src_tee.request_pad_simple('src_1')
-        sinkpad_right = nvvidconv_right.get_static_pad('sink')
+        sinkpad_right = queue_right.get_static_pad('sink')
         srcpad_right.link(sinkpad_right)
+        queue_right.link(nvvidconv_right)
         nvvidconv_right.link(caps_nvvidconv_right)
 
         sinkpad0 = streammux.request_pad_simple('sink_0')
@@ -312,13 +324,14 @@ class DeepStreamEngine:
         t = message.type
         if t == Gst.MessageType.EOS:
             self.info_callback("End-of-stream\n")
+            self.close_callback()
         elif t == Gst.MessageType.WARNING:
             err, debug = message.parse_warning()
             self.warn_callback(f"Warning: {err}: {debug}\n")
         elif t == Gst.MessageType.ERROR:
             err, debug = message.parse_error()
             self.error_callback(f"Error: {err}: {debug}\n")
-            self.close_pipeline()
+            self.close_callback()
         return True
 
     def run(self) -> None:
@@ -375,14 +388,14 @@ class DeepStreamEngine:
                 break
 
             msg["ntp_timestamp"] = frame_meta.ntp_timestamp
+            msg["detection_results"].append([])
 
             if (frame_meta.source_id == 0 and frame_meta.frame_num % 60 == 0):
                 current_time = time.time()
                 fps = 60 / (current_time - self.last_time)
                 self.last_time = current_time
                 self.info_callback(f"Frame: {frame_meta.frame_num}, avg FPS: {fps:.2f}")
-                # n_frame = pyds.get_nvds_buf_surface(hash(gst_buffer), frame_meta.batch_id)
-                # print(n_frame)
+
             l_obj = frame_meta.obj_meta_list
 
             # Iterate through each object in frame
