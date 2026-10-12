@@ -1,18 +1,18 @@
 # used to specify what is available to import from this file
 __all__ = ["DiscretePID"]
 
+
 class DiscretePID:
     """
-    Modified discrete PID controller using a low pass filter only for the derivative term.
+    Modified discrete PID controller using a parallel implementation with a
+    bilinear integrator and a backward euler filtered derivative.
+    
+    
+    For a more detailed explanation please see the following documentation:
+    https://autoboat-vt.github.io/documentation/ros2_packages/autopilot_package/pidn_controller_derivation_and_explanation/
 
-    Reference
-    ---------
-    https://www.scilab.org/discrete-time-pid-controller-implementation.
-
-    Note
-    ----
-    ``low_pass_filter_cutoff_frequency`` is represented by ``n`` to improve readability in the equations.
-
+    I spent a lot of time on that documentation so it would be nice if you would take a look at it :)
+    
     Parameters
     ----------
     sample_period
@@ -24,28 +24,43 @@ class DiscretePID:
     k_d
         Derivative gain.
     n
-        Cutoff frequency for the low pass filter on the derivative term.
+        Cutoff frequency for the low pass filter on the derivative term. Lower value means more smoothing.
+    b_i
+        Maximum saturation bound for the integral state to prevent stall windup.
     """
 
-    def __init__(self, sample_period: float, k_p: float, k_i: float, k_d: float, n: float) -> None:
+    def __init__(
+        self,
+        sample_period: float,
+        k_p: float,
+        k_i: float,
+        k_d: float,
+        n: float,
+        b_i: float = 15, # could also default to float("inf") if you want
+    ) -> None:
         self.sample_period = sample_period
         self.k_p = k_p
         self.k_i = k_i
         self.k_d = k_d
         self.n = n
+        self.b_i = b_i
 
-        self.prev_output1: float = 0.0
-        self.prev_output2: float = 0.0
-
-        self.prev_error1: float = 0.0
-        self.prev_error2: float = 0.0
-
+        self.prev_integral: float = 0.0
+        self.prev_derivative: float = 0.0
+        self.prev_error: float = 0.0
 
     def reset(self) -> None:
         """Resets the PID controller to its initial state."""
 
-        self.__init__(self.sample_period, self.k_p, self.k_i, self.k_d, self.n)
-
+        self.__init__(
+            self.sample_period,
+            self.k_p,
+            self.k_i,
+            self.k_d,
+            self.n,
+            self.b_i,
+        )
+        
 
     def __call__(self, error: float) -> float:
         """
@@ -65,30 +80,18 @@ class DiscretePID:
         return self.step(error)
 
 
-
-
     def set_gains(
         self,
         k_p: float | None = None,
         k_i: float | None = None,
         k_d: float | None = None,
         n: float | None = None,
+        b_i: float | None = None,
         sample_period: float | None = None,
     ) -> None:
         """
         Sets gains to the specified value.
         If an argument is ``None`` then they are set as the already existing value.
-
-        Examples
-        --------
-        Set ``k_p`` to 2.0 and ``k_i`` to 0.5, leaving ``k_d``, ``n``, and
-        ``sample_period`` unchanged::
-
-            >>> pid_controller.set_gains(k_p=2.0, k_i=0.5)
-
-        Leave all gains unchanged::
-
-            >>> pid_controller.set_gains()
 
         Parameters
         ----------
@@ -100,6 +103,8 @@ class DiscretePID:
             Derivative gain.
         n
             Cutoff frequency for the low pass filter on the derivative term.
+        b_i
+            Maximum saturation bound for the integral state.
         sample_period
             Sample period for the discrete PID controller.
         """
@@ -112,6 +117,8 @@ class DiscretePID:
             self.k_d = k_d
         if n is not None:
             self.n = n
+        if b_i is not None:
+            self.b_i = b_i
         if sample_period is not None:
             self.sample_period = sample_period
 
@@ -131,29 +138,23 @@ class DiscretePID:
             The output of the PID controller after processing the input error.
         """
 
-        a0 = 1 + self.n * self.sample_period
-        a1 = -(2 + self.n * self.sample_period)
-        a2 = 1
+        # Proportional Term
+        p_output = self.k_p * error
 
-        b0 = (
-            self.k_p * (1 + self.n * self.sample_period)
-            + self.k_i * self.sample_period * (1 + self.n * self.sample_period)
-            + self.k_d * self.n
-        )
-        b1 = -(self.k_p * (2 + self.n * self.sample_period) + self.k_i * self.sample_period + 2 * self.k_d * self.n)
-        b2 = self.k_p + self.k_d * self.n
+        # Integral term with clamping
+        integral = self.prev_integral + (self.k_i * self.sample_period / 2.0) * (error + self.prev_error)
+        i_output = max(-self.b_i, min(self.b_i, integral))
 
-        output = (
-            -(a1 / a0) * self.prev_output1
-            - (a2 / a0) * self.prev_output2
-            + (b0 / a0) * error
-            + (b1 / a0) * self.prev_error1
-            + (b2 / a0) * self.prev_error2
-        )
+        # Derivative term
+        d_denom = 1.0 + self.n * self.sample_period
+        d_output = (self.prev_derivative + self.k_d * self.n * (error - self.prev_error)) / d_denom
 
-        self.prev_output2 = self.prev_output1
-        self.prev_output1 = output
-        self.prev_error2 = self.prev_error1
-        self.prev_error1 = error
+        
+        output = p_output + i_output + d_output
+
+
+        self.prev_integral = i_output
+        self.prev_derivative = d_output
+        self.prev_error = error
 
         return output
