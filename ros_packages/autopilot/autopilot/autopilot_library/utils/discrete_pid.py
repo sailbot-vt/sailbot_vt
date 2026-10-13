@@ -7,9 +7,8 @@ class DiscretePID:
     Modified discrete PID controller using a parallel implementation with a
     bilinear integrator and a backward euler filtered derivative.
     
-    
     For a more detailed explanation please see the following documentation:
-    https://autoboat-vt.github.io/documentation/ros2_packages/autopilot_package/pidn_controller_derivation_and_explanation/
+    https://autoboat-vt.github.io/documentation/ros2_packages/autopilot_package/pidn_controller_derivation_and_explanation
 
     I spent a lot of time on that documentation so it would be nice if you would take a look at it :)
     
@@ -60,11 +59,10 @@ class DiscretePID:
             self.n,
             self.b_i,
         )
-        
 
     def __call__(self, error: float) -> float:
         """
-        Calls the ``step`` method with the given error and returns the output.
+        Calls :meth:`step` with the given error and returns the output.
 
         Parameters
         ----------
@@ -73,7 +71,7 @@ class DiscretePID:
 
         Returns
         -------
-        float
+        `float`
             The output of the PID controller after processing the input error.
         """
 
@@ -91,7 +89,6 @@ class DiscretePID:
     ) -> None:
         """
         Sets gains to the specified value.
-        If an argument is ``None`` then they are set as the already existing value.
 
         Parameters
         ----------
@@ -134,7 +131,7 @@ class DiscretePID:
 
         Returns
         -------
-        float
+        `float`
             The output of the PID controller after processing the input error.
         """
 
@@ -149,9 +146,7 @@ class DiscretePID:
         d_denom = 1.0 + self.n * self.sample_period
         d_output = (self.prev_derivative + self.k_d * self.n * (error - self.prev_error)) / d_denom
 
-        
         output = p_output + i_output + d_output
-
 
         self.prev_integral = i_output
         self.prev_derivative = d_output

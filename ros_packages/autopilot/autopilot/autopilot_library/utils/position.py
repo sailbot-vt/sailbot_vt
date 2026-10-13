@@ -16,41 +16,42 @@ class Position:
     """
     A position that describes a point on the earth which is stored internally as its longitude and latitude.
 
-    Whenever a function such as ```get_local_coordinates``` is called, this class has to convert to the proper
+    Whenever a function such as :func:`get_local_coordinates` is called, this class has to convert to the proper
     position measurement system such as NED or UTM.
 
-    This class mainly just calls on python libraries such as ```navpy```, ```utm```, and ```pygeodesy``` to convert to
+    This class mainly just calls on python libraries such as ``navpy``, ``utm``, and ``pygeodesy`` to convert to
     other position measurement systems.
 
 
     The constructor supports two mutually exclusive initialization schemes:
-    1. **Global:** Provide `longitude` and `latitude` only.
+    1. Global: Provide `longitude` and `latitude` only.
 
     >>> Position(longitude=longitude, latitude=latitude)
 
-    2. **Local:** Provide `local_x`, `local_y`, and a reference global point
+    2. Local: Provide `local_x`, `local_y`, and a reference global point
     (`reference_longitude`, `reference_latitude`) to calculate the position.
 
     >>> Position(local_x=local_x, local_y=local_y, reference_longitude=reference_longitude, reference_latitude=reference_latitude)
 
     Parameters
     ----------
-    longitude: float
+    longitude
         The global longitude in degrees.
-    latitude: float
+    latitude
         The global latitude in degrees.
-    local_x: float
+    local_x
         The Cartesian x-coordinate (e.g., Easting or NED North) relative to the reference point.
-    local_y: float
+    local_y
         The Cartesian y-coordinate (e.g., Northing or NED East) relative to the reference point.
-    reference_longitude: float
+    reference_longitude
         The longitude of the origin for local coordinates.
-    reference_latitude: float
+    reference_latitude
         The latitude of the origin for local coordinates.
 
     Raises
     ------
-    Exception: If the provided arguments do not match one of the two supported initialization schemes.
+    :class:`Exception`
+        If the provided parameters do not match one of the two supported initialization schemes.
     """
 
     def __init__(
@@ -69,8 +70,7 @@ class Position:
             local_x is not None and local_y is not None and reference_longitude is not None and reference_latitude is not None
         )
 
-
-        if (not (is_using_local_coordinates or is_using_longitude_latitude_coordinates)):
+        if not (is_using_local_coordinates or is_using_longitude_latitude_coordinates):
             raise Exception(
                 "Incorrect parameters passed to construct the Position object. "
                 "The Position Object only supports the following initialization scheme:"
@@ -79,11 +79,11 @@ class Position:
                 "reference_latitude=reference_latitude)"
             )
 
-        if (is_using_longitude_latitude_coordinates):
+        if is_using_longitude_latitude_coordinates:
             self.longitude = longitude
             self.latitude = latitude
 
-        else: # is_using_local_coordinates
+        else:
             self.set_local_coordinates(local_x, local_y, reference_longitude, reference_latitude)
 
 
@@ -110,7 +110,7 @@ class Position:
 
         Returns
         -------
-        array
+        :class:`numpy.ndarray[float64]`
             An array where the first element is the longitude and the second element is the latitude.
         """
 
@@ -122,7 +122,7 @@ class Position:
 
         Returns
         -------
-        array
+        :class:`numpy.ndarray[float64]`
             An array where the first element is the latitude and the second element is the longitude.
         """
 
@@ -147,7 +147,7 @@ class Position:
 
         Raises
         ------
-        Exception
+        :class:`Exception`
             If an invalid hemisphere is provided.
         """
 
@@ -166,7 +166,7 @@ class Position:
 
         Returns
         -------
-        tuple[float, float]
+        `tuple[float, float]`
             A tuple where the first element is the easting and the second element is the northing.
         """
 
@@ -208,7 +208,7 @@ class Position:
 
         Returns
         -------
-        array
+        :class:`numpy.ndarray[float64]`
             Array where the first element is the local x coordinate (north)
             and the second element is the local y coordinate (east).
         """

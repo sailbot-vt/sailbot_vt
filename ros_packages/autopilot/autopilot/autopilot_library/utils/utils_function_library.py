@@ -33,8 +33,8 @@ def check_float_equivalence(float1: float, float2: float) -> bool:
 
     Returns
     -------
-    bool
-        ``True`` if the two floats are equivalent to within ``0.001``, ``False`` otherwise.
+    `bool`
+        `True` if the two floats are equivalent to within `0.001`, `False` otherwise.
     """
 
     return abs(float1 - float2) <= 0.001
@@ -53,7 +53,7 @@ def cartesian_vector_to_polar(x: float, y: float) -> tuple[float, float]:
 
     Returns
     -------
-    tuple
+    `tuple[float, float]`
         Outputs a tuple of magnitude and direction (degrees counter-clockwise from the x axis) of the inputted vector.
         Output direction is between ```0``` and ```360``` degrees.
     """
@@ -79,7 +79,7 @@ def get_angle_between_vectors(vector1: npt.NDArray[np.float64], vector2: npt.NDA
 
     Returns
     -------
-    float
+    `float`
         The smallest angle between the two vectors in degrees.
     """
 
@@ -111,7 +111,7 @@ def get_distance_between_angles(angle1: float, angle2: float) -> float:
 
     Returns
     -------
-    float
+    `float`
         The shortest angular distance between the two angles (in degrees).
     """
 
@@ -134,8 +134,8 @@ def get_bearing(current_position: Position, destination_position: Position) -> f
 
     Returns
     -------
-    float
-        The bearing as an angle between ```0``` to ```360```, counter clockwise, measured from east.
+    `float`
+        The bearing as an angle between 0 to 360, counter clockwise, measured from east.
         This value tells you which direction you need to travel in to get to your destination.
     """
 
@@ -162,7 +162,7 @@ def get_distance_between_positions(position1: Position, position2: Position) -> 
 
     Returns
     -------
-    float
+    `float`
         The distance between the two positions in meters.
     """
 
@@ -182,8 +182,8 @@ def is_angle_between_boundaries(angle: float, boundary1: float, boundary2: float
 
     Returns
     -------
-    bool
-        If "angle" is between ```boundary1``` and ```boundary2```, then return ```True``` and if not, return ```False```.
+    `bool`
+        If "angle" is between ``boundary1`` and ``boundary2``, then return `True` and if not, return `False`.
     """
 
     angle_radians, boundary1_radians, boundary2_radians = np.deg2rad([angle, boundary1, boundary2])
@@ -208,15 +208,16 @@ def is_angle_between_boundaries_with_hysteresis(
     """
     This function is primarily used to ensure that states don't transition many times per second with noisy sensor readings.
 
-    This function behaves more like a schmidt trigger where if the "biased_side" is False, which means that the function is biased
-    towards saying the angle is outside of the boundary, then the function will require the angle to be an extra
-    "hysteresis_amount" degrees inside of the boundary to change its beliefs on what the output "should be".
+    This function behaves more like a Schmidt trigger where if the ``biased_side`` is `False`, which
+    means that the function is biased towards saying the angle is outside of the boundary, then the
+    function will require the angle to be an extra ``hysteresis_amount`` degrees inside of the boundary
+    to change its beliefs on what the output "should be".
 
-    Another way of putting this is that if biased_side == True then it requires angle + hysteresis_amount and
-    angle - hysteresis_amount to make the function return false. If biased_side == False then it requires
-    angle + hysteresis_amount and angle - hysteresis amount to make the function return true.
+    Another way of putting this is that if `biased_side == True` then it requires `angle + hysteresis_amount` and
+    `angle - hysteresis_amount` to make the function return `False`. If `biased_side == False` then it requires
+    `angle + hysteresis_amount` and `angle - hysteresis` amount to make the function return `True`.
 
-    See the below link for an explanation on how schmidt triggers work
+    See the below link for an explanation on how Schmidt triggers work:
     https://www.geeksforgeeks.org/electronics-engineering/schmitt-trigger/?utm_source=mail&utm_medium=signup_newsletter&utm_campaign=newsletter
 
     Parameters
@@ -234,8 +235,8 @@ def is_angle_between_boundaries_with_hysteresis(
 
     Returns
     -------
-    bool
-        If "angle" is between ```boundary1``` and ```boundary2```, then return ```True``` and if not, return ```False```.
+    `bool`
+        If "angle" is between ``boundary1`` and ``boundary2``, then return `True` and if not, return `False`.
     """
 
     test_angle1 = (angle + hysteresis_amount) % 360
@@ -273,21 +274,18 @@ def does_line_violate_no_sail_zone(
     ----------
     current_position
         A tuple that represents the current position in cartesian coordinates.
-        For example: ```[x_coordinate, y_coordinate]``` is the form that you should use.
-
+        For example: `[x_coordinate, y_coordinate]` is the form that you should use.
     destination_position
         A tuple that represents the position you want to directly travel to in cartesian coordinates.
-        For example: ```[x_coordinate, y_coordinate]``` is the form that you should use.
-
+        For example: `[x_coordinate, y_coordinate]` is the form that you should use.
     global_true_wind_angle
         The global true wind angle measured counter-clockwise from true east as an angle in degrees.
-
     no_sail_zone_size
         The size of the no sail zone in degrees.
 
     Returns
     -------
-    bool
+    `bool`
         Whether or not the line between the current position and the destination position violates the no sail zone.
     """
 
@@ -326,22 +324,22 @@ def does_line_segment_intersect_circle(
     Parameters
     ----------
     line_segment_start_position
-        The starting point of the line segment as a tuple of the form ```[x_coordinate, y_coordinate]```.
+        The starting point of the line segment as a tuple of the form `[x_coordinate, y_coordinate]`.
     line_segment_end_position
-        The end point of the line segment as a tuple of the form ```[x_coordinate, y_coordinate]```.
+        The end point of the line segment as a tuple of the form `[x_coordinate, y_coordinate]`.
     circle_position
-        The position of the circle as a tuple of the form ```[x_coordinate, y_coordinate]```.
+        The position of the circle as a tuple of the form `[x_coordinate, y_coordinate]`.
     circle_radius
         The radius of the circle.
 
     Returns
     -------
-    bool
+    `bool`
         Whether or not the line segment intersects the circle.
 
     Raises
     ------
-    ValueError
+    :class:`ValueError`
         If the circle radius is not positive.
     """
 

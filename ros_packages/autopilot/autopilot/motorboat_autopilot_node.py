@@ -30,7 +30,7 @@ class MotorboatAutopilotNode(Node):
     The autopilot takes in a bunch of sensor data and waypoints and attempts to traverses through
     the waypoints by continuously publishing to the propeller motor control struct and rudder angle topics.
 
-    The main function that you should pay attention to is ``update_ros_topics``,
+    The main function that you should pay attention to is :meth:`update_ros_topics`,
     since this is the function that is called periodically on a timer.
 
     NOTE: All units are in standard SI units and angles are generally measured in degrees unless otherwise specified.
@@ -124,20 +124,22 @@ class MotorboatAutopilotNode(Node):
     def rc_data_callback(self, rc_data_message: RCData) -> None:
         """
         This callback is called whenever there is new data about what is being pressed on the remote control.
-        Whenever this callback is called, a couple of things happen:
+        Whenever this callback is called, the following things happen:
         1. We check whether or not we are trying to zero the rudder and if we have, then we should handle that.
 
         2. We need to keep track of if we are entering hold heading mode, and if we are,
         then we need to keep track of the current heading, since that heading is the one we will need to hold.
 
-        3. We set the SailboatControlMode based on a specific combination of toggles to determine whether we are in
+        3. We set the :enum:`MotorboatControlMode` based on a specific combination of toggles to determine whether we are in
         full rc mode, full autopilot mode, or one of the semi autonomous modes.
-        Finally, we need to set the propeller control mode based on the toggles to determine whether we are controlling
+
+        Finally, we need to set the :enum:`PropellerMotorControlMode` based on the toggles to determine whether we are controlling
         the propeller based on current output, duty cycle output, or propeller RPM.
 
         Parameters
         ----------
-            rc_data_message (RCData): A struct that contains all of the data on what is pressed on the remote control
+        rc_data_message
+            A struct that contains all of the data on what is pressed on the remote control.
         """
 
         self.last_rc_data_received_time = time.time()
@@ -240,16 +242,16 @@ class MotorboatAutopilotNode(Node):
     def waypoints_list_callback(self, waypoint_list: WaypointList) -> None:
         """
         Callback function that is called whenever there is a new waypoint list message.
-        Converts the list of ROS2 ``NavSatFix`` objects to a list of ``Position`` objects,
+        Converts the list of ROS2 :class:`NavSatFix` objects to a list of :class:`Position` objects,
         which are a custom datatype that has some useful helper methods.
 
         Does not directly set the waypoints in the motorboat autopilot object,
-        instead it calls the ``update_waypoints_list`` method of the motorboat autopilot object.
+        instead it calls :meth:`update_waypoints_list` of the motorboat autopilot object.
 
         Parameters
         ----------
         waypoint_list
-            A ROS2 message that contains a list of waypoints as ``NavSatFix`` objects.
+            A ROS2 message that contains a list of waypoints as :class:`NavSatFix` objects.
         """
 
         if len(waypoint_list.waypoints) == 0:
@@ -285,11 +287,13 @@ class MotorboatAutopilotNode(Node):
 
     def emergency_stop_callback(self, should_emergency_stop: Bool)-> None:
         """
-        A callback function for the /object_detection_emergency_stop topic.
+        A callback function for the `/object_detection_emergency_stop` topic.
+
         If this topic has a 'true' in it and we are on a waypoint mission,
         then we need to emergency stop the boat until the emergency stop is
         turned to 'false'.
         """
+
         if should_emergency_stop.data and self.motorboat_control_mode == MotorboatControlModes.WAYPOINT_MISSION:
             self.motorboat_control_mode = MotorboatControlModes.EMERGENCY_STOP
 
@@ -301,7 +305,7 @@ class MotorboatAutopilotNode(Node):
 
     def update_ros_topics(self) -> None:
         """
-        This is the main function that is called constantely by the timer.
+        This is the main function that is called constantly by the timer.
         Updates the propeller control struct and rudder angle topics based on the output of the autopilot controller.
         """
 

@@ -29,7 +29,7 @@ class SailboatAutopilotNode(Node):
     The autopilot takes in a bunch of sensor data and waypoints and attempts to traverses through
     the waypoints by continuously publishing to the sail angle and rudder angle topics.
 
-    The main function that you should pay attention to is ``update_ros_topics``,
+    The main function that you should pay attention to is :meth:`update_ros_topics`,
     since this is the function that is called periodically on a timer.
 
     NOTE: All units are in standard SI units and angles are generally measured in degrees unless otherwise specified.
@@ -120,15 +120,19 @@ class SailboatAutopilotNode(Node):
     def rc_data_callback(self, rc_data_message: RCData) -> None:
         """
         This callback is called whenever there is new data about what is being pressed on the remote control.
-        Whenever this callback is called, a couple of things happen: first, we check whether or not we are trying to zero
-        the rudder or the winch and if we have, then we should handle that. Second, we need to keep track of if we are entering
-        hold heading mode, and if we are, then we need to keep track of the current heading,
-        since that heading is the one we will need to hold. Finally, we set the SailboatControlMode
-        based on a specific combination of toggles to determine whether we are in full rc mode,
-        full autopilot mode, or one of the semi autonomous modes.
+        Whenever this callback is called, the following things happen:
+        1. We check whether or not we are trying to zero the rudder or the winch and if we have, then we should handle that.
 
-        Args:
-            rc_data_message (RCData): A struct that contains all of the data on what is pressed on the remote control
+        2. We need to keep track of if we are entering hold heading mode, and if we are, then we need to keep track
+        of the current heading, since that heading is the one we will need to hold.
+
+        3. We set the :enum:`SailboatControlMode` based on a specific combination of toggles to determine whether we are
+        in full rc mode, full autopilot mode, or one of the semi autonomous modes.
+
+        Parameters
+        ----------
+        rc_data_message
+            A struct that contains all of the data on what is pressed on the remote control.
         """
 
         # This means we have entered hold heading mode, so keep track of the current heading since this is the target heading
@@ -193,37 +197,46 @@ class SailboatAutopilotNode(Node):
 
     def autopilot_parameters_callback(self, new_parameters: String) -> None:
         """
-        Receives a serialized json (as a string) of parameters and sets them as constants.
-        Any constant can be set as long as they are in the json.
+        Updates the autopilot parameters based on the input JSON string.
+
+        NOTE: Only parameters that already exist in the autopilot will be updated.
+
+        Parameters
+        ----------
+        new_parameters
+            A JSON string that contains the new parameters to set for the autopilot.
         """
 
-        new_parameters_json: dict[str, Any] = json.loads(new_parameters.data)
+        new_parameters_json: dict = json.loads(new_parameters.data)
 
         for new_parameter_name, new_parameter_value in new_parameters_json.items():
             if new_parameter_name not in self.autopilot_parameters:
-                warn_string = "WARNING: Attempted to set an autopilot parameter that the autopilot doesn't know. "
-                warn_string += "If you would like to make a new autopilot parameter, please edit sailboat_default_parameters.json"
-                self.get_logger().warn(warn_string)
+                print("WARNING: Attempted to set an autopilot parameter that the autopilot doesn't know")
+                print("If you would like to make a new autopilot parameter, please edit motorboat_default_parameters.json")
                 continue
 
             self.autopilot_parameters[new_parameter_name] = new_parameter_value
 
-        # HANDLE SPECIAL CASES SINCE THEY DO NOT UPDATE AUTOMATICALLY
+        # special cases to handle since they do not update automatically
         if "autopilot_refresh_rate" in new_parameters_json:
             self.destroy_timer(self.autopilot_refresh_timer)
-
             self.autopilot_refresh_timer = self.create_timer(
-                timer_period_sec=(1 / self.autopilot_parameters["autopilot_refresh_rate"]), callback=self.update_ros_topics
+                1 / self.autopilot_parameters["autopilot_refresh_rate"], self.update_ros_topics
             )
 
     def waypoints_list_callback(self, waypoint_list: WaypointList) -> None:
         """
-        Convert the list of ``NavSatFix`` objects (ROS2) to a list of ``Position`` objects,
+        Callback function that is called whenever there is a new waypoint list message.
+        Converts the list of ROS2 :class:`NavSatFix` objects to a list of :class:`Position` objects,
         which are a custom datatype that has some useful helper methods.
 
-        References
+        Does not directly set the waypoints in the motorboat autopilot object,
+        instead it calls :meth:`update_waypoints_list` of the motorboat autopilot object.
+
+        Parameters
         ----------
-        ``NavSatFix`` message documentation: https://docs.ros2.org/foxy/api/sensor_msgs/msg/NavSatFix.html
+        waypoint_list
+            A ROS2 message that contains a list of waypoints as :class:`NavSatFix` objects.
         """
 
         if len(waypoint_list.waypoints) == 0:
@@ -260,10 +273,11 @@ class SailboatAutopilotNode(Node):
 
     def emergency_stop_callback(self, should_emergency_stop: Bool)-> None:
         """
-        A callback function for the /object_detection_emergency_stop topic.
+        A callback function for the `/object_detection_emergency_stop` topic.
         If this topic has a 'true' in it, then we need to emergency stop
         the boat until the emergency stop is turned to 'false'.
         """
+
         if should_emergency_stop.data and self.sailboat_control_mode == SailboatControlModes.WAYPOINT_MISSION:
             self.sailboat_control_mode = SailboatControlModes.EMERGENCY_STOP
             self.heading_entered_emergency_stop_in = self.heading

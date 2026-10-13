@@ -47,7 +47,7 @@ class TelemetryNode(Node):
 
     Inherits
     -------
-    ``Node``
+    :class:`rclpy.node.Node`
     """
 
     def __init__(self) -> None:
@@ -182,7 +182,7 @@ class TelemetryNode(Node):
 
         Returns
         -------
-        int
+        `int`
             The id for the telemetry server instance that was just created. This is needed to interact with the
             telemetry server, since the telemetry server needs to know which instance you want to post to or
             access data from.
@@ -253,7 +253,7 @@ class TelemetryNode(Node):
 
     def publish_telemetry_node_instance_id(self) -> None:
         """
-        Publishes the telemetry node instance ID to the /telemetry_node_instance_id topic.
+        Publishes the telemetry node instance ID to the `/telemetry_node_instance_id` topic.
         This is useful for other nodes that need to know the instance ID of the telemetry node.
         """
 
@@ -395,6 +395,7 @@ class TelemetryNode(Node):
         boat_control_mode
             The current control mode of the boat.
         """
+
         if self.telemetry_node_mode == TelemetryNodeModes.SAILBOAT:
             self.boat_control_mode = SailboatControlModes[boat_control_mode.data]
 
@@ -413,6 +414,7 @@ class TelemetryNode(Node):
         desired_sail_angle
             The desired sail angle of the boat.
         """
+
         self.desired_sail_angle = desired_sail_angle.data
 
     def desired_rudder_angle_callback(self, desired_rudder_angle: Float32) -> None:
@@ -424,6 +426,7 @@ class TelemetryNode(Node):
         desired_rudder_angle
             The desired rudder angle of the boat.
         """
+
         self.desired_rudder_angle = desired_rudder_angle.data
 
     def current_sail_angle_callback(self, current_sail_angle: Float32) -> None:
@@ -435,6 +438,7 @@ class TelemetryNode(Node):
         current_sail_angle
             The current sail angle of the boat.
         """
+
         self.current_sail_angle = current_sail_angle.data
 
     def current_rudder_angle_callback(self, current_rudder_angle: Float32) -> None:
@@ -446,6 +450,7 @@ class TelemetryNode(Node):
         current_rudder_angle
             The current rudder angle of the boat.
         """
+
         self.current_rudder_angle = current_rudder_angle.data
 
 
@@ -459,6 +464,7 @@ class TelemetryNode(Node):
         autopilot_parameter_config_path
             The new config path for the autopilot parameters.
         """
+
         parameters_path = Path(autopilot_parameter_config_path.data)
 
         if parameters_path.stem in {"sailboat_default_parameters", "motorboat_default_parameters"}:
@@ -555,7 +561,7 @@ class TelemetryNode(Node):
 
         Yields
         ------
-        tuple[Any, TelemetryStatus]
+        `tuple[Any, TelemetryStatus]`
             The raw response from the telemetry server and the status of the request.
         """
 
@@ -631,8 +637,8 @@ class TelemetryNode(Node):
 
     def construct_boat_status_payload(self) -> SailboatStatusPayload | MotorboatStatusPayload | None:
         """
-        Constructs a ``BoatStatusPayload`` (specifically a ``SailboatStatusPayload`` or
-        ``MotorboatStatusPayload`` depending on the boat mode) from the boat's current
+        Constructs a :class:`BoatStatusPayload` (specifically a :class:`SailboatStatusPayload` or
+        :class:`MotorboatStatusPayload` depending on the boat mode) from the boat's current
         status information.
 
         Note
@@ -642,8 +648,8 @@ class TelemetryNode(Node):
 
         Returns
         -------
-        SailboatStatusPayload | MotorboatStatusPayload | None
-            The constructed boat status payload. Returns ``None`` if the boat is not in
+        `SailboatStatusPayload | MotorboatStatusPayload | None`
+            The constructed boat status payload. Returns `None` if the boat is not in
             either sailboat or motorboat mode, but this should never happen.
         """
 
@@ -733,7 +739,7 @@ class TelemetryNode(Node):
 
     def should_terminate_callback(self, msg: Bool) -> None:
         """
-        Callback function for the should terminate topic. Shuts down the ROS node if the message data is ```True```.
+        Callback function for the should terminate topic. Shuts down the ROS node if the message data is `True`.
 
         Parameters
         ----------

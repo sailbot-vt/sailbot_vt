@@ -38,14 +38,14 @@ class SailboatAutopilot:
     Parameters
     ----------
     parameters
-        Dictionary that should contain the information from the ``config/sailboat_default_parameters.json`` file.
+        Dictionary that should contain the information from the `config/sailboat_default_parameters.json` file.
         For more information on specific parameters you are allowed to use, please see that file.
 
     logger
         A ROS logger to use instead of print statements which works a little better with ROS.
         For more information: https://docs.ros.org/en/humble/Tutorials/Demos/Logging-and-logger-configuration.html.
-        This logger is what you get by running ``self.get_logger()``. So for example in order to log an info message,
-        please use ``logger.info("message")``.
+        This logger is what you get by running :meth:`self.get_logger()`. So for example in order to log an info message,
+        please use `logger.info("message")`.
     """
 
     def __init__(self, parameters: dict[str, Any], logger: RcutilsLogger) -> None:
@@ -100,7 +100,7 @@ class SailboatAutopilot:
         Parameters
         ----------
         waypoints_list
-            A list of ``Position`` objects that form the path the sailboat should follow.
+            A list of :class:`Position` objects that form the path the sailboat should follow.
         """
 
         self.waypoints = waypoints_list
@@ -118,10 +118,10 @@ class SailboatAutopilot:
 
         Returns
         -------
-        float
-            The optimal sail angle from ``0`` to ``90`` degrees where:
-                - ``0`` degrees means the sail is fully in
-                - ``90`` degrees means the sail is fully out
+        `float`
+            The optimal sail angle from 0 to 90 degrees where:
+                - 0 degrees means the sail is fully in
+                - 90 degrees means the sail is fully out
         """
 
         # 180 means wind pushing you backwards, 90 for the sail means let the sails all the way out
@@ -165,7 +165,7 @@ class SailboatAutopilot:
 
         Returns
         -------
-        float
+        `float`
             The angle we should turn the rudder in order to turn from our current heading to the desired heading.
         """
 
@@ -200,18 +200,18 @@ class SailboatAutopilot:
         ----------
         joystick_left_y
             The value of the Y joystick from -100 to 100 where:
-            - ``-100`` means the joystick is fully down
-            - ``100`` means the joystick is fully up.
+            - -100 means the joystick is fully down
+            - 100 means the joystick is fully up.
 
         joystick_right_x
             The value of the X joystick from -100 to 100 where:
-            - ``-100`` means the joystick is fully to the left
-            - ``100`` means the joystick is fully to the right.
+            - -100 means the joystick is fully to the left
+            - 100 means the joystick is fully to the right.
 
         Returns
         -------
-        tuple[float, float]
-            The desired (sail_angle, rudder_angle) that the boat should use to sail.
+        `tuple[float, float]`
+            The desired `(sail_angle, rudder_angle)` that the boat should use to sail.
         """
 
         min_sail_angle: float = self.parameters["min_sail_angle"]
@@ -237,7 +237,7 @@ class SailboatAutopilot:
         """
         This function controls all of the state machine logic of the tacking, which includes state transitions
         from a tacks, downwind sailing, whether or not the boat is currently executing a tack, etc. All of the
-        state transitions are done on the SailboatAutopilotStates enum. To see the state machine diagram please see the
+        state transitions are done on :enum:`SailboatAutopilotStates`. To see the state machine diagram please see the
         following documentation page: https://autoboat-vt.github.io/documentation/ros2_packages/autopilot_package/sailboat_autopilot/.
 
         No side effects.
@@ -263,7 +263,7 @@ class SailboatAutopilot:
 
         Returns
         -------
-        tuple[float, SailboatAutopilotStates]
+        `tuple[float, SailboatAutopilotStates]`
             A tuple with the first element being the angle that the boat wants to be holding measured in degrees counter-clockwise
             from true east, and the second element being the next state that the boat should be in.
         """
@@ -490,31 +490,31 @@ class SailboatAutopilot:
         Parameters
         ----------
         current_position
-            A ```Position``` object that represents the boat's current latitude and longitude position.
+            A :class:`Position` object that represents the boat's current latitude and longitude position.
 
         global_velocity_vector
-            A ```NDArray``` with 2 elements where the first element is the velocity in the x direction, and the second
+            A :class:`NDArray` with 2 elements where the first element is the velocity in the x direction, and the second
             element is the velocity in the y direction. Both elements are in meters per second.
 
         current_heading
             Direction the boat is facing in degrees measured counter-clockwise from true east.
 
         apparent_wind_vector
-            A ``NDArray`` with 2 elements where the first element is the apparent wind velocity in the x direction,
+            A :class:`NDArray` with 2 elements where the first element is the apparent wind velocity in the x direction,
             and the second element is the apparent wind velocity in the y direction. Both elements are in meters per second.
             Wind angle measured counter-clockwise from the centerline of the boat.
 
         Returns
         -------
-        tuple[float, float, float] | tuple[None, None, None]
+        `tuple[float, float, float] | tuple[None, None, None]`
             A tuple with the first element being the desired sail angle, the second being the desired rudder angle that the boat
             should use to sail towards the next waypoint, and the third being the desired heading that the boat is
             trying to get to (primarily for debugging purposes). If the boat has reached the final waypoint
-            or there are no waypoints loaded into the autopilot, then ``(None, None, None)`` is returned.
+            or there are no waypoints loaded into the autopilot, then `(None, None, None)` is returned.
 
         Raises
         ------
-        Exception
+        :class:`Exception`
             If there is some illegal state transition (should never happen in practice unless there is a bug)
         """
 
@@ -614,13 +614,13 @@ class SailboatAutopilot:
             Direction the boat is facing in degrees measured counter-clockwise from true east.
 
         apparent_wind_angle
-            A ``NDArray`` with 2 elements where the first element is the apparent wind velocity in the x direction,
+            A :class:`NDArray` with 2 elements where the first element is the apparent wind velocity in the x direction,
             and the second element is the apparent wind velocity in the y direction. Both elements are in meters per second.
             Wind angle measured counter-clockwise from the centerline of the boat.
 
         Returns
         -------
-        tuple[float, float]
+        `tuple[float, float]`
             A tuple with the first element being the desired sail angle and desired rudder angle that the boat should use
             to not crash into the object right in front of the boat.
         """

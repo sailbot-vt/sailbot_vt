@@ -18,11 +18,11 @@ class BoatStatusPayload(ctypes.LittleEndianStructure):
     A class representing the payload that will be sent to the telemetry server
     to provide information about the boat's current state.
 
-    Must inherit ```ctypes.LittleEndianStructure``` to ensure that the data is packed correctly when sent over the network.
+    Must inherit :class:`ctypes.LittleEndianStructure` to ensure that the data is packed correctly when sent over the network.
 
     Inherits
     --------
-    ``ctypes.LittleEndianStructure``
+    :class:`ctypes.LittleEndianStructure`
     """
 
     # 1 byte alignment (no padding)
@@ -56,7 +56,7 @@ class BoatStatusPayload(ctypes.LittleEndianStructure):
 
         Returns
         -------
-        str
+        `str`
             A string representation of the telemetry payload.
         """
 
@@ -69,7 +69,7 @@ class BoatStatusPayload(ctypes.LittleEndianStructure):
 
         Returns
         -------
-        list[list[str]]
+        `list[list[str]]`
             A list of lists, where each inner list contains the field name and data type of a field in the boat status payload.
         """
 
@@ -81,11 +81,11 @@ class SailboatStatusPayload(BoatStatusPayload):
     A class representing the payload that will be sent to the telemetry server
     to provide information about the sailboat's current state.
 
-    Must inherit ```BoatStatusPayload``` to ensure that it has all the necessary fields for the telemetry payload.
+    Must inherit :class:`BoatStatusPayload` to ensure that it has all the necessary fields for the telemetry payload.
 
     Inherits
     --------
-    ``BoatStatusPayload``
+    :class:`BoatStatusPayload`
     """
 
     # 1 byte alignment (no padding)
@@ -117,7 +117,7 @@ class SailboatStatusPayload(BoatStatusPayload):
 
         Returns
         -------
-        list[list[str]]
+        `list[list[str]]`
             A list of lists, where each inner list contains the field name
             and data type of a field in the sailboat status payload.
         """
@@ -132,11 +132,11 @@ class MotorboatStatusPayload(BoatStatusPayload):
     A class representing the payload that will be sent to the telemetry server
     to provide information about the motorboat's current state.
 
-    Must inherit ```BoatStatusPayload``` to ensure that it has all the necessary fields for the telemetry payload.
+    Must inherit :class:`BoatStatusPayload` to ensure that it has all the necessary fields for the telemetry payload.
 
     Inherits
     --------
-    ``BoatStatusPayload``
+    :class:`BoatStatusPayload`
     """
 
     # 1 byte alignment (no padding)
@@ -169,7 +169,7 @@ class MotorboatStatusPayload(BoatStatusPayload):
 
         Returns
         -------
-        list[list[str]]
+        `list[list[str]]`
             A list of lists, where each inner list contains the field name
             and data type of a field in the motorboat status payload.
         """

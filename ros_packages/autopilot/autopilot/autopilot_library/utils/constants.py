@@ -20,7 +20,13 @@ __all__ = [
 
 
 class SailboatControlModes(Enum):
-    """An enum containing the different control modes that the sailboat can be in."""
+    """
+    An enum containing the different control modes that the sailboat can be in.
+
+    Inherits
+    --------
+    :class:`Enum`
+    """
 
     DISABLED = 0
     FULL_RC = 1
@@ -43,6 +49,10 @@ class SailboatAutopilotStates(Enum):
 
     For more information about what tacking and jibing are, please read the following:
     https://captainsword.com/tacking-and-jibing
+
+    Inherits
+    --------
+    :class:`Enum`
     """
 
     NA = 0
@@ -60,7 +70,13 @@ class SailboatAutopilotStates(Enum):
 
 
 class MotorboatControlModes(Enum):
-    """An enum containing the different control modes that the motorboat can be in."""
+    """
+    An enum containing the different control modes that the motorboat can be in.
+
+    Inherits
+    --------
+    :class:`Enum`
+    """
 
     DISABLED = 0
     FULL_RC = 1
@@ -75,6 +91,10 @@ class PropellerMotorControlMode(Enum):
     RPM directly commands the rotations per minute of the propeller, the duty cycle
     directly controls the voltage going to the motor, and the current, obviously,
     controls the current going to the propeller motor.
+
+    Inherits
+    --------
+    :class:`Enum`
     """
 
     RPM = 0

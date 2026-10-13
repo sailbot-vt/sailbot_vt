@@ -30,7 +30,7 @@ class MotorboatAutopilot:
     Parameters
     ----------
     parameters
-        Dictionary that should contain information from a file in the ```config``` folder.
+        Dictionary that should contain information from a file in the `config` folder.
     logger
         A logger to use instead of print statements which works a little better with ROS.
         For more information see:
@@ -77,7 +77,7 @@ class MotorboatAutopilot:
         Parameters
         ----------
         waypoints_list
-            A list of ```Position``` objects that form the path the boat should follow.
+            A list of :class:`Position` objects that form the path the boat should follow.
         """
 
         self.waypoints = waypoints_list
@@ -108,7 +108,7 @@ class MotorboatAutopilot:
 
         Returns
         -------
-        tuple[str, float, float]
+        `tuple[str, float, float]`
             A 3 element tuple with the following elements:
             - A string that represents the desired vesc control type that the boat should use based on the controller input.
                 Can be either "rpm", "duty_cycle", or "current"
@@ -149,7 +149,7 @@ class MotorboatAutopilot:
 
         Returns
         -------
-        float
+        `float`
             The angle we should turn the rudder in order to turn from our current heading to the desired heading.
         """
 
@@ -176,7 +176,7 @@ class MotorboatAutopilot:
 
         Returns
         -------
-        float
+        `float`
             The rpm the boat should use to get to the desired heading
         """
 
@@ -212,8 +212,8 @@ class MotorboatAutopilot:
 
         Returns
         -------
-        tuple[float, float | None]
-            tuple of the form ```(propeller_rpm, rudder_angle)``` that the autopilot believes that we should take.
+        `tuple[float, float | None]`
+            tuple of the form `(propeller_rpm, rudder_angle)` that the autopilot believes that we should take.
             The rudder angle is None if there are no waypoints loaded into the autopilot or we have reached the final waypoint
         """
 
