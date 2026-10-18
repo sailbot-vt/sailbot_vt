@@ -1,8 +1,5 @@
 #include "systems.hpp"
 
-static drv8711 rudderStepperMotorDriver;
-static drv8711 winchStepperMotorDriver;
-
 Systems::Systems(boat_type bt)
 {
   current_boat = bt;
@@ -42,6 +39,8 @@ void Systems::initialize_hal()
   gpio_set_dir(RUDDER_MOTOR_CS_PIN, GPIO_OUT);
   gpio_pull_down(RUDDER_MOTOR_CS_PIN);
   HAL::init_rudder_stepper(&rudderStepperMotorDriver);
+
+  HAL::init_compass(device_list::compass);
 
   gpio_init(RELAY_PIN);
   gpio_set_dir(RELAY_PIN, GPIO_OUT);
@@ -127,6 +126,6 @@ void Systems::application_loop_step()
   current_rudder::current_angle_msg.data = current_rudder_angle;
   rcl_publish(&current_rudder::current_rudder_angle_publisher, &current_rudder::current_angle_msg, NULL);
 
-  current_heading::heading_msg.data = fmod((180-(compass.getBearing()/10.0+MAGNETIC_DECLINATION))+360,360) + HEADING_OFFSET;
+  current_heading::heading_msg.data = fmod((180-(device_list::compass->getBearing()/10.0+MAGNETIC_DECLINATION))+360,360) + HEADING_OFFSET;
   rcl_publish(&current_heading::compass_angle_publisher, &current_heading::heading_msg, NULL);
 }

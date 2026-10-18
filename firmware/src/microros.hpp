@@ -89,10 +89,10 @@ const int MAX_RUDDER_ERROR = (float)(MAX_RUDDER_ANGLE - MIN_RUDDER_ANGLE);
 const int MAX_WINCH_ERROR = (float)(MAX_WINCH_ANGLE - MIN_RUDDER_ANGLE);
 const int MAX_SAIL_ERROR = (float)(MAX_SAIL_ANGLE - MIN_SAIL_ANGLE);
 
+static drv8711 rudderStepperMotorDriver()
 
 static amt22 rudderEncoder(RUDDER_ENCODER_CS_PIN, SPI_PORT);
 static amt22 winchEncoder(WINCH_ENCODER_CS_PIN, SPI_PORT);
-static cmps14 compass(I2C_PORT,MAGNETOMETER_ADDRESS);
 
 static float desired_rudder_angle = 0;
 static float desired_rudder_motor_angle = 0;
@@ -140,6 +140,10 @@ inline float get_winch_angle_from_sail_angle(float sail_angle) {
 // Encapsulated by structs
 // 1. Composite datatypes with some values predefined
 // 2. groups of variables that are supposed to be used toegther
+
+struct device_list{
+    cmps14 * compass;
+};
 
 struct zero_rudder
 {
