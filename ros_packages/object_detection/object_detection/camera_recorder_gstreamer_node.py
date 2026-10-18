@@ -122,14 +122,14 @@ class CamCorderNode(Node):
         t = message.type
         if t == Gst.MessageType.EOS:
             self.get_logger().info("End-of-stream\n")
-            self.close_callback()
+            self.close_pipeline()
         elif t == Gst.MessageType.WARNING:
             err, debug = message.parse_warning()
             self.get_logger().warn(f"Warning: {err}: {debug}\n")
         elif t == Gst.MessageType.ERROR:
             err, debug = message.parse_error()
             self.get_logger().error(f"Error: {err}: {debug}\n")
-            self.close_callback()
+            self.close_pipeline()
         return True
     
     def run(self) -> None:
