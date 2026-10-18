@@ -70,9 +70,9 @@ void propeller_motor::should_propeller_motor_be_powered_callback(const void *msg
     const std_msgs__msg__Bool *should_propeller_motor_be_powered_msg = (const std_msgs__msg__Bool *)msg_in;
 
     if (should_propeller_motor_be_powered_msg->data)
-        gpio_put(RELAY_PIN, 0);
+        close_contactor(CONTACTOR_RLY_PIN);
     else
-        gpio_put(RELAY_PIN, 1);
+        open_contactor(CONTACTOR_RLY_PIN);
 }
 
 void propeller_motor::propeller_motor_create_subscription(rcl_node_t *microros_node)

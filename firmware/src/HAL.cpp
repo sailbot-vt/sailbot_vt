@@ -1,4 +1,5 @@
 #include "HAL.hpp"
+#include "contactor_driver_library.h"
 
   std_msgs__msg__Float64 desired_rudder_angle_msg;
   std_msgs__msg__Float64 current_rudder_angle_msg;
@@ -48,6 +49,11 @@ void HAL::init_i2c(){
 
 void HAL::init_rudder_stepper(drv8711* rudderStepperMotorDriver){
       drv8711_init(rudderStepperMotorDriver, SPI_PORT, RUDDER_MOTOR_CS_PIN, RUDDER_MOTOR_SLEEP_PIN, AutoMixed, RUDDER_MICROSTEP, MAX_RUDDER_CURRENT);
+}
+
+//intialize contactor
+void HAL::init_contactor(){
+    initialize_contactor_driver(CONTACTOR_RLY_PIN);
 }
 
 u_int16_t HAL::debug(drv8711* rudderStepperMotorDriver){

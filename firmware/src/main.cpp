@@ -19,6 +19,7 @@ int main()
 
 
     stdio_init_all();
+    HAL::init_contactor();  //has to be early so the contactor is initialized open
 
     while (true) {
         rmw_uros_set_custom_transport(

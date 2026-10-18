@@ -36,6 +36,7 @@ void Systems::check_microros()
 void Systems::initialize_hal()
 {
   // write boat specific intialization later
+  HAL::init_contactor();
   HAL::init_i2c();
   HAL::init_spi();
   gpio_init(RUDDER_MOTOR_CS_PIN);
@@ -43,14 +44,16 @@ void Systems::initialize_hal()
   gpio_pull_down(RUDDER_MOTOR_CS_PIN);
   HAL::init_rudder_stepper(&rudderStepperMotorDriver);
 
-  gpio_init(RELAY_PIN);
-  gpio_set_dir(RELAY_PIN, GPIO_OUT);
-  gpio_pull_up(RELAY_PIN);
+  // OLD CONTACTOR CODE, DELETE ONCE TESTED;replaced by line 39
+  // gpio_init(RELAY_PIN);
+  // gpio_set_dir(RELAY_PIN, GPIO_OUT);
+  // gpio_pull_up(RELAY_PIN);
 
 }
 
 void Systems::cleanup()
 {
+  open_contactor(CONTACTOR_RLY_PIN);  //shouldn't hurt to open during cleanup
   rclc_executor_fini(&executor);
   rclc_support_fini(&support);
 }

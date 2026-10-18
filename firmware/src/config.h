@@ -53,13 +53,22 @@ PCB SPECIFIC CONFIGURATIONS
 // Miscellaneous
 #define RUDDER_MOTOR_SLEEP_PIN 5
 #define WINCH_MOTOR_SLEEP_PIN 14
-#define RELAY_PIN 22 // NOTE: UNUSED BECAUSE OUR CURRENT BJT DRIVER DOESN'T WORK
+//#define RELAY_PIN 22 // NOTE: UNUSED BECAUSE OUR CURRENT BJT DRIVER DOESN'T WORK
 
-// Relay
-#define CONTACTOR_DRIVER_SEL0_PIN 19
-#define CONTACTOR_DRIVER_PWM_PIN 18
-#define CONTACTOR_DRIVER_IN_A_PIN 8
-#define CONTACTOR_DRIVER_IN_B_PIN 16
+// Old Relay pin definitions (replaced by contactor)
+// #define CONTACTOR_DRIVER_SEL0_PIN 19
+// #define CONTACTOR_DRIVER_PWM_PIN 18
+// #define CONTACTOR_DRIVER_IN_A_PIN 8
+// #define CONTACTOR_DRIVER_IN_B_PIN 16
+
+// Contactor (2026 Digital PCB), has VNH7100BAS H-bridge
+// GPIO22? Check later that this is the correct one.
+// INA high > RLYOUTA high / RLYOUTB low -> contactor closed
+// INA low > RLYOUTA low, RLYOUTB low > cotnactor closed
+#define CONTACTOR_RLY_PIN 22
+#define CONTACTOR_CLOSED 1
+#define CONTACTOR_OPEN 0
+
 
 // Port declarations
 #define I2C_PORT i2c1
