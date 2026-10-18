@@ -42,15 +42,15 @@ void HAL::init_i2c(){
     gpio_pull_up(SCL_PIN);
 }
 
-void init_rudderEncoder(amt22* rudderEncoder) {
+void HAL::init_rudderEncoder(amt22*& rudderEncoder) {
     rudderEncoder = new amt22(RUDDER_ENCODER_CS_PIN, SPI_PORT);
 }
 
-void init_winchEncoder(amt22* winchEncoder) {
+void HAL::init_winchEncoder(amt22*& winchEncoder) {
     winchEncoder = new amt22(WINCH_ENCODER_CS_PIN, SPI_PORT);
 }
 
-void HAL::init_rudder_stepper(drv8711* rudderStepperMotorDriver) {
+void HAL::init_rudder_stepper(drv8711*& rudderStepperMotorDriver) {
     rudderStepperMotorDriver = new drv8711(SPI_PORT, RUDDER_MOTOR_CS_PIN, RUDDER_MOTOR_SLEEP_PIN, AutoMixed, RUDDER_MICROSTEP, MAX_RUDDER_CURRENT);
 }
 
@@ -58,15 +58,19 @@ void HAL::init_winch_stepper(drv8711* winchStepperMotorDriver) {
     rudderStepperMotorDriver = new drv8711(SPI_PORT, WINCH_MOTOR_CS_PIN, WINCH_MOTOR_SLEEP_PIN, AutoMixed, WINCH_MICROSTEP, MAX_WINCH_CURRENT);
 }
 
-// u_int16_t HAL::debug(drv8711* rudderStepperMotorDriver){
-//     u_int16_t Control_REG_output = drv8711_readReg(rudderStepperMotorDriver, CTRL_REG_ADDRESS);
-//     // u_int16_t TORQUE_REG_output = drv8711_readReg(rudderStepperMotorDriver, TORQUE_REG_ADDRESS);
-//     // u_int16_t OFF_REG_output = drv8711_readReg(rudderStepperMotorDriver, OFF_REG_ADDRESS);
-//     // u_int16_t BLANK_REG_output = drv8711_readReg(rudderStepperMotorDriver, BLANK_REG_ADDRESS);
-//     // u_int16_t DECAY_REG_output = drv8711_readReg(rudderStepperMotorDriver, DECAY_REG_ADDRESS);
-//     // u_int16_t STALL_REG_output = drv8711_readReg(rudderStepperMotorDriver, STALL_REG_ADDRESS);
-//     // u_int16_t DRIVE_REG_output = drv8711_readReg(rudderStepperMotorDriver, DRIVE_REG_ADDRESS);
-//     // u_int16_t STATUS_REG_output = drv8711_readReg(rudderStepperMotorDriver, STATUS_REG_ADDRESS);
+void HAL::init_winch_stepper(drv8711* winchStepperMotorDriver) {
+    rudderStepperMotorDriver = new drv8711(SPI_PORT, WINCH_MOTOR_CS_PIN, WINCH_MOTOR_SLEEP_PIN, AutoMixed, WINCH_MICROSTEP, MAX_WINCH_CURRENT);
+}
 
-//     return Control_REG_output;
-// }
+u_int16_t HAL::debug(drv8711* rudderStepperMotorDriver){
+    u_int16_t Control_REG_output = drv8711_readReg(rudderStepperMotorDriver, CTRL_REG_ADDRESS);
+    // u_int16_t TORQUE_REG_output = drv8711_readReg(rudderStepperMotorDriver, TORQUE_REG_ADDRESS);
+    // u_int16_t OFF_REG_output = drv8711_readReg(rudderStepperMotorDriver, OFF_REG_ADDRESS);
+    // u_int16_t BLANK_REG_output = drv8711_readReg(rudderStepperMotorDriver, BLANK_REG_ADDRESS);
+    // u_int16_t DECAY_REG_output = drv8711_readReg(rudderStepperMotorDriver, DECAY_REG_ADDRESS);
+    // u_int16_t STALL_REG_output = drv8711_readReg(rudderStepperMotorDriver, STALL_REG_ADDRESS);
+    // u_int16_t DRIVE_REG_output = drv8711_readReg(rudderStepperMotorDriver, DRIVE_REG_ADDRESS);
+    // u_int16_t STATUS_REG_output = drv8711_readReg(rudderStepperMotorDriver, STATUS_REG_ADDRESS);
+
+    return Control_REG_output;
+}
