@@ -66,10 +66,8 @@ PCB SPECIFIC CONFIGURATIONS
 #define SPI_PORT spi0
 
 
-//Magnetometer
-#define MAGNETOMETER_ADDRESS 0x60
 
 
-//Motor Controllers
-#define RUDDER_MICROSTEP (DRV8711_stepMode) 8
-#define MAX_RUDDER_CURRENT 2000
+
+
+

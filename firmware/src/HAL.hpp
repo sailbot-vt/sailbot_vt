@@ -38,6 +38,17 @@ namespace HAL
 // oput of microros and hal and into boat
 // This is recommended but i need to figure out what to do with microros.cpp
 
+//Device struct (insert helpful comment)
+static struct devices
+{
+    //this is a comment
+    inline amt22* winchEncoder;
+    inline amt22* rudderEncoder; 
+    inline drv8711* rudderStepperMotorDriver;
+    inline drv8711* winchStepperMotorDriver;
+};
+
+
 // communication protocols
 void init_spi();
 void init_i2c();
@@ -47,6 +58,7 @@ void init_uart();
 void init_rudderEncoder(amt22* rudderEncoder);
 void init_winchEncoder(amt22* winchEncoder);
 void init_rudder_stepper(drv8711* rudderStepperMotorDriver);
+void init_winch_stepper(drv8711* winchStepperMotorDriver)
 void init_contactor();
 void init_hydraulics();
 void init_magnetometer();
