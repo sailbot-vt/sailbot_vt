@@ -112,8 +112,6 @@ class DeepStreamEngine:
 
         streammux = Gst.ElementFactory.make("nvstreammux", "muxer")
         streammux.set_property('batch-size', 2)
-        streammux.set_property("sync-inputs", True)
-        streammux.set_property("batched-push-timeout", 33_333_333)
         
         # v4l2-ctl --list-devices
         # v4l2-ctl --device /dev/video0 --list-formats-ext
@@ -169,8 +167,6 @@ class DeepStreamEngine:
 
         src_tee = Gst.ElementFactory.make("tee", "src-tee")
 
-        queue_left = Gst.ElementFactory.make('queue', 'queue-left')
-
         nvvidconv_left = Gst.ElementFactory.make('nvvideoconvert', 'nvconverter-left')
         nvvidconv_left.set_property('nvbuf-memory-type', MEMORY_TYPE)
         nvvidconv_left.set_property('compute-hw', COMPUTE_HW)
@@ -185,8 +181,6 @@ class DeepStreamEngine:
                 f"height={self.cam_list[0]['height']}"
             )
         )
-
-        queue_right = Gst.ElementFactory.make('queue', 'queue-right')
 
         nvvidconv_right = Gst.ElementFactory.make('nvvideoconvert', 'nvconverter-right')
         nvvidconv_right.set_property('nvbuf-memory-type', MEMORY_TYPE)
@@ -249,10 +243,8 @@ class DeepStreamEngine:
         self.pipeline.add(caps_nvvidconvsrc0)
         self.pipeline.add(src_tee)
         self.pipeline.add(nvvidconv_left)
-        self.pipeline.add(queue_left)
         self.pipeline.add(caps_nvvidconv_left)
         self.pipeline.add(nvvidconv_right)
-        self.pipeline.add(queue_right)
         self.pipeline.add(caps_nvvidconv_right)
         self.pipeline.add(streammux)
         if INFERENCE:
@@ -274,15 +266,13 @@ class DeepStreamEngine:
         caps_nvvidconvsrc0.link(src_tee)
 
         srcpad_left = src_tee.request_pad_simple('src_0')
-        sinkpad_left = queue_left.get_static_pad('sink')
+        sinkpad_left = nvvidconv_left.get_static_pad('sink')
         srcpad_left.link(sinkpad_left)
-        queue_left.link(nvvidconv_left)
         nvvidconv_left.link(caps_nvvidconv_left)
 
         srcpad_right = src_tee.request_pad_simple('src_1')
-        sinkpad_right = queue_right.get_static_pad('sink')
+        sinkpad_right = nvvidconv_right.get_static_pad('sink')
         srcpad_right.link(sinkpad_right)
-        queue_right.link(nvvidconv_right)
         nvvidconv_right.link(caps_nvvidconv_right)
 
         sinkpad0 = streammux.request_pad_simple('sink_0')
