@@ -11,8 +11,6 @@ from gi.repository import GLib, Gst
 import json
 import os
 import re
-import sys
-import requests
 import threading
 
 import rclpy
@@ -20,8 +18,7 @@ from jsonc_parser.parser import JsoncParser
 from rclpy.node import Node
 
 # from realsense2_camera_msgs.msg import RGBD
-from std_msgs.msg import String, Bool, Int32
-from sensor_msgs.msg import Image
+from std_msgs.msg import String, Bool
 from autoboat_msgs.msg import ObjectDetectionResult, ObjectDetectionFrameResults, ObjectDetectionResultsList, ImageData
 
 from .cv_library.deepstream_engine import DeepStreamEngine
@@ -42,7 +39,7 @@ class BuoyDetectionNode(Node):
         self.object_detection_results_publisher = self.create_publisher(
             msg_type=ObjectDetectionResultsList, topic="/object_detection_results_list", qos_profile=10
         )
-        self.image_publisher = self.create_publisher(msg_type=UInt8MultiArray, topic="/object_detection_image", qos_profile=10)
+        self.image_publisher = self.create_publisher(msg_type=ImageData, topic="/object_detection_image", qos_profile=10)
         self.create_subscription(msg_type=String, topic="/cv_parameters", callback=self._cv_parameters_callback, qos_profile=10)
         self.create_subscription(msg_type=Bool, topic="/osd", callback=self._osd_callback, qos_profile=10)
 

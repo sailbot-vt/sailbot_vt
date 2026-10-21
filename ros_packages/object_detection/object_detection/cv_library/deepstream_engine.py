@@ -478,10 +478,10 @@ class DeepStreamEngine:
                                           [int(cv2.IMWRITE_JPEG_QUALITY),self.parameters["jpg_compression_ratio"]])
         
         current_time = time.time()
-        fps_last = 1 / self.frame_times[0] if self.frame_time[0] != 0 else 0
-        fps_avg = 5 / self.frame_times[5] if self.frame_times[5] != 0 else 0
+        fps_last = 1 / (current_time - self.frame_times[0]) if self.frame_times[0] != 0 else 0.0
+        fps_avg = len(self.frame_times) / (current_time - self.frame_times[-1]) if self.frame_times[-1] != 0 else 0.0
 
-        for i in range(len(self.frame_times), 0, -1):
+        for i in range(len(self.frame_times) - 1, 0, -1):
             self.frame_times[i] = self.frame_times[i-1]
         self.frame_times[0] = current_time
         
