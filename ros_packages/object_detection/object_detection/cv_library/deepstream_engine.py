@@ -63,7 +63,8 @@ class DeepStreamEngine:
       image_callback:Callable[[bytes], None],
       info_callback:Callable[[str], None],
       warn_callback:Callable[[str], None],
-      error_callback:Callable[[str], None]
+      error_callback:Callable[[str], None],
+      close_callback:Callable[[], None]
     ) -> None:
         self.parameters = {
             "model_name": "", # model name without .onnx. Ex. yolo11m.onnx -> yolo11m
@@ -75,6 +76,7 @@ class DeepStreamEngine:
         self.info_callback = info_callback
         self.warn_callback = warn_callback
         self.error_callback = error_callback
+        self.close_callback = close_callback
 
         self.cam_list = self._read_camera_config()
         if CAMERA:
@@ -120,6 +122,7 @@ class DeepStreamEngine:
         else:
             source0 = Gst.ElementFactory.make("videotestsrc", "usb-cam-0")
             source0.set_property('pattern', 18)
+            source0.set_property('is-live', True)
             self.info_callback("Opening videotestsrc")
 
         """
@@ -135,7 +138,8 @@ class DeepStreamEngine:
                                                                f'width={self.cam_list[0]["width"]},'
                                                                f'height={self.cam_list[0]["height"]},'
                                                                f'format={self.cam_list[0]["gst_format"]},'
-                                                               f'framerate={self.cam_list[0]["framerate"]}'
+                                                               f'framerate={self.cam_list[0]["framerate_n"]}/'
+                                                               f'{self.cam_list[0]["framerate_d"]}'
                                                                ))
 
         # This is a workaround.
@@ -182,7 +186,7 @@ class DeepStreamEngine:
         nvvidconv_right.set_property('nvbuf-memory-type', MEMORY_TYPE)
         nvvidconv_right.set_property('compute-hw', COMPUTE_HW)
         nvvidconv_right.set_property('src-crop', f"{self.cam_list[0]['width'] // 2}:0:"
-                                                 f"{self.cam_list[0]['width']}:{self.cam_list[0]['height']}")
+                                                 f"{self.cam_list[0]['width'] // 2}:{self.cam_list[0]['height']}")
         caps_nvvidconv_right = Gst.ElementFactory.make("capsfilter", "nvmm-caps-right")
         caps_nvvidconv_right.set_property(
             "caps",
@@ -310,13 +314,14 @@ class DeepStreamEngine:
         t = message.type
         if t == Gst.MessageType.EOS:
             self.info_callback("End-of-stream\n")
+            self.close_callback()
         elif t == Gst.MessageType.WARNING:
             err, debug = message.parse_warning()
             self.warn_callback(f"Warning: {err}: {debug}\n")
         elif t == Gst.MessageType.ERROR:
             err, debug = message.parse_error()
             self.error_callback(f"Error: {err}: {debug}\n")
-            self.close_pipeline()
+            self.close_callback()
         return True
 
     def run(self) -> None:
@@ -373,14 +378,14 @@ class DeepStreamEngine:
                 break
 
             msg["ntp_timestamp"] = frame_meta.ntp_timestamp
+            msg["detection_results"].append([])
 
             if (frame_meta.source_id == 0 and frame_meta.frame_num % 60 == 0):
                 current_time = time.time()
                 fps = 60 / (current_time - self.last_time)
                 self.last_time = current_time
                 self.info_callback(f"Frame: {frame_meta.frame_num}, avg FPS: {fps:.2f}")
-                # n_frame = pyds.get_nvds_buf_surface(hash(gst_buffer), frame_meta.batch_id)
-                # print(n_frame)
+
             l_obj = frame_meta.obj_meta_list
 
             # Iterate through each object in frame

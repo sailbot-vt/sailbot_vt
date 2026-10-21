@@ -7,8 +7,6 @@ USER $USERNAME
 ENV DEVCONTAINER_VARIANT=deepstream
 ENV CUDA_VER=12.6
 ENV PATH=/usr/local/cuda-12.6/bin:${PATH}
-ARG LD_LIBRARY_PATH=""
-ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH:+${LD_LIBRARY_PATH}:}/usr/local/cuda-12.6/lib64:/usr/local/cuda-12.6/targets/x86_64-linux/lib/stubs
 
 RUN mkdir -p /tmp/autoboat_scripts
 
