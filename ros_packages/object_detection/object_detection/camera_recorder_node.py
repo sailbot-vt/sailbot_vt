@@ -22,6 +22,7 @@ CAMERA_CONFIG = f"{PATH_TO_PKG_DIR}/object_detection/object_detection/config/cam
 class CamCorderNode(Node):
     def __init__(self) -> None:
         super().__init__('cam_corder')
+        self.get_logger().info("OpenCV Cam_Corder Node")
         self.storage_cap = 0.6 # Do not go above this disk utilization
         self.last_time = time.time()
         
@@ -145,16 +146,16 @@ class CamCorderNode(Node):
             self.error_callback("ls, cat, or v4l2-ctl command not found. Cannot find camera device.")
             raise OSError("Required command not found")
         try:
-            camera_devices_output = subprocess.run([ls, '/sys/class/video4linux/'], # noqa: S603
+            camera_devices_output = subprocess.run([ls, '/sys/class/video4linux/'],
                                                    capture_output=True, text=True, check=True).stdout
         except subprocess.CalledProcessError as err:
             self.error_callback("Failed to list camera devices in /sys/class/video4linux/.")
             raise OSError("Failed to list camera devices in /sys/class/video4linux/.") from err
         for device in camera_devices_output.splitlines():
             try:
-                if ((re.search(cam_name, subprocess.run([cat, f'/sys/class/video4linux/{device}/name'], # noqa: S603
+                if ((re.search(cam_name, subprocess.run([cat, f'/sys/class/video4linux/{device}/name'],
                                                         capture_output=True, text=True, check=True).stdout) is not None) and
-                (re.search(cam_format, subprocess.run([v4l2_ctl, '--device', f'/dev/{device}', '--list-formats'], # noqa: S603
+                (re.search(cam_format, subprocess.run([v4l2_ctl, '--device', f'/dev/{device}', '--list-formats'],
                                                             capture_output=True, text=True, check=True).stdout) is not None)):
                         return f"/dev/{device}"
             except subprocess.CalledProcessError as err:

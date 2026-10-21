@@ -119,29 +119,16 @@ fi
 pip3 install ./pyds-1.2.0-*.whl
 sudo rm -f ./pyds-1.2.0-*.whl
 
-# Create CUDA stub symlink for libcuda.so.1 to allow pyds import when no GPU driver is mounted
-if [ -f /usr/local/cuda-12.6/targets/x86_64-linux/lib/stubs/libcuda.so ] && [ ! -f /usr/local/cuda-12.6/targets/x86_64-linux/lib/stubs/libcuda.so.1 ]; then
-    sudo ln -s libcuda.so /usr/local/cuda-12.6/targets/x86_64-linux/lib/stubs/libcuda.so.1
-fi
-echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-12.6/targets/x86_64-linux/lib/stubs' >> ~/.bashrc
-
-# Compile the deepstream_yolo library
-echo -e "\n\nCompiling deepstream_yolo library\n\n"
-# cd /home/ws/ros_packages/object_detection/object_detection/cv_library/
-# export CUDA_VER=12.6
-# make -C deepstream_yolo_library clean && make -C deepstream_yolo_library
-
 # Install ultralytics
 echo -e "\n\nInstalling ultralytics\n\n"
 pip install --no-cache-dir ultralytics
 pip install --no-cache-dir onnx onnxslim onnxruntime onnxscript
 pip install --no-cache-dir sahi # sahi is currently not used
 pip install --no-cache-dir numpy==1.26.4
+pip install setuptools==59.6.0
 
 echo -e "\n\nInstalling Utils\n\n"
 sudo apt-get install -y v4l-utils
-
-export IS_DEV_CONTAINER=true # I don't think this persists after script ends otherwise
 
 # Clean up caches to reduce container size
 sudo apt-get clean

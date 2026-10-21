@@ -19,7 +19,7 @@ setup(
     entry_points={
         "console_scripts": [
             "object_detection = object_detection.object_detection_node:main",
-            'cam_corder = object_detection.camera_recorder_node:main',
+            'cam_corder = object_detection.camera_recorder_gstreamer_node:main',
             'localization = object_detection.localization_node:main'
         ],
     },

@@ -1,4 +1,4 @@
-# ruff: noqa:I001 E402, F401
+# ruff: noqa:I001 E402
 import gi
 
 gi.require_version('Gst', '1.0')
@@ -9,11 +9,9 @@ import os
 import re
 import shutil
 import subprocess
-import sys
 import time
 import threading
 
-import cv2
 import yaml
 
 import rclpy
@@ -28,6 +26,8 @@ CAMERA_CONFIG = f"{PATH_TO_PKG_DIR}/object_detection/object_detection/config/cam
 
 class CamCorderNode(Node):
     def __init__(self) -> None:
+        super().__init__('cam_corder')
+        self.get_logger().info("GStreamer Cam_Corder Node")
         self.storage_cap = 0.6 # Do not go above this disk utilization
         self.last_time = time.time()
 
@@ -75,12 +75,13 @@ class CamCorderNode(Node):
         self.create_subscription( # heading is counterclockwise of true east
             msg_type=Float32, topic="/heading", callback=self._heading_callback, qos_profile=qos_profile_sensor_data
         )
+        self.count = 0
 
         self._init_pipeline()
         cv_thread = threading.Thread(target=self.run, daemon=True)
         cv_thread.start()
     
-    def _init_pipeline(self):
+    def _init_pipeline(self) -> None:
         self.pipeline = Gst.Pipeline()
         
         source0 = Gst.ElementFactory.make('v4l2src', 'usb-cam-0')
@@ -96,26 +97,39 @@ class CamCorderNode(Node):
                                                                f'{self.cam_list[0]["framerate_d"]}'
                                                                ))
 
-        pngenc = Gst.ElementFactory.make('pngenc', 'pngenc')
+        videoconvert = Gst.ElementFactory.make('videoconvert', 'videoconvert')
+
+        nvvideoconvert = Gst.ElementFactory.make('nvvideoconvert', 'nvvideoconvert')
+
+        # TODO: Needs testing on Jetson
+        caps_nvvidconv = Gst.ElementFactory.make('capsfilter', 'caps_nvvidconv')
+        caps_nvvidconv.set_property('caps',
+                                    Gst.Caps.from_string('video/x-raw(memory:NVMM), format=NV12'))
+
+        jpegenc = Gst.ElementFactory.make('nvjpegenc', 'jpegenc')
 
         self.filesink = Gst.ElementFactory.make('multifilesink', 'filesink')
-        self.filesink.set_property('location', f'{self.run_dir}%06d.png')
+        self.filesink.set_property('location', f'{self.run_dir}%06d.jpeg')
 
         self.pipeline.add(source0)
         self.pipeline.add(caps_source0)
-        self.pipeline.add(pngenc)
+        self.pipeline.add(videoconvert)
+        self.pipeline.add(nvvideoconvert)
+        self.pipeline.add(jpegenc)
         self.pipeline.add(self.filesink)
 
         source0.link(caps_source0)
-        caps_source0.link(pngenc)
-        pngenc.link(self.filesink)
+        caps_source0.link(videoconvert)
+        videoconvert.link(nvvideoconvert)
+        nvvideoconvert.link(jpegenc)
+        jpegenc.link(self.filesink)
 
         self.loop = GLib.MainLoop()
         bus = self.pipeline.get_bus()
         bus.add_signal_watch()
         bus.connect("message", self._bus_call, self.loop)
 
-        sink_probe_pad = filesink.get_static_pad('sink')
+        sink_probe_pad = self.filesink.get_static_pad('sink')
         sink_probe_pad.add_probe(Gst.PadProbeType.BUFFER, self._sink_probe, 0)
 
     def _bus_call(self, bus: Gst.Bus, message: Gst.Message, loop: GLib.MainLoop) -> bool: # noqa: ARG002
@@ -152,10 +166,12 @@ class CamCorderNode(Node):
         self.get_logger().info("Pipeline stopped\n")
     
     def _sink_probe(self, pad: Gst.Pad, info: Gst.PadProbeInfo, user_data: int) -> Gst.PadProbeReturn: # noqa: ARG002
-        count = self.filesink.get_property('index')
-        if count % 120 == 0:
+        # count = self.filesink.get_property('index')
+        self.count += 1
+        count = self.count
+        if count % 30 == 0:
             current_time = time.time()
-            fps = 120 / (current_time - self.last_time)
+            fps = 30 / (current_time - self.last_time)
             self.last_time = current_time
             self.get_logger().info(f"Current frame count: {count}, FPS: {fps:.2f}")
             if self._get_storage_util() > self.storage_cap:
@@ -172,6 +188,8 @@ class CamCorderNode(Node):
             }
         with open(self.log_file, 'a') as file:
             file.write(json.dumps(curr_log) + '\n')
+
+        return Gst.PadProbeReturn.OK
 
     def _read_camera_config(self) -> dict:
         with open(CAMERA_CONFIG, 'r') as file:
